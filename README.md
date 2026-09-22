@@ -38,6 +38,10 @@ xcodebuild -scheme Kalyta -destination 'platform=iOS Simulator,name=iPhone 17' b
 
 Або просто відкрити `Kalyta.xcodeproj` у Xcode і натиснути Run. Мінімум iOS 17 (SwiftData).
 
+Для запуску на своєму iPhone заміни `DEVELOPMENT_TEAM` у проєкті на свій
+(Signing & Capabilities → Team). З безкоштовним Apple ID збірка живе 7 днів,
+потім треба запустити Run ще раз.
+
 ## Перевірка
 
 ```sh
