@@ -7,13 +7,13 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		1A0000000000000000000001 /* Skarbo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Skarbo.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1A0000000000000000000001 /* Kalyta.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Kalyta.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		1A0000000000000000000002 /* Skarbo */ = {
+		1A0000000000000000000002 /* Kalyta */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Skarbo;
+			path = Kalyta;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -32,7 +32,7 @@
 		1A0000000000000000000004 = {
 			isa = PBXGroup;
 			children = (
-				1A0000000000000000000002 /* Skarbo */,
+				1A0000000000000000000002 /* Kalyta */,
 				1A0000000000000000000005 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -40,7 +40,7 @@
 		1A0000000000000000000005 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				1A0000000000000000000001 /* Skarbo.app */,
+				1A0000000000000000000001 /* Kalyta.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -48,9 +48,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		1A0000000000000000000006 /* Skarbo */ = {
+		1A0000000000000000000006 /* Kalyta */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 1A0000000000000000000007 /* Build configuration list for PBXNativeTarget "Skarbo" */;
+			buildConfigurationList = 1A0000000000000000000007 /* Build configuration list for PBXNativeTarget "Kalyta" */;
 			buildPhases = (
 				1A0000000000000000000008 /* Sources */,
 				1A0000000000000000000003 /* Frameworks */,
@@ -61,11 +61,11 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				1A0000000000000000000002 /* Skarbo */,
+				1A0000000000000000000002 /* Kalyta */,
 			);
-			name = Skarbo;
-			productName = Skarbo;
-			productReference = 1A0000000000000000000001 /* Skarbo.app */;
+			name = Kalyta;
+			productName = Kalyta;
+			productReference = 1A0000000000000000000001 /* Kalyta.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -83,7 +83,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 1A000000000000000000000B /* Build configuration list for PBXProject "Skarbo" */;
+			buildConfigurationList = 1A000000000000000000000B /* Build configuration list for PBXProject "Kalyta" */;
 			developmentRegion = uk;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -97,7 +97,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				1A0000000000000000000006 /* Skarbo */,
+				1A0000000000000000000006 /* Kalyta */,
 			);
 		};
 /* End PBXProject section */
@@ -176,7 +176,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				MARKETING_VERSION = 0.1;
-				PRODUCT_BUNDLE_IDENTIFIER = org.merzlov.skarbo;
+				PRODUCT_BUNDLE_IDENTIFIER = org.merzlov.kalyta;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -197,7 +197,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				MARKETING_VERSION = 0.1;
-				PRODUCT_BUNDLE_IDENTIFIER = org.merzlov.skarbo;
+				PRODUCT_BUNDLE_IDENTIFIER = org.merzlov.kalyta;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -208,7 +208,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		1A0000000000000000000007 /* Build configuration list for PBXNativeTarget "Skarbo" */ = {
+		1A0000000000000000000007 /* Build configuration list for PBXNativeTarget "Kalyta" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				1A000000000000000000000E /* Debug */,
@@ -217,7 +217,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		1A000000000000000000000B /* Build configuration list for PBXProject "Skarbo" */ = {
+		1A000000000000000000000B /* Build configuration list for PBXProject "Kalyta" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				1A000000000000000000000C /* Debug */,

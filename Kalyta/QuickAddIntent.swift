@@ -1,12 +1,12 @@
 import AppIntents
 import SwiftData
 
-/// Точка входу для Shortcuts — саме через неї працюють обидві "преміум" фічі Skarbo:
+/// Точка входу для Shortcuts — саме через неї працюють обидві "преміум" фічі Kalyta:
 /// подвійний тап по спинці (Налаштування → Доступність → Дотик → Тап по задній панелі)
 /// і автозапис оплат (Команди → Автоматизація → Транзакція).
 struct QuickAddExpense: AppIntent {
     static var title: LocalizedStringResource = "Додати витрату"
-    static var description = IntentDescription("Записує витрату в Skarbo без відкриття застосунку.")
+    static var description = IntentDescription("Записує витрату в Kalyta без відкриття застосунку.")
     static var openAppWhenRun = false
 
     @Parameter(title: "Сума", requestValueDialog: "Скільки?")

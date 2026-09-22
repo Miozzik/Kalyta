@@ -2,7 +2,7 @@ import SwiftUI
 import SwiftData
 
 @main
-struct SkarboApp: App {
+struct KalytaApp: App {
     init() {
         if CommandLine.arguments.contains("--selfcheck") { MainActor.assumeIsolated { selfCheck() } }
         if CommandLine.arguments.contains("--demo") { MainActor.assumeIsolated { seedDemo() } }
@@ -16,7 +16,7 @@ struct SkarboApp: App {
 
 /// Доводить, що запис через Store.container (шлях App Intent / Back Tap)
 /// читається тим самим запитом, яким його бачить список на екрані.
-/// Запуск: xcrun simctl launch <sim> org.merzlov.skarbo --selfcheck
+/// Запуск: xcrun simctl launch <sim> org.merzlov.kalyta --selfcheck
 @MainActor
 private func selfCheck() {
     let context = Store.container.mainContext
@@ -42,7 +42,7 @@ private func selfCheck() {
 }
 
 
-/// Наповнює базу прикладами для скріншотів: xcrun simctl launch <sim> org.merzlov.skarbo --demo
+/// Наповнює базу прикладами для скріншотів: xcrun simctl launch <sim> org.merzlov.kalyta --demo
 @MainActor
 private func seedDemo() {
     let context = Store.container.mainContext

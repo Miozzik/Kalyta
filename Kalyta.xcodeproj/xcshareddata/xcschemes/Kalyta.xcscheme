@@ -6,9 +6,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "1A0000000000000000000006"
-               BuildableName = "Skarbo.app"
-               BlueprintName = "Skarbo"
-               ReferencedContainer = "container:Skarbo.xcodeproj">
+               BuildableName = "Kalyta.app"
+               BlueprintName = "Kalyta"
+               ReferencedContainer = "container:Kalyta.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -22,9 +22,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "1A0000000000000000000006"
-            BuildableName = "Skarbo.app"
-            BlueprintName = "Skarbo"
-            ReferencedContainer = "container:Skarbo.xcodeproj">
+            BuildableName = "Kalyta.app"
+            BlueprintName = "Kalyta"
+            ReferencedContainer = "container:Kalyta.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -33,9 +33,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "1A0000000000000000000006"
-            BuildableName = "Skarbo.app"
-            BlueprintName = "Skarbo"
-            ReferencedContainer = "container:Skarbo.xcodeproj">
+            BuildableName = "Kalyta.app"
+            BlueprintName = "Kalyta"
+            ReferencedContainer = "container:Kalyta.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

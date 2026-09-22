@@ -60,7 +60,7 @@ struct ContentView: View {
                 .padding(.bottom, 24)
             }
             .background(Color(.systemGroupedBackground))
-            .navigationTitle("Skarbo")
+            .navigationTitle("Kalyta")
             .toolbar {
                 Button("Додати", systemImage: "plus") { adding = true }
                     .buttonStyle(.borderedProminent)

@@ -1,4 +1,6 @@
-# Skarbo (open source)
+# Kalyta (open source)
+
+**Калита** — старовинний український гаманець-капшук, що носили на поясі.
 
 Безкоштовний opensource-трекер витрат для iOS. Без підписки, без сервера, без акаунта —
 дані лежать локально у SwiftData на пристрої.
@@ -31,16 +33,16 @@
 ## Як зібрати
 
 ```sh
-xcodebuild -scheme Skarbo -destination 'platform=iOS Simulator,name=iPhone 17' build
+xcodebuild -scheme Kalyta -destination 'platform=iOS Simulator,name=iPhone 17' build
 ```
 
-Або просто відкрити `Skarbo.xcodeproj` у Xcode і натиснути Run. Мінімум iOS 17 (SwiftData).
+Або просто відкрити `Kalyta.xcodeproj` у Xcode і натиснути Run. Мінімум iOS 17 (SwiftData).
 
 ## Перевірка
 
 ```sh
-xcrun simctl launch --console-pty booted org.merzlov.skarbo --selfcheck   # → SELFCHECK OK
-xcrun simctl launch booted org.merzlov.skarbo --demo                      # наповнити прикладами
+xcrun simctl launch --console-pty booted org.merzlov.kalyta --selfcheck   # → SELFCHECK OK
+xcrun simctl launch booted org.merzlov.kalyta --demo                      # наповнити прикладами
 ```
 
 Доводить головне: запис через `Store.container` (шлях App Intent / Back Tap) читається
@@ -49,6 +51,6 @@ xcrun simctl launch booted org.merzlov.skarbo --demo                      # на
 
 ## Налаштувати швидкий запис на iPhone
 
-1. Команди → новий шорткат → дія **Додати витрату** (з'явиться після встановлення Skarbo).
+1. Команди → новий шорткат → дія **Додати витрату** (з'явиться після встановлення Kalyta).
 2. Налаштування → Доступність → Дотик → Тап по задній панелі → Подвійний → цей шорткат.
 3. Автозапис оплат: Команди → Автоматизація → **Транзакція** → той самий шорткат.
