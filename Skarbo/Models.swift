@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 import SwiftData
 import AppIntents
 
@@ -26,6 +27,17 @@ enum Category: String, Codable, CaseIterable, Identifiable, AppEnum {
         case .health: "cross.case.fill"
         case .fun: "gamecontroller.fill"
         case .other: "ellipsis.circle.fill"
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .food: .orange
+        case .transport: .blue
+        case .home: .purple
+        case .health: .pink
+        case .fun: .green
+        case .other: .gray
         }
     }
 

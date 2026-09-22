@@ -3,7 +3,10 @@ import SwiftData
 
 @main
 struct SkarboApp: App {
-    init() { if CommandLine.arguments.contains("--selfcheck") { MainActor.assumeIsolated { selfCheck() } } }
+    init() {
+        if CommandLine.arguments.contains("--selfcheck") { MainActor.assumeIsolated { selfCheck() } }
+        if CommandLine.arguments.contains("--demo") { MainActor.assumeIsolated { seedDemo() } }
+    }
 
     var body: some Scene {
         WindowGroup { ContentView() }
@@ -36,4 +39,23 @@ private func selfCheck() {
     try! context.save()
     print("SELFCHECK OK")
     exit(0)  // інакше застосунок лишається жити і тримає консоль запуску
+}
+
+
+/// Наповнює базу прикладами для скріншотів: xcrun simctl launch <sim> org.merzlov.skarbo --demo
+@MainActor
+private func seedDemo() {
+    let context = Store.container.mainContext
+    try! context.delete(model: Expense.self)
+
+    let samples: [(Double, Category, String, Int)] = [
+        (248.90, .food, "АТБ", 0), (65, .transport, "Метро", 0), (120, .fun, "Кава з Оксаною", 0),
+        (1450, .home, "Комуналка", 1), (89.50, .food, "Пекарня", 1), (320, .health, "Аптека", 2),
+        (540, .food, "Сільпо", 3), (200, .transport, "Таксі", 4), (99, .fun, "Підписка", 6),
+    ]
+    for (amount, category, note, daysAgo) in samples {
+        let date = Calendar.current.date(byAdding: .day, value: -daysAgo, to: .now)!
+        context.insert(Expense(amount: amount, category: category, note: note, date: date))
+    }
+    try! context.save()
 }

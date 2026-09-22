@@ -15,11 +15,14 @@
 
 Тобто весь застосунок — це база, один екран і один App Intent. Решту робить система.
 
+![головний екран](docs/screen-main.png)
+
 ## Стан
 
 - [x] Модель + локальне сховище (SwiftData)
 - [x] Список витрат, підсумок за місяць, ручне додавання
 - [x] App Intent `Додати витрату` → Back Tap і автоматизація Транзакція
+- [x] Візуал: карта підсумку, донат по категоріях (Swift Charts), групування по днях, темна тема
 - [x] Xcode-проєкт (зібраний і запущений у симуляторі)
 - [ ] Фіскальний QR → позиції чека
 - [ ] Експорт CSV
@@ -37,6 +40,7 @@ xcodebuild -scheme Skarbo -destination 'platform=iOS Simulator,name=iPhone 17' b
 
 ```sh
 xcrun simctl launch --console-pty booted org.merzlov.skarbo --selfcheck   # → SELFCHECK OK
+xcrun simctl launch booted org.merzlov.skarbo --demo                      # наповнити прикладами
 ```
 
 Доводить головне: запис через `Store.container` (шлях App Intent / Back Tap) читається

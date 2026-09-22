@@ -11,7 +11,11 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		1A0000000000000000000002 /* Skarbo */ = {isa = PBXFileSystemSynchronizedRootGroup; path = Skarbo; sourceTree = "<group>"; };
+		1A0000000000000000000002 /* Skarbo */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Skarbo;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
