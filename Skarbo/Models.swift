@@ -31,9 +31,16 @@ enum Category: String, Codable, CaseIterable, Identifiable, AppEnum {
 
     static var typeDisplayRepresentation: TypeDisplayRepresentation { "Категорія" }
 
-    static var caseDisplayRepresentations: [Category: DisplayRepresentation] {
-        Dictionary(uniqueKeysWithValues: allCases.map { ($0, DisplayRepresentation(title: "\($0.title)", image: .init(systemName: $0.icon))) })
-    }
+    // Екстрактор метаданих AppIntents читає це статично — тільки буквальний словник,
+    // жодних map/Dictionary(uniqueKeysWithValues:), інакше збірка падає.
+    static var caseDisplayRepresentations: [Category: DisplayRepresentation] = [
+        .food: DisplayRepresentation(title: "Їжа", image: .init(systemName: "fork.knife")),
+        .transport: DisplayRepresentation(title: "Транспорт", image: .init(systemName: "bus.fill")),
+        .home: DisplayRepresentation(title: "Дім", image: .init(systemName: "house.fill")),
+        .health: DisplayRepresentation(title: "Здоров'я", image: .init(systemName: "cross.case.fill")),
+        .fun: DisplayRepresentation(title: "Розваги", image: .init(systemName: "gamecontroller.fill")),
+        .other: DisplayRepresentation(title: "Інше", image: .init(systemName: "ellipsis.circle.fill")),
+    ]
 }
 
 @Model
@@ -60,6 +67,9 @@ enum Store {
     }()
 }
 
+/// Копійки або показуємо повністю, або не показуємо зовсім:
+/// діапазон 0...2 давав "42,5 ₴", що читається як зламане.
 func uah(_ value: Double) -> String {
-    value.formatted(.currency(code: "UAH").precision(.fractionLength(0...2)))
+    let digits = value == value.rounded() ? 0 : 2
+    return value.formatted(.currency(code: "UAH").precision(.fractionLength(digits)))
 }
