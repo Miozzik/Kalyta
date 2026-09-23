@@ -179,12 +179,15 @@ struct ContentView: View {
             .task(id: pendingDeletion?.persistentModelID) {
                 // No time limit for VoiceOver users: reaching the Undo button takes longer.
                 // The deletion still commits on the next deletion or when the app leaves the foreground.
-                guard pendingDeletion != nil, !isVoiceOverEnabled else { return }
+                guard let expense = pendingDeletion, !isVoiceOverEnabled else { return }
                 do {
                     try await Task.sleep(for: Self.undoBannerDuration)
                 } catch {
                     return  // Cancelled by Undo or by another deletion: nothing to commit here.
                 }
+                // SwiftUI cancels a replaced task only on its next update, so this timer can
+                // wake after a newer deletion took over. Commit only the one it was started for.
+                guard pendingDeletion === expense else { return }
                 withAnimation { commitPendingDeletion() }
             }
             .onChange(of: scenePhase) {

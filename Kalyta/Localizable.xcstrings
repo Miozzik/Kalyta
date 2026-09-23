@@ -4,6 +4,58 @@
     "%@": {
       "shouldTranslate": false
     },
+    "%lld already here, skipped.": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld already here, skipped."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld already here, skipped."
+                }
+              }
+            }
+          }
+        },
+        "uk": {
+          "variations": {
+            "plural": {
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld вже є — пропущено."
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld вже є — пропущено."
+                }
+              },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld вже є — пропущено."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld вже є — пропущено."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld expenses": {
       "localizations": {
         "en": {
@@ -49,6 +101,110 @@
                 "stringUnit": {
                   "state": "translated",
                   "value": "%lld витрати"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld new expenses will be added.": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld new expense will be added."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld new expenses will be added."
+                }
+              }
+            }
+          }
+        },
+        "uk": {
+          "variations": {
+            "plural": {
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Буде додано %lld нові витрати."
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Буде додано %lld нових витрат."
+                }
+              },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Буде додано %lld нову витрату."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Буде додано %lld нової витрати."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld rows could not be read (lines %@%@).": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld row could not be read (lines %2$@%3$@)."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld rows could not be read (lines %2$@%3$@)."
+                }
+              }
+            }
+          }
+        },
+        "uk": {
+          "variations": {
+            "plural": {
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld рядки не вдалося прочитати (рядки %2$@%3$@)."
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld рядків не вдалося прочитати (рядки %2$@%3$@)."
+                }
+              },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld рядок не вдалося прочитати (рядки %2$@%3$@)."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%1$lld рядка не вдалося прочитати (рядки %2$@%3$@)."
                 }
               }
             }
@@ -309,8 +465,90 @@
         }
       }
     },
+    "Import": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Імпортувати"
+          }
+        }
+      }
+    },
+    "Import from CSV": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Імпорт з CSV"
+          }
+        }
+      }
+    },
+    "Imported %lld expenses.": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Imported %lld expense."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Imported %lld expenses."
+                }
+              }
+            }
+          }
+        },
+        "uk": {
+          "variations": {
+            "plural": {
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Імпортовано %lld витрати."
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Імпортовано %lld витрат."
+                }
+              },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Імпортовано %lld витрату."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Імпортовано %lld витрати."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "Kalyta": {
       "shouldTranslate": false
+    },
+    "Line %lld is not in hryvnias. Kalyta only imports hryvnia amounts.": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Рядок %lld не в гривнях. Kalyta імпортує лише суми в гривнях."
+          }
+        }
+      }
     },
     "Month": {
       "localizations": {
@@ -392,6 +630,16 @@
         }
       }
     },
+    "OK": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
+          }
+        }
+      }
+    },
     "Other": {
       "localizations": {
         "uk": {
@@ -428,6 +676,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Записує витрату в Kalyta без відкриття застосунку."
+          }
+        }
+      }
+    },
+    "Restores a Kalyta export. Expenses already here are skipped, so importing the same file twice adds nothing.": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Відновлює експорт Kalyta. Витрати, що вже є, пропускаються, тож повторний імпорт того самого файла нічого не додає."
           }
         }
       }
@@ -499,6 +757,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Сума має бути більшою за нуль."
+          }
+        }
+      }
+    },
+    "The file is too large to import.": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Файл завеликий для імпорту."
+          }
+        }
+      }
+    },
+    "This file was re-saved by Excel. Import the original Kalyta export.": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Цей файл перезбережено в Excel. Імпортуйте оригінальний експорт Kalyta."
+          }
+        }
+      }
+    },
+    "This is not a Kalyta export.": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Це не експорт Kalyta."
           }
         }
       }

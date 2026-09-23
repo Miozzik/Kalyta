@@ -5,7 +5,7 @@ import UniformTypeIdentifiers
 /// One expense as plain values, safe to hand to the share sheet.
 ///
 /// A `@Model` object is not `Sendable`, so the export copies the values it needs.
-struct ExpenseRecord: Sendable {
+struct ExpenseRecord: Sendable, Equatable {
     /// The moment the expense happened.
     let date: Date
     /// The amount in hryvnias.
@@ -16,6 +16,10 @@ struct ExpenseRecord: Sendable {
     let categoryName: String
     /// The free-form description, exported unchanged.
     let note: String
+    /// The SF Symbol name of the category icon.
+    var categorySymbol: String = Category.other.icon
+    /// The ``CategoryColor`` name of the category, not an RGB value, so it keeps adapting to dark mode.
+    var categoryColorName: String = CategoryColor.gray.rawValue
 }
 
 extension ExpenseRecord {
@@ -28,7 +32,9 @@ extension ExpenseRecord {
             amount: expense.amount,
             categoryKey: expense.assignedCategory?.key ?? expense.legacyCategory.rawValue,
             categoryName: expense.categoryTitle,
-            note: expense.note
+            note: expense.note,
+            categorySymbol: expense.categoryIcon,
+            categoryColorName: expense.assignedCategory?.colorName ?? expense.legacyCategory.defaultColor.rawValue
         )
     }
 }
@@ -39,7 +45,12 @@ extension ExpenseRecord {
 /// so spreadsheets and scripts built on an older export keep working.
 enum ExpenseCSV {
     /// The header names, in the order the columns are written. Append only.
-    static let columns = ["date", "amount", "currency", "category", "category_name", "note"]
+    static let columns = [
+        "date", "amount", "currency", "category", "category_name", "note", "category_symbol", "category_color",
+    ]
+
+    /// The columns every export since the first has had; an import requires them, in order.
+    static let requiredColumns = Array(columns.prefix(6))
 
     /// RFC 4180 ends every record, including the header, with CRLF.
     private static let recordTerminator = "\r\n"
@@ -68,6 +79,8 @@ enum ExpenseCSV {
                 record.categoryKey,
                 record.categoryName,
                 record.note,
+                record.categorySymbol,
+                record.categoryColorName,
             ]
             .map(field)
             .joined(separator: ",")

@@ -1,22 +1,6 @@
 import SwiftData
 import SwiftUI
 
-/// The Settings tab.
-struct SettingsView: View {
-    var body: some View {
-        NavigationStack {
-            List {
-                NavigationLink {
-                    CategoriesView()
-                } label: {
-                    Label("Categories", systemImage: "square.grid.2x2")
-                }
-            }
-            .navigationTitle("Settings")
-        }
-    }
-}
-
 /// The list of categories, where they are created, edited, hidden and deleted.
 struct CategoriesView: View {
     @Query(sort: \ExpenseCategory.sortOrder) private var categories: [ExpenseCategory]

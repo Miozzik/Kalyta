@@ -162,7 +162,6 @@ enum Store {
     ///
     /// - Parameter context: The context to update and save.
     /// - Throws: An error if fetching or saving fails.
-    @MainActor
     static func ensureCategories(in context: ModelContext) throws {
         var byKey = Dictionary(
             uniqueKeysWithValues: try context.fetch(FetchDescriptor<ExpenseCategory>()).map { ($0.key, $0) })
@@ -189,7 +188,6 @@ enum Store {
     ///   - key: The key the caller asked for, or `nil`.
     ///   - context: The context to search; the built-ins must exist in it.
     /// - Returns: The matching category, or "Other".
-    @MainActor
     static func category(forKey key: String?, in context: ModelContext) -> ExpenseCategory {
         key.flatMap { category(withKey: $0, in: context) } ?? category(withKey: Category.other.rawValue, in: context)!
     }
@@ -200,7 +198,6 @@ enum Store {
     ///   - key: The stable key.
     ///   - context: The context to search.
     /// - Returns: The record, or `nil` if there is none.
-    @MainActor
     static func category(withKey key: String, in context: ModelContext) -> ExpenseCategory? {
         try? context.fetch(FetchDescriptor<ExpenseCategory>(predicate: #Predicate { $0.key == key })).first
     }
