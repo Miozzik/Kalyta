@@ -37,16 +37,27 @@ xcodebuild -scheme Kalyta -destination 'platform=iOS Simulator,name=iPhone 17' b
 
 Або просто відкрити `Kalyta.xcodeproj` у Xcode і натиснути Run. Мінімум iOS 17 (SwiftData).
 
-Для запуску на своєму iPhone заміни `DEVELOPMENT_TEAM` у проєкті на свій
-(Signing & Capabilities → Team). З безкоштовним Apple ID збірка живе 7 днів,
-потім треба запустити Run ще раз.
+Для запуску на своєму iPhone створи `Config/Local.xcconfig` (git його ігнорує):
+
+```
+DEVELOPMENT_TEAM = <твій Team ID>
+// з безкоштовним Apple ID може знадобитись свій унікальний bundle id:
+// PRODUCT_BUNDLE_IDENTIFIER = com.example.kalyta
+```
+
+Спільні налаштування збірки (bundle id, версія) — у `Config/Kalyta.xcconfig`, не в
+`project.pbxproj`. З безкоштовним Apple ID збірка живе 7 днів, потім треба запустити Run ще раз.
 
 ## Стиль коду
 
 - Коментарі й документація — англійською, за [Swift API Design Guidelines](https://www.swift.org/documentation/api-design-guidelines/)
   і [Apple DocC](https://developer.apple.com/documentation/xcode/writing-symbol-documentation-in-your-source-files):
   `///` для кожного не-`private` символу, секції `- Parameters:`, `- Returns:`, `- Throws:`.
-- Рядки інтерфейсу — українською.
+- Жодного тексту інтерфейсу «намертво» в коді: у коді лише англійський ключ,
+  переклад — у String Catalog `Kalyta/Localizable.xcstrings`. У SwiftUI-views літерали
+  (`Text("Save")`) локалізуються самі; рядок, що повертається як `String`, — тільки через
+  `String(localized:)`, інакше Xcode його не побачить.
+- Налаштування користувача — `@AppStorage` / `UserDefaults`; налаштування збірки — `.xcconfig`.
 - Форматування — вбудований у Xcode `swift-format` з конфігом `.swift-format` (4 пробіли, 120 символів):
 
 ```sh
@@ -64,6 +75,16 @@ xcrun simctl launch booted org.merzlov.kalyta --demo                      # на
 Доводить головне: запис через `Store.container` (шлях App Intent / Back Tap) читається
 тим самим запитом, що й список на екрані, і що суми форматуються правильно.
 Перевірка перезапускна — сама чистить за собою.
+
+## Переклад
+
+Мова розробки — англійська, переклад — українська. Xcode сам додає нові рядки з коду
+в `Localizable.xcstrings` при кожній збірці; перекласти їх — у редакторі каталогу.
+Перевірити, що нічого не лишилось без перекладу:
+
+```sh
+scripts/check-translations.py        # → All N strings are translated.
+```
 
 ## Налаштувати швидкий запис на iPhone
 

@@ -59,9 +59,12 @@ struct ContentView: View {
 
     private var summaryTitle: String {
         if isCurrentPeriodSelected {
-            return period == .week ? "Витрачено цього тижня" : "Витрачено цього місяця"
+            return period == .week ? String(localized: "Spent this week") : String(localized: "Spent this month")
         }
-        return "Витрачено за \(period.title(for: selectedInterval))"
+        return String(
+            localized: "Spent in \(period.title(for: selectedInterval))",
+            comment:
+                "Summary card title for a past period; the argument is a month name or a week range such as 15–21 Sep.")
     }
 
     /// Category totals for the selected period, largest first.
@@ -82,7 +85,7 @@ struct ContentView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
-                    Picker("Період", selection: $period) {
+                    Picker("Period", selection: $period) {
                         ForEach(Period.allCases) { Text($0.title).tag($0) }
                     }
                     .pickerStyle(.segmented)
@@ -101,7 +104,7 @@ struct ContentView: View {
                     if !totalsByCategory.isEmpty {
                         CategoryBreakdown(rows: totalsByCategory, total: periodTotal)
                     } else if !expenses.isEmpty {
-                        Text("За цей період витрат немає")
+                        Text("No expenses in this period")
                             .foregroundStyle(.secondary)
                             .padding(.vertical, 24)
                     }
@@ -121,16 +124,16 @@ struct ContentView: View {
             .background(Color(.systemGroupedBackground))
             .navigationTitle("Kalyta")
             .toolbar {
-                Button("Додати", systemImage: "plus") { isAddingExpense = true }
+                Button("Add", systemImage: "plus") { isAddingExpense = true }
                     .buttonStyle(.borderedProminent)
             }
             .sheet(isPresented: $isAddingExpense) { AddExpenseView() }
             .overlay {
                 if expenses.isEmpty {
                     ContentUnavailableView(
-                        "Ще нічого не записано",
+                        "Nothing recorded yet",
                         systemImage: "hryvniasign.circle",
-                        description: Text("Натисни «+» або налаштуй подвійний тап по спинці")
+                        description: Text("Tap + or set up a double tap on the back of your iPhone")
                     )
                 }
             }
@@ -142,8 +145,8 @@ struct ContentView: View {
     /// - Parameter day: The start of the day.
     /// - Returns: A localized heading.
     private func title(forDay day: Date) -> String {
-        if Calendar.current.isDateInToday(day) { return "Сьогодні" }
-        if Calendar.current.isDateInYesterday(day) { return "Вчора" }
+        if Calendar.current.isDateInToday(day) { return String(localized: "Today") }
+        if Calendar.current.isDateInYesterday(day) { return String(localized: "Yesterday") }
         return day.formatted(.dateTime.day().month(.wide))
     }
 }
@@ -174,12 +177,20 @@ private struct PeriodBars: View {
                     .contentShape(.rect)
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("\(bar.label), \(formattedHryvnias(bar.total))")
+                .accessibilityLabel(accessibilityText(for: bar))
                 .accessibilityAddTraits(isSelected ? .isSelected : [])
             }
         }
         .frame(height: 100, alignment: .bottom)
         .padding(.horizontal, 4)
+    }
+
+    /// Returns the VoiceOver label for a bar, such as "Sep, 3,132.40 ₴".
+    ///
+    /// - Parameter bar: The bar to describe.
+    /// - Returns: The period label and total, already localized by their formatters.
+    private func accessibilityText(for bar: PeriodBar) -> String {
+        "\(bar.label), \(formattedHryvnias(bar.total))"
     }
 }
 
@@ -200,7 +211,7 @@ private struct SummaryCard: View {
                 .foregroundStyle(.white)
                 .contentTransition(.numericText())
             if let todayTotal {
-                Label("сьогодні \(formattedHryvnias(todayTotal))", systemImage: "clock")
+                Label("today \(formattedHryvnias(todayTotal))", systemImage: "clock")
                     .font(.footnote)
                     .foregroundStyle(.white.opacity(0.85))
             }
@@ -223,7 +234,7 @@ private struct CategoryBreakdown: View {
     var body: some View {
         VStack(spacing: 16) {
             Chart(rows) { row in
-                SectorMark(angle: .value("Сума", row.total), innerRadius: .ratio(0.62), angularInset: 2)
+                SectorMark(angle: .value("Amount", row.total), innerRadius: .ratio(0.62), angularInset: 2)
                     .foregroundStyle(row.category.color)
                     .cornerRadius(4)
             }
@@ -294,7 +305,7 @@ private struct DaySection: View {
             ForEach(items) { expense in
                 ExpenseRow(expense: expense)
                     .contextMenu {
-                        Button("Видалити", systemImage: "trash", role: .destructive) { onDelete(expense) }
+                        Button("Delete", systemImage: "trash", role: .destructive) { onDelete(expense) }
                     }
                 if expense.id != items.last?.id {
                     Divider().padding(.leading, 64)

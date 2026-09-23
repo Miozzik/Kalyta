@@ -7,7 +7,7 @@ enum Period: String, CaseIterable, Identifiable {
     var id: Self { self }
 
     /// The localized name shown in the segmented picker.
-    var title: String { self == .week ? "Тиждень" : "Місяць" }
+    var title: String { self == .week ? String(localized: "Week") : String(localized: "Month") }
 
     private var component: Calendar.Component { self == .week ? .weekOfYear : .month }
 

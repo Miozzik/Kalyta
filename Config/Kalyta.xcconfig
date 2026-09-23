@@ -1,0 +1,18 @@
+// Build settings shared by every configuration of the Kalyta project.
+//
+// Personal values do not belong here. Put them in Config/Local.xcconfig,
+// which git ignores and which is included at the end of this file, so any
+// value set there overrides the one below.
+
+PRODUCT_BUNDLE_IDENTIFIER = org.merzlov.kalyta
+MARKETING_VERSION = 0.1
+CURRENT_PROJECT_VERSION = 1
+
+// Empty so the project builds for the simulator without an Apple account.
+// To run on a device, set your team in Config/Local.xcconfig:
+//     DEVELOPMENT_TEAM = <your team ID>
+// With a free Apple account you may also need a unique bundle identifier:
+//     PRODUCT_BUNDLE_IDENTIFIER = com.example.kalyta
+DEVELOPMENT_TEAM =
+
+#include? "Local.xcconfig"

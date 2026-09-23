@@ -14,12 +14,12 @@ enum Category: String, Codable, CaseIterable, Identifiable, AppEnum {
     /// The localized name shown in the interface.
     var title: String {
         switch self {
-        case .food: "Їжа"
-        case .transport: "Транспорт"
-        case .home: "Дім"
-        case .health: "Здоров'я"
-        case .fun: "Розваги"
-        case .other: "Інше"
+        case .food: String(localized: "Food")
+        case .transport: String(localized: "Transport")
+        case .home: String(localized: "Home")
+        case .health: String(localized: "Health")
+        case .fun: String(localized: "Entertainment")
+        case .other: String(localized: "Other")
         }
     }
 
@@ -47,18 +47,18 @@ enum Category: String, Codable, CaseIterable, Identifiable, AppEnum {
         }
     }
 
-    static var typeDisplayRepresentation: TypeDisplayRepresentation { "Категорія" }
+    static var typeDisplayRepresentation: TypeDisplayRepresentation { "Category" }
 
     // The AppIntents metadata extractor reads this at build time and only accepts
     // a dictionary literal. Building it with `map` fails the build, so the titles
     // and icons are intentionally repeated here.
     static var caseDisplayRepresentations: [Category: DisplayRepresentation] = [
-        .food: DisplayRepresentation(title: "Їжа", image: .init(systemName: "fork.knife")),
-        .transport: DisplayRepresentation(title: "Транспорт", image: .init(systemName: "bus.fill")),
-        .home: DisplayRepresentation(title: "Дім", image: .init(systemName: "house.fill")),
-        .health: DisplayRepresentation(title: "Здоров'я", image: .init(systemName: "cross.case.fill")),
-        .fun: DisplayRepresentation(title: "Розваги", image: .init(systemName: "gamecontroller.fill")),
-        .other: DisplayRepresentation(title: "Інше", image: .init(systemName: "ellipsis.circle.fill")),
+        .food: DisplayRepresentation(title: "Food", image: .init(systemName: "fork.knife")),
+        .transport: DisplayRepresentation(title: "Transport", image: .init(systemName: "bus.fill")),
+        .home: DisplayRepresentation(title: "Home", image: .init(systemName: "house.fill")),
+        .health: DisplayRepresentation(title: "Health", image: .init(systemName: "cross.case.fill")),
+        .fun: DisplayRepresentation(title: "Entertainment", image: .init(systemName: "gamecontroller.fill")),
+        .other: DisplayRepresentation(title: "Other", image: .init(systemName: "ellipsis.circle.fill")),
     ]
 }
 

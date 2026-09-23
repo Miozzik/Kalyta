@@ -21,7 +21,7 @@ struct AddExpenseView: View {
                         .focused($isAmountFocused)
                         .multilineTextAlignment(.trailing)
                         .fixedSize()
-                    Text("₴").foregroundStyle(.secondary)
+                    Text(verbatim: "₴").foregroundStyle(.secondary)
                 }
                 .font(.system(size: 52, weight: .bold, design: .rounded))
                 .frame(maxWidth: .infinity)
@@ -34,7 +34,7 @@ struct AddExpenseView: View {
                     }
                 }
 
-                TextField("Нотатка", text: $note)
+                TextField("Note", text: $note)
                     .textFieldStyle(.plain)
                     .padding(14)
                     .background(Color(.secondarySystemGroupedBackground), in: .rect(cornerRadius: 14))
@@ -43,14 +43,14 @@ struct AddExpenseView: View {
             }
             .padding(.horizontal)
             .background(Color(.systemGroupedBackground))
-            .navigationTitle("Витрата")
+            .navigationTitle("Expense")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Скасувати") { dismiss() }
+                    Button("Cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Зберегти") {
+                    Button("Save") {
                         guard let amount, amount > 0 else { return }
                         context.insert(Expense(amount: amount, category: category, note: note))
                         dismiss()
