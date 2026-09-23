@@ -26,6 +26,7 @@
 - [x] App Intent `Додати витрату` → Back Tap і автоматизація Транзакція
 - [x] Візуал: карта підсумку, донат по категоріях (Swift Charts), групування по днях, темна тема
 - [x] Xcode-проєкт (зібраний і запущений у симуляторі)
+- [x] Перемикач періоду тиждень / місяць зі стовпчиками останніх 6 періодів
 Відкриті задачі — у [TODO.md](TODO.md).
 
 ## Як зібрати
@@ -39,6 +40,19 @@ xcodebuild -scheme Kalyta -destination 'platform=iOS Simulator,name=iPhone 17' b
 Для запуску на своєму iPhone заміни `DEVELOPMENT_TEAM` у проєкті на свій
 (Signing & Capabilities → Team). З безкоштовним Apple ID збірка живе 7 днів,
 потім треба запустити Run ще раз.
+
+## Стиль коду
+
+- Коментарі й документація — англійською, за [Swift API Design Guidelines](https://www.swift.org/documentation/api-design-guidelines/)
+  і [Apple DocC](https://developer.apple.com/documentation/xcode/writing-symbol-documentation-in-your-source-files):
+  `///` для кожного не-`private` символу, секції `- Parameters:`, `- Returns:`, `- Throws:`.
+- Рядки інтерфейсу — українською.
+- Форматування — вбудований у Xcode `swift-format` з конфігом `.swift-format` (4 пробіли, 120 символів):
+
+```sh
+swift format lint -r Kalyta      # перевірити
+swift format -i -r Kalyta        # виправити
+```
 
 ## Перевірка
 

@@ -1,9 +1,13 @@
 import AppIntents
 import SwiftData
 
-/// Точка входу для Shortcuts — саме через неї працюють обидві "преміум" фічі Kalyta:
-/// подвійний тап по спинці (Налаштування → Доступність → Дотик → Тап по задній панелі)
-/// і автозапис оплат (Команди → Автоматизація → Транзакція).
+/// The Shortcuts action that records an expense without opening the app.
+///
+/// Both quick-entry features are built on this single action:
+/// - Back Tap: Settings → Accessibility → Touch → Back Tap → run a shortcut
+///   that calls this action.
+/// - Automatic logging of card payments: Shortcuts → Automation → Transaction
+///   → the same shortcut.
 struct QuickAddExpense: AppIntent {
     static var title: LocalizedStringResource = "Додати витрату"
     static var description = IntentDescription("Записує витрату в Kalyta без відкриття застосунку.")
@@ -26,6 +30,6 @@ struct QuickAddExpense: AppIntent {
         let context = Store.container.mainContext
         context.insert(Expense(amount: amount, category: category ?? .other, note: note ?? ""))
         try context.save()
-        return .result(dialog: "Записав \(uah(amount))")
+        return .result(dialog: "Записав \(formattedHryvnias(amount))")
     }
 }

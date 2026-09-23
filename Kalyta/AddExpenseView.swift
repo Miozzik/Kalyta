@@ -1,15 +1,16 @@
-import SwiftUI
 import SwiftData
+import SwiftUI
 
+/// The sheet for entering a new expense: amount, category, and an optional note.
 struct AddExpenseView: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
     @State private var amount: Double?
     @State private var category: Category = .food
     @State private var note = ""
-    @FocusState private var amountFocused: Bool
+    @FocusState private var isAmountFocused: Bool
 
-    private var isValid: Bool { (amount ?? 0) > 0 }
+    private var canSave: Bool { (amount ?? 0) > 0 }
 
     var body: some View {
         NavigationStack {
@@ -17,7 +18,7 @@ struct AddExpenseView: View {
                 HStack(alignment: .firstTextBaseline, spacing: 4) {
                     TextField("0", value: $amount, format: .number)
                         .keyboardType(.decimalPad)
-                        .focused($amountFocused)
+                        .focused($isAmountFocused)
                         .multilineTextAlignment(.trailing)
                         .fixedSize()
                     Text("₴").foregroundStyle(.secondary)
@@ -28,7 +29,7 @@ struct AddExpenseView: View {
 
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 3), spacing: 12) {
                     ForEach(Category.allCases) { item in
-                        CategoryChip(category: item, selected: item == category)
+                        CategoryChip(category: item, isSelected: item == category)
                             .onTapGesture { category = item }
                     }
                 }
@@ -54,37 +55,38 @@ struct AddExpenseView: View {
                         context.insert(Expense(amount: amount, category: category, note: note))
                         dismiss()
                     }
-                    .disabled(!isValid)
+                    .disabled(!canSave)
                     .fontWeight(.semibold)
                 }
             }
-            .onAppear { amountFocused = true }
+            .onAppear { isAmountFocused = true }
         }
     }
 }
 
+/// A tappable tile for one category, outlined in the category color when selected.
 private struct CategoryChip: View {
     let category: Category
-    let selected: Bool
+    let isSelected: Bool
 
     var body: some View {
         VStack(spacing: 8) {
             Image(systemName: category.icon)
                 .font(.system(size: 20, weight: .semibold))
-                .foregroundStyle(selected ? .white : category.color)
+                .foregroundStyle(isSelected ? .white : category.color)
                 .frame(width: 48, height: 48)
-                .background(selected ? category.color : category.color.opacity(0.15), in: .circle)
+                .background(isSelected ? category.color : category.color.opacity(0.15), in: .circle)
             Text(category.title)
                 .font(.caption)
-                .foregroundStyle(selected ? .primary : .secondary)
+                .foregroundStyle(isSelected ? .primary : .secondary)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 12)
         .background(Color(.secondarySystemGroupedBackground), in: .rect(cornerRadius: 16))
         .overlay {
             RoundedRectangle(cornerRadius: 16)
-                .strokeBorder(selected ? category.color : .clear, lineWidth: 2)
+                .strokeBorder(isSelected ? category.color : .clear, lineWidth: 2)
         }
-        .animation(.snappy(duration: 0.15), value: selected)
+        .animation(.snappy(duration: 0.15), value: isSelected)
     }
 }

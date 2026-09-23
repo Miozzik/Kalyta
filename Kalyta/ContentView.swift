@@ -1,38 +1,79 @@
-import SwiftUI
-import SwiftData
 import Charts
+import SwiftData
+import SwiftUI
 
+/// The total spent in one category during the selected period.
 struct CategoryTotal: Identifiable {
     let category: Category
     let total: Double
     var id: String { category.rawValue }
 }
 
+/// The total spent during one period, shown as a bar in the period selector.
+struct PeriodBar: Identifiable {
+    let interval: DateInterval
+    let total: Double
+    let label: String
+    var id: Date { interval.start }
+}
+
+/// The main screen: period selector, summary, category breakdown, and expenses by day.
 struct ContentView: View {
     @Environment(\.modelContext) private var context
     @Query(sort: \Expense.date, order: .reverse) private var expenses: [Expense]
-    @State private var adding = false
+    @State private var isAddingExpense = false
+    @State private var period: Period = .month
+    /// The start of the period picked from the bars, or `nil` for the current period.
+    @State private var selectedStart: Date?
 
-    private var monthExpenses: [Expense] {
-        let from = Calendar.current.dateInterval(of: .month, for: .now)?.start ?? .distantPast
-        return expenses.filter { $0.date >= from }
+    private var intervals: [DateInterval] { period.intervals() }
+
+    private var selectedInterval: DateInterval {
+        intervals.first { $0.start == selectedStart } ?? intervals.last!
     }
 
-    private var monthTotal: Double { monthExpenses.reduce(0) { $0 + $1.amount } }
+    private var isCurrentPeriodSelected: Bool { selectedInterval == intervals.last }
 
+    /// - Complexity: O(*n*), where *n* is the number of expenses.
+    private var periodExpenses: [Expense] {
+        expenses.filter { selectedInterval.containsExcludingEnd($0.date) }
+    }
+
+    private var periodTotal: Double { periodExpenses.reduce(0) { $0 + $1.amount } }
+
+    /// - Complexity: O(*n*), where *n* is the number of expenses.
     private var todayTotal: Double {
         expenses.filter { Calendar.current.isDateInToday($0.date) }.reduce(0) { $0 + $1.amount }
     }
 
-    private var byCategory: [CategoryTotal] {
-        Dictionary(grouping: monthExpenses, by: \.category)
+    /// - Complexity: O(*n* × *p*), where *n* is the number of expenses and *p* the number of bars.
+    private var bars: [PeriodBar] {
+        intervals.map { interval in
+            PeriodBar(
+                interval: interval,
+                total: expenses.filter { interval.containsExcludingEnd($0.date) }.reduce(0) { $0 + $1.amount },
+                label: period.shortLabel(for: interval)
+            )
+        }
+    }
+
+    private var summaryTitle: String {
+        if isCurrentPeriodSelected {
+            return period == .week ? "Витрачено цього тижня" : "Витрачено цього місяця"
+        }
+        return "Витрачено за \(period.title(for: selectedInterval))"
+    }
+
+    /// Category totals for the selected period, largest first.
+    private var totalsByCategory: [CategoryTotal] {
+        Dictionary(grouping: periodExpenses, by: \.category)
             .map { CategoryTotal(category: $0.key, total: $0.value.reduce(0) { $0 + $1.amount }) }
             .sorted { $0.total > $1.total }
     }
 
-    /// Витрати по днях, найсвіжіший день зверху.
-    private var byDay: [(day: Date, items: [Expense])] {
-        Dictionary(grouping: expenses) { Calendar.current.startOfDay(for: $0.date) }
+    /// Expenses of the selected period grouped by day, most recent day first.
+    private var expensesByDay: [(day: Date, items: [Expense])] {
+        Dictionary(grouping: periodExpenses) { Calendar.current.startOfDay(for: $0.date) }
             .map { (day: $0.key, items: $0.value.sorted { $0.date > $1.date }) }
             .sorted { $0.day > $1.day }
     }
@@ -41,18 +82,36 @@ struct ContentView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
-                    SummaryCard(month: monthTotal, today: todayTotal)
+                    Picker("Період", selection: $period) {
+                        ForEach(Period.allCases) { Text($0.title).tag($0) }
+                    }
+                    .pickerStyle(.segmented)
+                    .onChange(of: period) { selectedStart = nil }
 
-                    if !byCategory.isEmpty {
-                        CategoryBreakdown(rows: byCategory, total: monthTotal)
+                    PeriodBars(bars: bars, selectedStart: selectedInterval.start) { start in
+                        withAnimation(.snappy) { selectedStart = start }
                     }
 
-                    ForEach(byDay, id: \.day) { group in
+                    SummaryCard(
+                        title: summaryTitle,
+                        total: periodTotal,
+                        todayTotal: isCurrentPeriodSelected ? todayTotal : nil
+                    )
+
+                    if !totalsByCategory.isEmpty {
+                        CategoryBreakdown(rows: totalsByCategory, total: periodTotal)
+                    } else if !expenses.isEmpty {
+                        Text("За цей період витрат немає")
+                            .foregroundStyle(.secondary)
+                            .padding(.vertical, 24)
+                    }
+
+                    ForEach(expensesByDay, id: \.day) { group in
                         DaySection(
-                            title: dayTitle(group.day),
+                            title: title(forDay: group.day),
                             total: group.items.reduce(0) { $0 + $1.amount },
                             items: group.items,
-                            delete: { context.delete($0) }
+                            onDelete: { context.delete($0) }
                         )
                     }
                 }
@@ -62,10 +121,10 @@ struct ContentView: View {
             .background(Color(.systemGroupedBackground))
             .navigationTitle("Kalyta")
             .toolbar {
-                Button("Додати", systemImage: "plus") { adding = true }
+                Button("Додати", systemImage: "plus") { isAddingExpense = true }
                     .buttonStyle(.borderedProminent)
             }
-            .sheet(isPresented: $adding) { AddExpenseView() }
+            .sheet(isPresented: $isAddingExpense) { AddExpenseView() }
             .overlay {
                 if expenses.isEmpty {
                     ContentUnavailableView(
@@ -78,29 +137,73 @@ struct ContentView: View {
         }
     }
 
-    private func dayTitle(_ day: Date) -> String {
+    /// Returns "Сьогодні", "Вчора", or the date, for a day section heading.
+    ///
+    /// - Parameter day: The start of the day.
+    /// - Returns: A localized heading.
+    private func title(forDay day: Date) -> String {
         if Calendar.current.isDateInToday(day) { return "Сьогодні" }
         if Calendar.current.isDateInYesterday(day) { return "Вчора" }
         return day.formatted(.dateTime.day().month(.wide))
     }
 }
 
+/// A row of bars, one per period, where tapping a bar selects that period.
+private struct PeriodBars: View {
+    let bars: [PeriodBar]
+    let selectedStart: Date
+    let onSelect: (Date) -> Void
+
+    var body: some View {
+        let peak = max(bars.map(\.total).max() ?? 0, 1)
+        HStack(alignment: .bottom, spacing: 8) {
+            ForEach(bars) { bar in
+                let isSelected = bar.id == selectedStart
+                Button {
+                    onSelect(bar.id)
+                } label: {
+                    VStack(spacing: 6) {
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(isSelected ? Color.indigo : Color.indigo.opacity(0.22))
+                            .frame(height: max(4, 72 * bar.total / peak))
+                        Text(bar.label)
+                            .font(.caption2.weight(isSelected ? .semibold : .regular))
+                            .foregroundStyle(isSelected ? .primary : .secondary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .contentShape(.rect)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("\(bar.label), \(formattedHryvnias(bar.total))")
+                .accessibilityAddTraits(isSelected ? .isSelected : [])
+            }
+        }
+        .frame(height: 100, alignment: .bottom)
+        .padding(.horizontal, 4)
+    }
+}
+
+/// The gradient card with the period total and, for the current period, today's total.
 private struct SummaryCard: View {
-    let month: Double
-    let today: Double
+    let title: String
+    let total: Double
+    /// Today's total, or `nil` to hide the line when a past period is selected.
+    let todayTotal: Double?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("Витрачено цього місяця")
+            Text(title)
                 .font(.subheadline)
                 .foregroundStyle(.white.opacity(0.85))
-            Text(uah(month))
+            Text(formattedHryvnias(total))
                 .font(.system(size: 40, weight: .bold, design: .rounded))
                 .foregroundStyle(.white)
                 .contentTransition(.numericText())
-            Label("сьогодні \(uah(today))", systemImage: "clock")
-                .font(.footnote)
-                .foregroundStyle(.white.opacity(0.85))
+            if let todayTotal {
+                Label("сьогодні \(formattedHryvnias(todayTotal))", systemImage: "clock")
+                    .font(.footnote)
+                    .foregroundStyle(.white.opacity(0.85))
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(20)
@@ -111,7 +214,9 @@ private struct SummaryCard: View {
     }
 }
 
+/// A donut chart of category shares with a legend of amounts.
 private struct CategoryBreakdown: View {
+    /// Category totals, largest first; the first one is highlighted in the center.
     let rows: [CategoryTotal]
     let total: Double
 
@@ -125,11 +230,11 @@ private struct CategoryBreakdown: View {
             .frame(height: 170)
             .chartLegend(.hidden)
             .overlay {
-                if let top = rows.first {
+                if let largest = rows.first {
                     VStack(spacing: 2) {
-                        Text(share(top.total))
+                        Text(formattedShare(of: largest.total))
                             .font(.title2.bold().monospacedDigit())
-                        Text(top.category.title)
+                        Text(largest.category.title)
                             .font(.caption2)
                             .foregroundStyle(.secondary)
                     }
@@ -142,11 +247,11 @@ private struct CategoryBreakdown: View {
                         Circle().fill(row.category.color).frame(width: 10, height: 10)
                         Text(row.category.title)
                         Spacer()
-                        Text(share(row.total))
+                        Text(formattedShare(of: row.total))
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .monospacedDigit()
-                        Text(uah(row.total)).monospacedDigit()
+                        Text(formattedHryvnias(row.total)).monospacedDigit()
                     }
                     .font(.subheadline)
                 }
@@ -156,24 +261,32 @@ private struct CategoryBreakdown: View {
         .background(Color(.secondarySystemGroupedBackground), in: .rect(cornerRadius: 20))
     }
 
-    private func share(_ value: Double) -> String {
+    /// Formats an amount as a whole-number percentage of the period total.
+    ///
+    /// - Parameter amount: A part of ``total``.
+    /// - Returns: A string such as "46 %", or an empty string when the total is zero.
+    private func formattedShare(of amount: Double) -> String {
         guard total > 0 else { return "" }
-        return (value / total).formatted(.percent.precision(.fractionLength(0)))
+        return (amount / total).formatted(.percent.precision(.fractionLength(0)))
     }
 }
 
+/// A card listing one day's expenses under a heading with the day's total.
 private struct DaySection: View {
     let title: String
     let total: Double
     let items: [Expense]
-    let delete: (Expense) -> Void
+    let onDelete: (Expense) -> Void
 
     var body: some View {
         VStack(spacing: 0) {
             HStack {
                 Text(title).font(.subheadline.weight(.semibold))
                 Spacer()
-                Text(uah(total)).font(.subheadline).foregroundStyle(.secondary).monospacedDigit()
+                Text(formattedHryvnias(total))
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .monospacedDigit()
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
@@ -181,7 +294,7 @@ private struct DaySection: View {
             ForEach(items) { expense in
                 ExpenseRow(expense: expense)
                     .contextMenu {
-                        Button("Видалити", systemImage: "trash", role: .destructive) { delete(expense) }
+                        Button("Видалити", systemImage: "trash", role: .destructive) { onDelete(expense) }
                     }
                 if expense.id != items.last?.id {
                     Divider().padding(.leading, 64)
@@ -192,6 +305,7 @@ private struct DaySection: View {
     }
 }
 
+/// A single expense: category icon, note or category name, time, and amount.
 private struct ExpenseRow: View {
     let expense: Expense
 
@@ -212,7 +326,7 @@ private struct ExpenseRow: View {
 
             Spacer()
 
-            Text(uah(expense.amount))
+            Text(formattedHryvnias(expense.amount))
                 .font(.body.weight(.medium))
                 .monospacedDigit()
         }
