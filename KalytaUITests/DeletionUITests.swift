@@ -1,26 +1,11 @@
 import XCTest
 
 /// End-to-end checks of deleting an expense, undoing it, and picking a period.
-///
-/// Each test starts from the sample data of `--demo` and runs in English, so labels
-/// such as "Delete" and "Undo" are predictable. A relaunch drops `--demo`, so it
-/// shows what was actually saved to the store.
-final class DeletionUITests: XCTestCase {
+final class DeletionUITests: KalytaUITestCase {
     /// A sample expense from `--demo` recorded today, so it is in the current period.
     private let sampleNote = "Метро"
     /// Another sample expense recorded today.
     private let otherSampleNote = "АТБ"
-    private let languageArguments = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
-    /// Enough swipes to cross the whole list of sample data in either direction.
-    private let maxScrolls = 8
-    private var app: XCUIApplication!
-
-    override func setUp() {
-        continueAfterFailure = false
-        app = XCUIApplication()
-        app.launchArguments = ["--demo"] + languageArguments
-        app.launch()
-    }
 
     /// Undo brings the expense back, restores the totals, and survives a relaunch.
     func testUndoRestoresExpenseAndTotals() {
@@ -111,42 +96,9 @@ final class DeletionUITests: XCTestCase {
     ///
     /// - Parameter note: The note of the expense to delete.
     private func deleteExpense(_ note: String) {
-        scrollDown(until: app.staticTexts[note])
         // Swipe the whole row: a swipe across the short note alone is too short to open the actions.
-        app.cells.containing(.staticText, identifier: note).firstMatch.swipeLeft()
+        row(note).swipeLeft()
         app.buttons["Delete"].firstMatch.tap()
         XCTAssertTrue(app.buttons["Undo"].waitForExistence(timeout: 2), "No undo banner after deleting")
-    }
-
-    /// Returns the text of the period total, scrolling back up to the summary card.
-    private func summaryTotal() -> String {
-        let total = app.staticTexts["summaryTotal"]
-        for _ in 0..<maxScrolls where !(total.exists && total.isHittable) { app.swipeDown() }
-        return total.label
-    }
-
-    /// Scrolls the list down until `element` is on screen.
-    ///
-    /// A `List` creates only the rows near the visible area, so an expense below the
-    /// chart does not exist in the accessibility tree until it is scrolled to.
-    private func scrollDown(until element: XCUIElement) {
-        _ = app.staticTexts["summaryTitle"].waitForExistence(timeout: 5)
-        for _ in 0..<maxScrolls where !(element.exists && element.isHittable) { app.swipeUp() }
-        XCTAssertTrue(element.isHittable, "\(element) never came on screen")
-    }
-
-    /// Returns whether an expense with this note is listed, scrolling down to look for it.
-    private func isListed(_ note: String) -> Bool {
-        let row = app.staticTexts[note]
-        _ = app.staticTexts["summaryTitle"].waitForExistence(timeout: 5)
-        for _ in 0..<maxScrolls where !row.exists { app.swipeUp() }
-        return row.exists
-    }
-
-    /// Restarts the app on the stored data, without reseeding it.
-    private func relaunchWithoutDemoData() {
-        app.terminate()
-        app.launchArguments = languageArguments
-        app.launch()
     }
 }

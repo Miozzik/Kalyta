@@ -30,6 +30,8 @@ struct ContentView: View {
     @Environment(\.accessibilityVoiceOverEnabled) private var isVoiceOverEnabled
     @Query(sort: \Expense.date, order: .reverse) private var expenses: [Expense]
     @State private var isAddingExpense = false
+    /// The expense open in the editor sheet, or `nil` when no expense is being edited.
+    @State private var editingExpense: Expense?
     @State private var period: Period = .month
     /// The start of the period picked from the bars, or `nil` for the current period.
     @State private var selectedStart: Date?
@@ -140,13 +142,19 @@ struct ContentView: View {
                 ForEach(expensesByDay, id: \.day) { group in
                     Section {
                         ForEach(group.items) { expense in
-                            ExpenseRow(expense: expense)
-                                .swipeActions(edge: .trailing) {
-                                    Button("Delete", systemImage: "trash", role: .destructive) { delete(expense) }
-                                }
-                                .contextMenu {
-                                    Button("Delete", systemImage: "trash", role: .destructive) { delete(expense) }
-                                }
+                            Button {
+                                editingExpense = expense
+                            } label: {
+                                ExpenseRow(expense: expense)
+                            }
+                            // A Button in a List tints its label with the accent color; keep the text neutral.
+                            .foregroundStyle(.primary)
+                            .swipeActions(edge: .trailing) {
+                                Button("Delete", systemImage: "trash", role: .destructive) { delete(expense) }
+                            }
+                            .contextMenu {
+                                Button("Delete", systemImage: "trash", role: .destructive) { delete(expense) }
+                            }
                         }
                     } header: {
                         DayHeader(title: title(forDay: group.day), total: group.items.reduce(0) { $0 + $1.amount })
@@ -182,7 +190,10 @@ struct ContentView: View {
                 Button("Add", systemImage: "plus") { isAddingExpense = true }
                     .buttonStyle(.borderedProminent)
             }
-            .sheet(isPresented: $isAddingExpense) { AddExpenseView() }
+            .sheet(isPresented: $isAddingExpense) { ExpenseEditor() }
+            .sheet(item: $editingExpense) { expense in
+                ExpenseEditor(expense: expense, onDelete: delete)
+            }
             .overlay {
                 if visibleExpenses.isEmpty {
                     ContentUnavailableView(
@@ -360,68 +371,5 @@ private struct CategoryBreakdown: View {
     private func formattedShare(of amount: Double) -> String {
         guard total > 0 else { return "" }
         return (amount / total).formatted(.percent.precision(.fractionLength(0)))
-    }
-}
-
-/// The heading of a day section: the day's title and its total.
-private struct DayHeader: View {
-    let title: String
-    let total: Double
-
-    var body: some View {
-        HStack {
-            Text(title).font(.subheadline.weight(.semibold))
-            Spacer()
-            Text(formattedHryvnias(total)).font(.subheadline).monospacedDigit()
-        }
-        .textCase(nil)
-    }
-}
-
-/// The bar shown after a deletion, with a button that undoes it.
-private struct UndoBanner: View {
-    let onUndo: () -> Void
-
-    var body: some View {
-        HStack {
-            Label("Expense deleted", systemImage: "trash")
-            Spacer()
-            Button("Undo", action: onUndo)
-                .fontWeight(.semibold)
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(.regularMaterial, in: .capsule)
-        .padding(.horizontal)
-        .padding(.bottom, 8)
-    }
-}
-
-/// A single expense: category icon, note or category name, time, and amount.
-private struct ExpenseRow: View {
-    let expense: Expense
-
-    var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: expense.category.icon)
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(expense.category.color)
-                .frame(width: 40, height: 40)
-                .background(expense.category.color.opacity(0.15), in: .circle)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(expense.note.isEmpty ? expense.category.title : expense.note)
-                Text(expense.date, format: .dateTime.hour().minute())
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
-            Spacer()
-
-            Text(formattedHryvnias(expense.amount))
-                .font(.body.weight(.medium))
-                .monospacedDigit()
-        }
-        .padding(.vertical, 2)
     }
 }

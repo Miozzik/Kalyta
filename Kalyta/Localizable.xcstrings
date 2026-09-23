@@ -54,6 +54,16 @@
         }
       }
     },
+    "Date": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Дата"
+          }
+        }
+      }
+    },
     "Delete": {
       "localizations": {
         "uk": {
@@ -64,22 +74,32 @@
         }
       }
     },
+    "Delete Expense": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Видалити витрату"
+          }
+        }
+      }
+    },
+    "Edit Expense": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Редагування"
+          }
+        }
+      }
+    },
     "Entertainment": {
       "localizations": {
         "uk": {
           "stringUnit": {
             "state": "translated",
             "value": "Розваги"
-          }
-        }
-      }
-    },
-    "Expense": {
-      "localizations": {
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Витрата"
           }
         }
       }
@@ -143,6 +163,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Місяць"
+          }
+        }
+      }
+    },
+    "New Expense": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нова витрата"
           }
         }
       }

@@ -73,9 +73,14 @@ private func runSelfCheck() {
 
 /// Replaces all expenses with sample data spread over the last week.
 ///
+/// The optional `-demoOffsetDays <n>` argument moves every sample `n` days further
+/// back, so tests can reproduce dates near a month boundary on any calendar day.
+///
 /// Run it with `xcrun simctl launch <device> org.merzlov.kalyta --demo`.
 @MainActor
 private func seedDemoData() {
+    // Launch arguments in "-key value" form are readable through the argument domain of UserDefaults.
+    let offsetDays = UserDefaults.standard.integer(forKey: "demoOffsetDays")
     let context = Store.container.mainContext
     try! context.delete(model: Expense.self)
 
@@ -85,7 +90,7 @@ private func seedDemoData() {
         (540, .food, "Сільпо", 3), (200, .transport, "Таксі", 4), (99, .fun, "Підписка", 6),
     ]
     for sample in samples {
-        let date = Calendar.current.date(byAdding: .day, value: -sample.daysAgo, to: .now)!
+        let date = Calendar.current.date(byAdding: .day, value: -(sample.daysAgo + offsetDays), to: .now)!
         context.insert(Expense(amount: sample.amount, category: sample.category, note: sample.note, date: date))
     }
     try! context.save()
