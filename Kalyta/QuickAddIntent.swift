@@ -17,7 +17,7 @@ struct QuickAddExpense: AppIntent {
     var amount: Double
 
     @Parameter(title: "Category")
-    var category: Category?
+    var category: CategoryEntity?
 
     @Parameter(title: "Note")
     var note: String?
@@ -28,8 +28,61 @@ struct QuickAddExpense: AppIntent {
             throw $amount.needsValueError("The amount must be greater than zero.")
         }
         let context = Store.container.mainContext
-        context.insert(Expense(amount: amount, category: category ?? .other, note: note ?? ""))
+        try Store.ensureCategories(in: context)
+        let record = Store.category(forKey: category?.id, in: context)
+        context.insert(Expense(amount: amount, category: record, note: note ?? ""))
         try context.save()
         return .result(dialog: "Recorded \(formattedHryvnias(amount))")
+    }
+}
+
+/// A category as Shortcuts sees it.
+///
+/// Its identifier is the category's stable key, which for built-ins equals the value
+/// the earlier enum parameter used ("food" and so on).
+struct CategoryEntity: AppEntity {
+    static var typeDisplayRepresentation: TypeDisplayRepresentation { "Category" }
+    static var defaultQuery = CategoryQuery()
+
+    /// The category's stable key.
+    let id: String
+    /// The category's name at the time it was read.
+    let title: String
+    /// The SF Symbol name of the icon.
+    let symbol: String
+
+    var displayRepresentation: DisplayRepresentation {
+        // The title is already localized (or typed by the person); the catalog key "%@" is not translated.
+        DisplayRepresentation(title: "\(title)", image: .init(systemName: symbol))
+    }
+
+    /// Copies what Shortcuts needs from a category record.
+    ///
+    /// - Parameter category: The record to describe.
+    init(_ category: ExpenseCategory) {
+        self.id = category.key
+        self.title = category.title
+        self.symbol = category.icon
+    }
+}
+
+/// Finds categories for Shortcuts in the app's shared store.
+struct CategoryQuery: EntityQuery {
+    @MainActor
+    func entities(for identifiers: [CategoryEntity.ID]) async throws -> [CategoryEntity] {
+        try allCategories().filter { identifiers.contains($0.key) }.map(CategoryEntity.init)
+    }
+
+    @MainActor
+    func suggestedEntities() async throws -> [CategoryEntity] {
+        try allCategories().filter { !$0.isHidden }.map(CategoryEntity.init)
+    }
+
+    /// Returns every category, built-ins first, after making sure the built-ins exist.
+    @MainActor
+    private func allCategories() throws -> [ExpenseCategory] {
+        let context = Store.container.mainContext
+        try Store.ensureCategories(in: context)
+        return try context.fetch(FetchDescriptor<ExpenseCategory>(sortBy: [SortDescriptor(\.sortOrder)]))
     }
 }

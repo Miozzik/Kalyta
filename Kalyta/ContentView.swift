@@ -4,9 +4,11 @@ import SwiftUI
 
 /// The total spent in one category during the selected period.
 struct CategoryTotal: Identifiable {
-    let category: Category
+    /// The category's stable key.
+    let id: String
+    let title: String
+    let color: Color
     let total: Double
-    var id: String { category.rawValue }
 }
 
 /// The total spent during one period, shown as a bar in the period selector.
@@ -95,8 +97,12 @@ struct ContentView: View {
 
     /// Category totals for the selected period, largest first.
     private var totalsByCategory: [CategoryTotal] {
-        Dictionary(grouping: periodExpenses, by: \.category)
-            .map { CategoryTotal(category: $0.key, total: $0.value.reduce(0) { $0 + $1.amount }) }
+        Dictionary(grouping: periodExpenses) { $0.assignedCategory?.key ?? $0.legacyCategory.rawValue }
+            .map { key, items in
+                CategoryTotal(
+                    id: key, title: items[0].categoryTitle, color: items[0].categoryColor,
+                    total: items.reduce(0) { $0 + $1.amount })
+            }
             .sorted { $0.total > $1.total }
     }
 
@@ -338,7 +344,7 @@ private struct CategoryBreakdown: View {
         VStack(spacing: 16) {
             Chart(rows) { row in
                 SectorMark(angle: .value("Amount", row.total), innerRadius: .ratio(0.62), angularInset: 2)
-                    .foregroundStyle(row.category.color)
+                    .foregroundStyle(row.color)
                     .cornerRadius(4)
             }
             .frame(height: 170)
@@ -348,7 +354,7 @@ private struct CategoryBreakdown: View {
                     VStack(spacing: 2) {
                         Text(formattedShare(of: largest.total))
                             .font(.title2.bold().monospacedDigit())
-                        Text(largest.category.title)
+                        Text(largest.title)
                             .font(.caption2)
                             .foregroundStyle(.secondary)
                     }
@@ -358,8 +364,8 @@ private struct CategoryBreakdown: View {
             VStack(spacing: 10) {
                 ForEach(rows) { row in
                     HStack(spacing: 10) {
-                        Circle().fill(row.category.color).frame(width: 10, height: 10)
-                        Text(row.category.title)
+                        Circle().fill(row.color).frame(width: 10, height: 10)
+                        Text(row.title)
                         Spacer()
                         Text(formattedShare(of: row.total))
                             .font(.caption)

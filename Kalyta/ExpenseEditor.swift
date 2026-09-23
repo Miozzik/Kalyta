@@ -15,8 +15,11 @@ struct ExpenseEditor: View {
     /// Deletes the edited expense through the list's deferred deletion, so the undo banner appears.
     private let onDelete: ((Expense) -> Void)?
 
+    @Query(sort: \ExpenseCategory.sortOrder) private var categories: [ExpenseCategory]
     @State private var amount: Double?
-    @State private var category: Category
+    /// The picked category, or `nil` until one is picked for a new expense.
+    @State private var category: ExpenseCategory?
+    @State private var isCreatingCategory = false
     @State private var note: String
     @State private var date: Date
     @FocusState private var isAmountFocused: Bool
@@ -30,12 +33,18 @@ struct ExpenseEditor: View {
         self.expense = expense
         self.onDelete = onDelete
         _amount = State(initialValue: expense?.amount)
-        _category = State(initialValue: expense?.category ?? .food)
+        _category = State(initialValue: expense?.assignedCategory)
         _note = State(initialValue: expense?.note ?? "")
         _date = State(initialValue: expense?.date ?? .now)
     }
 
-    private var canSave: Bool { (amount ?? 0) > 0 }
+    private var canSave: Bool { (amount ?? 0) > 0 && category != nil }
+
+    /// The categories offered in the grid: visible ones, plus the current one even if hidden,
+    /// so editing an old expense never silently changes its category.
+    private var pickableCategories: [ExpenseCategory] {
+        categories.filter { !$0.isHidden || $0 == category }
+    }
 
     var body: some View {
         NavigationStack {
@@ -55,15 +64,24 @@ struct ExpenseEditor: View {
                     .padding(.top, 20)
 
                     LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 3), spacing: 12) {
-                        ForEach(Category.allCases) { item in
+                        ForEach(pickableCategories) { item in
                             Button {
                                 category = item
                             } label: {
-                                CategoryChip(category: item, isSelected: item == category)
+                                CategoryChip(
+                                    title: item.title, icon: item.icon, color: item.color, isSelected: item == category)
                             }
                             .buttonStyle(.plain)
                             .accessibilityAddTraits(item == category ? .isSelected : [])
                         }
+                        Button {
+                            isCreatingCategory = true
+                        } label: {
+                            CategoryChip(
+                                title: String(localized: "New"), icon: "plus", color: .secondary, isSelected: false)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("New Category")
                     }
 
                     VStack(spacing: 0) {
@@ -105,7 +123,13 @@ struct ExpenseEditor: View {
                         .fontWeight(.semibold)
                 }
             }
-            .onAppear { isAmountFocused = expense == nil }
+            .onAppear {
+                isAmountFocused = expense == nil
+                if category == nil { category = pickableCategories.first }
+            }
+            .sheet(isPresented: $isCreatingCategory) {
+                CategoryEditor { created in category = created }
+            }
         }
     }
 
@@ -114,10 +138,11 @@ struct ExpenseEditor: View {
     /// Saves at once instead of waiting for autosave, which runs later: an app killed
     /// right after Save would otherwise lose the expense.
     private func save() {
-        guard let amount, amount > 0 else { return }
+        guard let amount, amount > 0, let category else { return }
         if let expense {
             expense.amount = amount
-            expense.category = category
+            expense.assignedCategory = category
+            expense.legacyCategory = Category(rawValue: category.key) ?? .other
             expense.note = note
             expense.date = date
         } else {
@@ -128,20 +153,24 @@ struct ExpenseEditor: View {
     }
 }
 
-/// A tappable tile for one category, outlined in the category color when selected.
+/// A tile for one category, outlined in the category color when selected.
 private struct CategoryChip: View {
-    let category: Category
+    let title: String
+    /// The SF Symbol name.
+    let icon: String
+    let color: Color
     let isSelected: Bool
 
     var body: some View {
         VStack(spacing: 8) {
-            Image(systemName: category.icon)
+            Image(systemName: icon)
                 .font(.system(size: 20, weight: .semibold))
-                .foregroundStyle(isSelected ? .white : category.color)
+                .foregroundStyle(isSelected ? .white : color)
                 .frame(width: 48, height: 48)
-                .background(isSelected ? category.color : category.color.opacity(0.15), in: .circle)
-            Text(category.title)
+                .background(isSelected ? color : color.opacity(0.15), in: .circle)
+            Text(title)
                 .font(.caption)
+                .lineLimit(1)
                 .foregroundStyle(isSelected ? .primary : .secondary)
         }
         .frame(maxWidth: .infinity)
@@ -149,7 +178,7 @@ private struct CategoryChip: View {
         .background(Color(.secondarySystemGroupedBackground), in: .rect(cornerRadius: 16))
         .overlay {
             RoundedRectangle(cornerRadius: 16)
-                .strokeBorder(isSelected ? category.color : .clear, lineWidth: 2)
+                .strokeBorder(isSelected ? color : .clear, lineWidth: 2)
         }
         .animation(.snappy(duration: 0.15), value: isSelected)
     }

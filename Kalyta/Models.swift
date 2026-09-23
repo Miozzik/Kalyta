@@ -1,12 +1,13 @@
-import AppIntents
 import Foundation
 import SwiftData
 import SwiftUI
 
-/// A spending category with its display title, SF Symbol, and color.
+/// The built-in categories, as the first release stored them.
 ///
-/// Conforms to `AppEnum` so the Shortcuts action can take a category as a parameter.
-enum Category: String, Codable, CaseIterable, Identifiable, AppEnum {
+/// Stores from that release hold these values directly, so the cases and raw values
+/// must never change. Each built-in also exists as an ``ExpenseCategory`` record
+/// whose key is the raw value.
+enum Category: String, Codable, CaseIterable, Identifiable {
     case food, transport, home, health, fun, other
 
     var id: String { rawValue }
@@ -35,8 +36,8 @@ enum Category: String, Codable, CaseIterable, Identifiable, AppEnum {
         }
     }
 
-    /// The accent color used for the icon, chart sector, and legend dot.
-    var color: Color {
+    /// The palette colour a new store gives the built-in.
+    var defaultColor: CategoryColor {
         switch self {
         case .food: .orange
         case .transport: .blue
@@ -46,40 +47,84 @@ enum Category: String, Codable, CaseIterable, Identifiable, AppEnum {
         case .other: .gray
         }
     }
+}
 
-    static var typeDisplayRepresentation: TypeDisplayRepresentation { "Category" }
+/// The colours a category can have: system colours, so they adapt to dark mode.
+///
+/// A fixed palette keeps the donut readable; a free colour picker allows two nearly
+/// identical blues side by side.
+enum CategoryColor: String, CaseIterable, Identifiable {
+    case red, orange, yellow, green, mint, teal, cyan, blue, indigo, purple, pink, brown, gray
 
-    // The AppIntents metadata extractor reads this at build time and only accepts
-    // a dictionary literal. Building it with `map` fails the build, so the titles
-    // and icons are intentionally repeated here.
-    static var caseDisplayRepresentations: [Category: DisplayRepresentation] = [
-        .food: DisplayRepresentation(title: "Food", image: .init(systemName: "fork.knife")),
-        .transport: DisplayRepresentation(title: "Transport", image: .init(systemName: "bus.fill")),
-        .home: DisplayRepresentation(title: "Home", image: .init(systemName: "house.fill")),
-        .health: DisplayRepresentation(title: "Health", image: .init(systemName: "cross.case.fill")),
-        .fun: DisplayRepresentation(title: "Entertainment", image: .init(systemName: "gamecontroller.fill")),
-        .other: DisplayRepresentation(title: "Other", image: .init(systemName: "ellipsis.circle.fill")),
+    var id: String { rawValue }
+
+    /// The SwiftUI colour of the palette entry.
+    var color: Color {
+        switch self {
+        case .red: .red
+        case .orange: .orange
+        case .yellow: .yellow
+        case .green: .green
+        case .mint: .mint
+        case .teal: .teal
+        case .cyan: .cyan
+        case .blue: .blue
+        case .indigo: .indigo
+        case .purple: .purple
+        case .pink: .pink
+        case .brown: .brown
+        case .gray: .gray
+        }
+    }
+}
+
+/// The SF Symbols a person can pick for a category, grouped roughly by theme.
+enum CategorySymbols {
+    static let all = [
+        "fork.knife", "cup.and.saucer.fill", "cart.fill", "basket.fill", "takeoutbag.and.cup.and.straw.fill",
+        "bus.fill", "car.fill", "fuelpump.fill", "tram.fill", "airplane", "bicycle",
+        "house.fill", "bolt.fill", "drop.fill", "wifi", "wrench.and.screwdriver.fill", "sofa.fill",
+        "cross.case.fill", "pills.fill", "heart.fill", "figure.run", "dumbbell.fill",
+        "gamecontroller.fill", "film.fill", "music.note", "book.fill", "ticket.fill", "paintpalette.fill",
+        "tshirt.fill", "bag.fill", "gift.fill", "pawprint.fill", "leaf.fill", "graduationcap.fill",
+        "iphone", "desktopcomputer", "creditcard.fill", "banknote.fill", "briefcase.fill", "ellipsis.circle.fill",
     ]
 }
 
-/// A single recorded expense.
-@Model
-final class Expense {
-    /// The amount spent, in hryvnias.
-    var amount: Double
-    var category: Category
-    /// An optional free-form description, such as the shop name.
-    var note: String
-    /// The moment the expense happened.
-    var date: Date
-
-    /// Creates an expense with the given amount, defaulting to the current moment.
-    init(amount: Double, category: Category = .other, note: String = "", date: Date = .now) {
-        self.amount = amount
-        self.category = category
-        self.note = note
-        self.date = date
+extension ExpenseCategory {
+    /// The name shown in the interface: the person's name, or the built-in's localized one.
+    var title: String {
+        if let customName, !customName.isEmpty { return customName }
+        return Category(rawValue: key)?.title ?? key
     }
+
+    /// The SF Symbol name of the icon.
+    var icon: String { symbol }
+
+    /// The colour of the icon, chart sector and legend dot.
+    var color: Color { (CategoryColor(rawValue: colorName) ?? .gray).color }
+
+    /// Whether this is one of the built-in categories rather than one the person created.
+    var isBuiltIn: Bool { Category(rawValue: key) != nil }
+
+    /// Whether the person may hide it. "Other" always stays: Back Tap entries without a
+    /// category land there.
+    var canHide: Bool { key != Category.other.rawValue }
+
+    /// Whether the person may delete it for good: only custom categories without expenses.
+    /// A used category is hidden instead, so past months keep their categories.
+    var canDelete: Bool { !isBuiltIn && expenses.isEmpty }
+}
+
+extension Expense {
+    /// The name of the expense's category, falling back to the legacy value until relinked.
+    var categoryTitle: String { assignedCategory?.title ?? legacyCategory.title }
+
+    /// The icon of the expense's category.
+    var categoryIcon: String { assignedCategory?.icon ?? legacyCategory.icon }
+
+    /// The colour of the expense's category.
+    var categoryColor: Color { assignedCategory?.color ?? legacyCategory.defaultColor.color }
 }
 
 /// The app's persistent storage.
@@ -90,11 +135,75 @@ enum Store {
     /// recorded through Back Tap would be saved but never appear in the list.
     static let container: ModelContainer = {
         do {
-            return try ModelContainer(for: Expense.self)
+            return try makeContainer()
         } catch {
             fatalError("Failed to create the SwiftData container: \(error)")
         }
     }()
+
+    /// Creates a container on the current schema, migrating older stores.
+    ///
+    /// - Parameter url: The store file, or `nil` for the app's default location.
+    /// - Returns: A container whose stores use ``SchemaV2``.
+    /// - Throws: An error if the store cannot be opened or migrated.
+    static func makeContainer(url: URL? = nil) throws -> ModelContainer {
+        let schema = Schema(versionedSchema: SchemaV2.self)
+        let configuration =
+            url.map { ModelConfiguration(schema: schema, url: $0) } ?? ModelConfiguration(schema: schema)
+        return try ModelContainer(for: schema, migrationPlan: KalytaMigrationPlan.self, configurations: configuration)
+    }
+
+    /// Creates the built-in categories that are missing and links every expense
+    /// without a category to the record matching its legacy value.
+    ///
+    /// Idempotent and cheap once done, so it runs at every launch: a fresh install has
+    /// no migration to hook into, and a relink cut short by a killed app finishes on
+    /// the next start.
+    ///
+    /// - Parameter context: The context to update and save.
+    /// - Throws: An error if fetching or saving fails.
+    @MainActor
+    static func ensureCategories(in context: ModelContext) throws {
+        var byKey = Dictionary(
+            uniqueKeysWithValues: try context.fetch(FetchDescriptor<ExpenseCategory>()).map { ($0.key, $0) })
+        for (index, builtIn) in Category.allCases.enumerated() where byKey[builtIn.rawValue] == nil {
+            let record = ExpenseCategory(
+                key: builtIn.rawValue, customName: nil, symbol: builtIn.icon,
+                colorName: builtIn.defaultColor.rawValue, sortOrder: index)
+            context.insert(record)
+            byKey[builtIn.rawValue] = record
+        }
+        let unlinked = try context.fetch(FetchDescriptor<Expense>(predicate: #Predicate { $0.assignedCategory == nil }))
+        for expense in unlinked {
+            expense.assignedCategory = byKey[expense.legacyCategory.rawValue]
+        }
+        if context.hasChanges { try context.save() }
+    }
+
+    /// Returns the category an expense recorded with `key` goes into.
+    ///
+    /// A missing key (the Shortcuts parameter left empty) or one that no longer exists
+    /// falls back to "Other", so an old or broken shortcut still records instead of failing.
+    ///
+    /// - Parameters:
+    ///   - key: The key the caller asked for, or `nil`.
+    ///   - context: The context to search; the built-ins must exist in it.
+    /// - Returns: The matching category, or "Other".
+    @MainActor
+    static func category(forKey key: String?, in context: ModelContext) -> ExpenseCategory {
+        key.flatMap { category(withKey: $0, in: context) } ?? category(withKey: Category.other.rawValue, in: context)!
+    }
+
+    /// Returns the category record with a key, such as "other".
+    ///
+    /// - Parameters:
+    ///   - key: The stable key.
+    ///   - context: The context to search.
+    /// - Returns: The record, or `nil` if there is none.
+    @MainActor
+    static func category(withKey key: String, in context: ModelContext) -> ExpenseCategory? {
+        try? context.fetch(FetchDescriptor<ExpenseCategory>(predicate: #Predicate { $0.key == key })).first
+    }
 }
 
 /// Formats an amount as hryvnias, for example "42,50 ₴" or "100 ₴".

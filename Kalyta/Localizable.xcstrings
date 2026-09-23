@@ -1,6 +1,9 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "%@": {
+      "shouldTranslate": false
+    },
     "%lld expenses": {
       "localizations": {
         "en": {
@@ -56,6 +59,16 @@
     "0": {
       "shouldTranslate": false
     },
+    "A category with expenses can only be hidden, so past months keep it.": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Категорію з витратами можна лише приховати — так минулі місяці її зберігають."
+          }
+        }
+      }
+    },
     "Add": {
       "localizations": {
         "uk": {
@@ -96,12 +109,32 @@
         }
       }
     },
+    "Categories": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Категорії"
+          }
+        }
+      }
+    },
     "Category": {
       "localizations": {
         "uk": {
           "stringUnit": {
             "state": "translated",
             "value": "Категорія"
+          }
+        }
+      }
+    },
+    "Colour": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Колір"
           }
         }
       }
@@ -126,12 +159,32 @@
         }
       }
     },
+    "Delete Category": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Видалити категорію"
+          }
+        }
+      }
+    },
     "Delete Expense": {
       "localizations": {
         "uk": {
           "stringUnit": {
             "state": "translated",
             "value": "Видалити витрату"
+          }
+        }
+      }
+    },
+    "Edit Category": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Редагування категорії"
           }
         }
       }
@@ -166,6 +219,16 @@
         }
       }
     },
+    "Expenses": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Витрати"
+          }
+        }
+      }
+    },
     "Export": {
       "localizations": {
         "uk": {
@@ -196,6 +259,26 @@
         }
       }
     },
+    "Hidden": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Приховані"
+          }
+        }
+      }
+    },
+    "Hide": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Приховати"
+          }
+        }
+      }
+    },
     "Home": {
       "localizations": {
         "uk": {
@@ -216,6 +299,16 @@
         }
       }
     },
+    "Icon": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Іконка"
+          }
+        }
+      }
+    },
     "Kalyta": {
       "shouldTranslate": false
     },
@@ -225,6 +318,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "Місяць"
+          }
+        }
+      }
+    },
+    "Name": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Назва"
+          }
+        }
+      }
+    },
+    "New": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нова"
+          }
+        }
+      }
+    },
+    "New Category": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нова категорія"
           }
         }
       }
@@ -315,6 +438,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Зберегти"
+          }
+        }
+      }
+    },
+    "Settings": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Налаштування"
           }
         }
       }

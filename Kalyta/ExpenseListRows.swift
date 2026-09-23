@@ -44,14 +44,14 @@ struct ExpenseRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: expense.category.icon)
+            Image(systemName: expense.categoryIcon)
                 .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(expense.category.color)
+                .foregroundStyle(expense.categoryColor)
                 .frame(width: 40, height: 40)
-                .background(expense.category.color.opacity(0.15), in: .circle)
+                .background(expense.categoryColor.opacity(0.15), in: .circle)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(expense.note.isEmpty ? expense.category.title : expense.note)
+                Text(expense.note.isEmpty ? expense.categoryTitle : expense.note)
                 Text(expense.date, format: .dateTime.hour().minute())
                     .font(.caption)
                     .foregroundStyle(.secondary)

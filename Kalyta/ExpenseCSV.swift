@@ -26,8 +26,8 @@ extension ExpenseRecord {
         self.init(
             date: expense.date,
             amount: expense.amount,
-            categoryKey: expense.category.rawValue,
-            categoryName: expense.category.title,
+            categoryKey: expense.assignedCategory?.key ?? expense.legacyCategory.rawValue,
+            categoryName: expense.categoryTitle,
             note: expense.note
         )
     }

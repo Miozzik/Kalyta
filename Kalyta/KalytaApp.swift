@@ -6,16 +6,27 @@ import SwiftUI
 /// Two launch arguments exist for development:
 /// - `--selfcheck` runs ``runSelfCheck()`` and exits.
 /// - `--demo` replaces all expenses with sample data for screenshots.
+/// - `--check-upgrade` verifies that sample data written by an older release survived
+///   the upgrade to this one, then exits.
 @main
 struct KalytaApp: App {
     init() {
         if CommandLine.arguments.contains("--selfcheck") { MainActor.assumeIsolated { runSelfCheck() } }
         if CommandLine.arguments.contains("--demo") { MainActor.assumeIsolated { seedDemoData() } }
+        if CommandLine.arguments.contains("--check-upgrade") { MainActor.assumeIsolated { runUpgradeCheck() } }
     }
 
     var body: some Scene {
-        WindowGroup { ContentView() }
-            .modelContainer(Store.container)
+        WindowGroup {
+            TabView {
+                ContentView()
+                    .tabItem { Label("Expenses", systemImage: "list.bullet.rectangle") }
+                SettingsView()
+                    .tabItem { Label("Settings", systemImage: "gearshape") }
+            }
+            .task { try? Store.ensureCategories(in: Store.container.mainContext) }
+        }
+        .modelContainer(Store.container)
     }
 }
 
@@ -30,18 +41,20 @@ struct KalytaApp: App {
 @MainActor
 private func runSelfCheck() {
     let context = Store.container.mainContext
+    try! Store.ensureCategories(in: context)
+    let food = Store.category(withKey: Category.food.rawValue, in: context)!
     // Remove leftovers from a previous run that crashed before cleaning up,
     // otherwise every later run would fail on the count check.
-    try! context.delete(model: Expense.self, where: #Predicate { $0.note == "selfcheck" })
+    deleteExpenses(where: #Predicate { $0.note == "selfcheck" }, in: context)
 
-    let probe = Expense(amount: 42.5, category: .food, note: "selfcheck")
+    let probe = Expense(amount: 42.5, category: food, note: "selfcheck")
     context.insert(probe)
     try! context.save()
 
     let probeQuery = FetchDescriptor<Expense>(predicate: #Predicate { $0.note == "selfcheck" })
     let found = try! context.fetch(probeQuery)
     assert(found.count == 1, "The expense was not read back from the shared container")
-    assert(found[0].amount == 42.5 && found[0].category == .food, "Expense fields changed on save")
+    assert(found[0].amount == 42.5 && found[0].assignedCategory?.key == "food", "Expense fields changed on save")
 
     // Compare digits only: the formatter inserts a non-breaking space and depends
     // on the locale, so comparing with a literal such as "42,50 ₴" is unreliable.
@@ -64,6 +77,20 @@ private func runSelfCheck() {
     assert(
         csvLines[1].hasSuffix(",\"He said \"\"hi\"\", ok\nnext\""), "CSV note not quoted per RFC 4180: \(csvLines[1])")
     assert(ExpenseCSV.field("plain") == "plain", "A plain field must not be quoted")
+    // A custom category name is typed by the person, so it can need quoting too.
+    let customRecord = ExpenseRecord(
+        date: record.date, amount: 1, categoryKey: "7F1C", categoryName: "Кафе, бари", note: "")
+    let customLine = ExpenseCSV.document(for: [customRecord]).components(separatedBy: "\r\n")[1]
+    assert(customLine.contains(",7F1C,\"Кафе, бари\","), "A custom category name was not quoted: \(customLine)")
+
+    runMigrationCheck()
+
+    // The Shortcuts action: an empty or unknown category must record into "Other", never fail.
+    assert(Store.category(forKey: nil, in: context).key == "other", "An empty category did not fall back to Other")
+    assert(
+        Store.category(forKey: "no-such-key", in: context).key == "other",
+        "An unknown category did not fall back to Other")
+    assert(Store.category(forKey: "food", in: context).key == "food", "A known category was not used")
 
     for period in Period.allCases {
         let intervals = period.intervals()
@@ -81,13 +108,13 @@ private func runSelfCheck() {
     try! context.save()
     assert(try! context.fetchCount(probeQuery) == 0, "The expense was not deleted")
 
-    try! context.delete(model: Expense.self, where: #Predicate { $0.note == "selfcheck" })
+    deleteExpenses(where: #Predicate { $0.note == "selfcheck" }, in: context)
     try! context.save()
     print("SELFCHECK OK")
     exit(0)  // Without this the app keeps running and holds the launching console open.
 }
 
-/// Replaces all expenses with sample data spread over the last week.
+/// Replaces all expenses and categories with the built-ins and sample data from the last week.
 ///
 /// The optional `-demoOffsetDays <n>` argument moves every sample `n` days further
 /// back, so tests can reproduce dates near a month boundary on any calendar day.
@@ -98,16 +125,94 @@ private func seedDemoData() {
     // Launch arguments in "-key value" form are readable through the argument domain of UserDefaults.
     let offsetDays = UserDefaults.standard.integer(forKey: "demoOffsetDays")
     let context = Store.container.mainContext
-    try! context.delete(model: Expense.self)
+    deleteExpenses(where: #Predicate { _ in true }, in: context)
+    // Reset categories too, so every run starts from the built-ins alone.
+    for category in try! context.fetch(FetchDescriptor<ExpenseCategory>()) { context.delete(category) }
+    try! context.save()
+    try! Store.ensureCategories(in: context)
 
-    let samples: [(amount: Double, category: Category, note: String, daysAgo: Int)] = [
-        (248.90, .food, "АТБ", 0), (65, .transport, "Метро", 0), (120, .fun, "Кава з Оксаною", 0),
-        (1450, .home, "Комуналка", 1), (89.50, .food, "Пекарня", 1), (320, .health, "Аптека", 2),
-        (540, .food, "Сільпо", 3), (200, .transport, "Таксі", 4), (99, .fun, "Підписка", 6),
-    ]
-    for sample in samples {
+    for sample in demoSamples {
         let date = Calendar.current.date(byAdding: .day, value: -(sample.daysAgo + offsetDays), to: .now)!
-        context.insert(Expense(amount: sample.amount, category: sample.category, note: sample.note, date: date))
+        let record = Store.category(withKey: sample.category.rawValue, in: context)!
+        context.insert(Expense(amount: sample.amount, category: record, note: sample.note, date: date))
+    }
+    try! context.save()
+}
+
+/// The sample expenses of `--demo`; also what ``runUpgradeCheck()`` expects to find.
+private let demoSamples: [(amount: Double, category: Category, note: String, daysAgo: Int)] = [
+    (248.90, .food, "АТБ", 0), (65, .transport, "Метро", 0), (120, .fun, "Кава з Оксаною", 0),
+    (1450, .home, "Комуналка", 1), (89.50, .food, "Пекарня", 1), (320, .health, "Аптека", 2),
+    (540, .food, "Сільпо", 3), (200, .transport, "Таксі", 4), (99, .fun, "Підписка", 6),
+]
+
+/// Verifies that a store in the first release's shape opens on the current schema and
+/// that every expense is linked to the category it had.
+///
+/// Writes a V1 store to a temporary file with ``SchemaV1``, reopens it through
+/// ``Store/makeContainer(url:)``, and runs the launch relink on it.
+@MainActor
+private func runMigrationCheck() {
+    let url = FileManager.default.temporaryDirectory.appending(path: "selfcheck-v1-\(UUID().uuidString).store")
+    defer { try? FileManager.default.removeItem(at: url) }
+    do {
+        let schema = Schema(versionedSchema: SchemaV1.self)
+        let v1 = try! ModelContainer(for: schema, configurations: ModelConfiguration(schema: schema, url: url))
+        let context = ModelContext(v1)
+        for (index, category) in Category.allCases.enumerated() {
+            context.insert(
+                SchemaV1.Expense(amount: Double(index + 1), category: category, note: category.rawValue, date: .now))
+        }
+        try! context.save()
+    }
+
+    let context = ModelContext(try! Store.makeContainer(url: url))
+    try! Store.ensureCategories(in: context)
+    let migrated = try! context.fetch(FetchDescriptor<Expense>())
+    assert(migrated.count == Category.allCases.count, "Migration lost expenses: \(migrated.count)")
+    for expense in migrated {
+        // Each V1 expense carries its category's key in the note, so the link can be checked.
+        assert(
+            expense.assignedCategory?.key == expense.note,
+            "Migration linked \(expense.note) to \(expense.assignedCategory?.key ?? "nil")")
+    }
+}
+
+/// Verifies that the `--demo` data written by an older release survived the upgrade:
+/// every sample is present once, with its amount, note and category, then exits.
+///
+/// Run it after installing this build over an older one that was launched with `--demo`.
+@MainActor
+private func runUpgradeCheck() {
+    let context = Store.container.mainContext
+    try! Store.ensureCategories(in: context)
+    let stored = try! context.fetch(FetchDescriptor<Expense>())
+    assert(stored.count == demoSamples.count, "Upgrade changed the number of expenses: \(stored.count)")
+    for sample in demoSamples {
+        let matches = stored.filter { $0.note == sample.note }
+        assert(matches.count == 1, "Sample \(sample.note) found \(matches.count) times")
+        assert(matches[0].amount == sample.amount, "Sample \(sample.note) changed amount: \(matches[0].amount)")
+        assert(
+            matches[0].assignedCategory?.key == sample.category.rawValue,
+            "Sample \(sample.note) is in \(matches[0].assignedCategory?.key ?? "nil"), expected \(sample.category.rawValue)"
+        )
+    }
+    print("UPGRADE OK")
+    exit(0)
+}
+
+/// Deletes the matching expenses one by one.
+///
+/// A batch `delete(model:where:)` fails once `Expense` has a relationship with an
+/// inverse ("mandatory OTO nullify inverse"), so each object is deleted individually.
+///
+/// - Parameters:
+///   - predicate: Which expenses to delete.
+///   - context: The context to delete them from.
+@MainActor
+private func deleteExpenses(where predicate: Predicate<Expense>, in context: ModelContext) {
+    for expense in try! context.fetch(FetchDescriptor(predicate: predicate)) {
+        context.delete(expense)
     }
     try! context.save()
 }
