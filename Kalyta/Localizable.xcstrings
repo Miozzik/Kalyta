@@ -84,6 +84,16 @@
         }
       }
     },
+    "Expense deleted": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Витрату видалено"
+          }
+        }
+      }
+    },
     "Food": {
       "localizations": {
         "uk": {
@@ -284,6 +294,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Транспорт"
+          }
+        }
+      }
+    },
+    "Undo": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скасувати"
           }
         }
       }

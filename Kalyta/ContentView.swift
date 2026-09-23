@@ -19,12 +19,36 @@ struct PeriodBar: Identifiable {
 
 /// The main screen: period selector, summary, category breakdown, and expenses by day.
 struct ContentView: View {
+    /// How long a deletion can be undone before it is committed.
+    ///
+    /// A design constant rather than a user setting: long enough to read the banner
+    /// and reach the button, short enough not to cover the list for long.
+    private static let undoBannerDuration: Duration = .seconds(5)
+
     @Environment(\.modelContext) private var context
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.accessibilityVoiceOverEnabled) private var isVoiceOverEnabled
     @Query(sort: \Expense.date, order: .reverse) private var expenses: [Expense]
     @State private var isAddingExpense = false
     @State private var period: Period = .month
     /// The start of the period picked from the bars, or `nil` for the current period.
     @State private var selectedStart: Date?
+    /// The expense the person just deleted, hidden but not yet removed from the store.
+    ///
+    /// SwiftData's undo cannot restore a deletion once it has been saved, and the main
+    /// context saves right after every change, so the deletion is deferred instead:
+    /// ``commitPendingDeletion()`` removes the expense when the undo window closes.
+    @State private var pendingDeletion: Expense?
+
+    /// Every expense except the one pending deletion.
+    ///
+    /// All derived values read this, never `expenses`, so totals drop the moment
+    /// an expense is deleted and come back on undo.
+    ///
+    /// - Complexity: O(*n*), where *n* is the number of expenses.
+    private var visibleExpenses: [Expense] {
+        expenses.filter { $0 !== pendingDeletion }
+    }
 
     private var intervals: [DateInterval] { period.intervals() }
 
@@ -36,14 +60,14 @@ struct ContentView: View {
 
     /// - Complexity: O(*n*), where *n* is the number of expenses.
     private var periodExpenses: [Expense] {
-        expenses.filter { selectedInterval.containsExcludingEnd($0.date) }
+        visibleExpenses.filter { selectedInterval.containsExcludingEnd($0.date) }
     }
 
     private var periodTotal: Double { periodExpenses.reduce(0) { $0 + $1.amount } }
 
     /// - Complexity: O(*n*), where *n* is the number of expenses.
     private var todayTotal: Double {
-        expenses.filter { Calendar.current.isDateInToday($0.date) }.reduce(0) { $0 + $1.amount }
+        visibleExpenses.filter { Calendar.current.isDateInToday($0.date) }.reduce(0) { $0 + $1.amount }
     }
 
     /// - Complexity: O(*n* × *p*), where *n* is the number of expenses and *p* the number of bars.
@@ -51,7 +75,7 @@ struct ContentView: View {
         intervals.map { interval in
             PeriodBar(
                 interval: interval,
-                total: expenses.filter { interval.containsExcludingEnd($0.date) }.reduce(0) { $0 + $1.amount },
+                total: visibleExpenses.filter { interval.containsExcludingEnd($0.date) }.reduce(0) { $0 + $1.amount },
                 label: period.shortLabel(for: interval)
             )
         }
@@ -83,7 +107,7 @@ struct ContentView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
+            List {
                 VStack(spacing: 20) {
                     Picker("Period", selection: $period) {
                         ForEach(Period.allCases) { Text($0.title).tag($0) }
@@ -103,25 +127,56 @@ struct ContentView: View {
 
                     if !totalsByCategory.isEmpty {
                         CategoryBreakdown(rows: totalsByCategory, total: periodTotal)
-                    } else if !expenses.isEmpty {
+                    } else if !visibleExpenses.isEmpty {
                         Text("No expenses in this period")
                             .foregroundStyle(.secondary)
                             .padding(.vertical, 24)
                     }
+                }
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
 
-                    ForEach(expensesByDay, id: \.day) { group in
-                        DaySection(
-                            title: title(forDay: group.day),
-                            total: group.items.reduce(0) { $0 + $1.amount },
-                            items: group.items,
-                            onDelete: { context.delete($0) }
-                        )
+                ForEach(expensesByDay, id: \.day) { group in
+                    Section {
+                        ForEach(group.items) { expense in
+                            ExpenseRow(expense: expense)
+                                .swipeActions(edge: .trailing) {
+                                    Button("Delete", systemImage: "trash", role: .destructive) { delete(expense) }
+                                }
+                                .contextMenu {
+                                    Button("Delete", systemImage: "trash", role: .destructive) { delete(expense) }
+                                }
+                        }
+                    } header: {
+                        DayHeader(title: title(forDay: group.day), total: group.items.reduce(0) { $0 + $1.amount })
                     }
                 }
-                .padding(.horizontal)
-                .padding(.bottom, 24)
             }
-            .background(Color(.systemGroupedBackground))
+            .listStyle(.insetGrouped)
+            .safeAreaInset(edge: .bottom) {
+                if pendingDeletion != nil {
+                    UndoBanner {
+                        withAnimation { pendingDeletion = nil }
+                    }
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+            }
+            .task(id: pendingDeletion?.persistentModelID) {
+                // No time limit for VoiceOver users: reaching the Undo button takes longer.
+                // The deletion still commits on the next deletion or when the app leaves the foreground.
+                guard pendingDeletion != nil, !isVoiceOverEnabled else { return }
+                do {
+                    try await Task.sleep(for: Self.undoBannerDuration)
+                } catch {
+                    return  // Cancelled by Undo or by another deletion: nothing to commit here.
+                }
+                withAnimation { commitPendingDeletion() }
+            }
+            .onChange(of: scenePhase) {
+                if scenePhase != .active { commitPendingDeletion() }
+            }
+            .onDisappear { commitPendingDeletion() }
             .navigationTitle("Kalyta")
             .toolbar {
                 Button("Add", systemImage: "plus") { isAddingExpense = true }
@@ -129,7 +184,7 @@ struct ContentView: View {
             }
             .sheet(isPresented: $isAddingExpense) { AddExpenseView() }
             .overlay {
-                if expenses.isEmpty {
+                if visibleExpenses.isEmpty {
                     ContentUnavailableView(
                         "Nothing recorded yet",
                         systemImage: "hryvniasign.circle",
@@ -138,6 +193,29 @@ struct ContentView: View {
                 }
             }
         }
+    }
+
+    /// Hides an expense and offers to undo the deletion.
+    ///
+    /// A deletion that is still pending is committed first, so only the latest one
+    /// can be undone.
+    ///
+    /// - Parameter expense: The expense to delete.
+    private func delete(_ expense: Expense) {
+        commitPendingDeletion()
+        withAnimation { pendingDeletion = expense }
+        AccessibilityNotification.Announcement(String(localized: "Expense deleted")).post()
+    }
+
+    /// Removes the expense pending deletion from the store, if there is one.
+    ///
+    /// Saves at once instead of waiting for autosave: autosave runs later, and an app
+    /// killed in between would bring back an expense whose undo window had already closed.
+    private func commitPendingDeletion() {
+        guard let expense = pendingDeletion else { return }
+        context.delete(expense)
+        pendingDeletion = nil
+        try? context.save()
     }
 
     /// Returns "Сьогодні", "Вчора", or the date, for a day section heading.
@@ -178,6 +256,7 @@ private struct PeriodBars: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(accessibilityText(for: bar))
+                .accessibilityIdentifier("periodBar")
                 .accessibilityAddTraits(isSelected ? .isSelected : [])
             }
         }
@@ -206,7 +285,9 @@ private struct SummaryCard: View {
             Text(title)
                 .font(.subheadline)
                 .foregroundStyle(.white.opacity(0.85))
+                .accessibilityIdentifier("summaryTitle")
             Text(formattedHryvnias(total))
+                .accessibilityIdentifier("summaryTotal")
                 .font(.system(size: 40, weight: .bold, design: .rounded))
                 .foregroundStyle(.white)
                 .contentTransition(.numericText())
@@ -282,37 +363,37 @@ private struct CategoryBreakdown: View {
     }
 }
 
-/// A card listing one day's expenses under a heading with the day's total.
-private struct DaySection: View {
+/// The heading of a day section: the day's title and its total.
+private struct DayHeader: View {
     let title: String
     let total: Double
-    let items: [Expense]
-    let onDelete: (Expense) -> Void
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack {
-                Text(title).font(.subheadline.weight(.semibold))
-                Spacer()
-                Text(formattedHryvnias(total))
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .monospacedDigit()
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 10)
-
-            ForEach(items) { expense in
-                ExpenseRow(expense: expense)
-                    .contextMenu {
-                        Button("Delete", systemImage: "trash", role: .destructive) { onDelete(expense) }
-                    }
-                if expense.id != items.last?.id {
-                    Divider().padding(.leading, 64)
-                }
-            }
+        HStack {
+            Text(title).font(.subheadline.weight(.semibold))
+            Spacer()
+            Text(formattedHryvnias(total)).font(.subheadline).monospacedDigit()
         }
-        .background(Color(.secondarySystemGroupedBackground), in: .rect(cornerRadius: 20))
+        .textCase(nil)
+    }
+}
+
+/// The bar shown after a deletion, with a button that undoes it.
+private struct UndoBanner: View {
+    let onUndo: () -> Void
+
+    var body: some View {
+        HStack {
+            Label("Expense deleted", systemImage: "trash")
+            Spacer()
+            Button("Undo", action: onUndo)
+                .fontWeight(.semibold)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(.regularMaterial, in: .capsule)
+        .padding(.horizontal)
+        .padding(.bottom, 8)
     }
 }
 
@@ -341,7 +422,6 @@ private struct ExpenseRow: View {
                 .font(.body.weight(.medium))
                 .monospacedDigit()
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
+        .padding(.vertical, 2)
     }
 }

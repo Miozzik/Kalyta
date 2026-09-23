@@ -38,7 +38,8 @@ private func runSelfCheck() {
     context.insert(probe)
     try! context.save()
 
-    let found = try! context.fetch(FetchDescriptor<Expense>(predicate: #Predicate { $0.note == "selfcheck" }))
+    let probeQuery = FetchDescriptor<Expense>(predicate: #Predicate { $0.note == "selfcheck" })
+    let found = try! context.fetch(probeQuery)
     assert(found.count == 1, "The expense was not read back from the shared container")
     assert(found[0].amount == 42.5 && found[0].category == .food, "Expense fields changed on save")
 
@@ -61,6 +62,10 @@ private func runSelfCheck() {
     }
 
     context.delete(probe)
+    try! context.save()
+    assert(try! context.fetchCount(probeQuery) == 0, "The expense was not deleted")
+
+    try! context.delete(model: Expense.self, where: #Predicate { $0.note == "selfcheck" })
     try! context.save()
     print("SELFCHECK OK")
     exit(0)  // Without this the app keeps running and holds the launching console open.
