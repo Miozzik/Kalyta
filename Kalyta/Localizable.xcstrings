@@ -1,6 +1,58 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "%lld expenses": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld expense"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld expenses"
+                }
+              }
+            }
+          }
+        },
+        "uk": {
+          "variations": {
+            "plural": {
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld витрати"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld витрат"
+                }
+              },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld витрата"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld витрати"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "0": {
       "shouldTranslate": false
     },
@@ -110,6 +162,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Витрату видалено"
+          }
+        }
+      }
+    },
+    "Export": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Експорт"
           }
         }
       }

@@ -187,8 +187,19 @@ struct ContentView: View {
             .onDisappear { commitPendingDeletion() }
             .navigationTitle("Kalyta")
             .toolbar {
-                Button("Add", systemImage: "plus") { isAddingExpense = true }
-                    .buttonStyle(.borderedProminent)
+                ToolbarItem(placement: .topBarLeading) {
+                    // One snapshot feeds both the file and the title, so the count shown is what is exported.
+                    let export = ExpenseExport(records: visibleExpenses.map(ExpenseRecord.init), createdAt: .now)
+                    ShareLink(
+                        item: export, preview: SharePreview(String(localized: "\(export.records.count) expenses"))
+                    ) {
+                        Label("Export", systemImage: "square.and.arrow.up")
+                    }
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Add", systemImage: "plus") { isAddingExpense = true }
+                        .buttonStyle(.borderedProminent)
+                }
             }
             .sheet(isPresented: $isAddingExpense) { ExpenseEditor() }
             .sheet(item: $editingExpense) { expense in

@@ -49,6 +49,22 @@ private func runSelfCheck() {
     assert(
         formattedHryvnias(100).filter(\.isNumber) == "100", "Whole amounts gained kopiykas: \(formattedHryvnias(100))")
 
+    // CSV export: a note that needs quoting, a large amount, and a known moment
+    // (2026-09-23 09:18 UTC) written in Kyiv time.
+    let exportedNote = "He said \"hi\", ok\nnext"
+    let record = ExpenseRecord(
+        date: Date(timeIntervalSince1970: 1_790_155_080), amount: 1_234_567.89,
+        categoryKey: "food", categoryName: "Їжа", note: exportedNote)
+    let csv = ExpenseCSV.document(for: [record], timeZone: TimeZone(identifier: "Europe/Kyiv")!)
+    let csvLines = csv.components(separatedBy: "\r\n")
+    assert(csvLines.first == "date,amount,currency,category,category_name,note", "CSV header changed: \(csvLines[0])")
+    assert(csv.hasSuffix("\r\n") && csvLines.count == 3, "CSV records must end in CRLF")
+    assert(csvLines[1].hasPrefix("2026-09-23T12:18:00+03:00,"), "CSV date not in local time: \(csvLines[1])")
+    assert(csvLines[1].contains(",1234567.89,UAH,food,Їжа,"), "CSV amount not plain with a dot: \(csvLines[1])")
+    assert(
+        csvLines[1].hasSuffix(",\"He said \"\"hi\"\", ok\nnext\""), "CSV note not quoted per RFC 4180: \(csvLines[1])")
+    assert(ExpenseCSV.field("plain") == "plain", "A plain field must not be quoted")
+
     for period in Period.allCases {
         let intervals = period.intervals()
         assert(intervals.count == 6, "\(period): expected 6 intervals, got \(intervals.count)")

@@ -106,5 +106,8 @@ enum Store {
 /// - Returns: The amount formatted in the current locale.
 func formattedHryvnias(_ amount: Double) -> String {
     let fractionDigits = amount == amount.rounded() ? 0 : 2
-    return amount.formatted(.currency(code: "UAH").precision(.fractionLength(fractionDigits)))
+    return amount.formatted(.currency(code: hryvniaCurrencyCode).precision(.fractionLength(fractionDigits)))
 }
+
+/// The ISO 4217 code of the hryvnia, the currency every amount in the app is in.
+let hryvniaCurrencyCode = "UAH"

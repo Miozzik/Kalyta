@@ -15,14 +15,25 @@ import sys
 CATALOG = pathlib.Path(__file__).resolve().parent.parent / "Kalyta" / "Localizable.xcstrings"
 
 
+def string_units(localization: dict) -> list[dict]:
+    """Returns every string unit of a localization, including plural and device variants."""
+    if "stringUnit" in localization:
+        return [localization["stringUnit"]]
+    units = []
+    for variants in localization.get("variations", {}).values():
+        for variant in variants.values():
+            units.extend(string_units(variant))
+    return units
+
+
 def missing_translations(catalog: dict, language: str) -> list[str]:
     """Returns the keys that should be translated but have no finished translation."""
     missing = []
     for key, entry in catalog["strings"].items():
         if entry.get("shouldTranslate") is False or entry.get("extractionState") == "stale":
             continue
-        unit = entry.get("localizations", {}).get(language, {}).get("stringUnit", {})
-        if unit.get("state") != "translated" or not unit.get("value"):
+        units = string_units(entry.get("localizations", {}).get(language, {}))
+        if not units or any(u.get("state") != "translated" or not u.get("value") for u in units):
             missing.append(key)
     return sorted(missing)
 
