@@ -15,4 +15,9 @@ CURRENT_PROJECT_VERSION = 1
 //     PRODUCT_BUNDLE_IDENTIFIER = com.example.kalyta
 DEVELOPMENT_TEAM =
 
+// Where subscription icons are fetched from: homarr-labs/dashboard-icons (Apache-2.0),
+// pinned to one commit so a renamed icon cannot silently break. "//" starts a comment
+// in xcconfig files, so the scheme separator is written as "/$()/".
+ICON_BASE_URL = https:/$()/cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@cf87d9bbd47792b20893f090ff48763fe874b05d/png
+
 #include? "Local.xcconfig"

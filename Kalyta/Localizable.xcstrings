@@ -4,6 +4,22 @@
     "%@": {
       "shouldTranslate": false
     },
+    "%@: %@ on %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$@: %2$@ on %3$@"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: %2$@, %3$@"
+          }
+        }
+      }
+    },
     "%lld already here, skipped.": {
       "localizations": {
         "en": {
@@ -317,12 +333,42 @@
         }
       }
     },
+    "Add Subscription": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Додати підписку"
+          }
+        }
+      }
+    },
+    "Add what you pay for regularly to see the monthly cost and get a reminder the day before each charge.": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Додай те, за що платиш регулярно, — побачиш вартість на місяць і отримаєш нагадування за день до списання."
+          }
+        }
+      }
+    },
     "All time": {
       "localizations": {
         "uk": {
           "stringUnit": {
             "state": "translated",
             "value": "Увесь час"
+          }
+        }
+      }
+    },
+    "Already recorded for %@.": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вже записано за %@."
           }
         }
       }
@@ -457,6 +503,16 @@
         }
       }
     },
+    "Delete Subscription": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Видалити підписку"
+          }
+        }
+      }
+    },
     "Edit Category": {
       "localizations": {
         "uk": {
@@ -473,6 +529,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Редагування"
+          }
+        }
+      }
+    },
+    "Edit Subscription": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Редагування підписки"
           }
         }
       }
@@ -513,6 +579,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Експорт"
+          }
+        }
+      }
+    },
+    "First charge": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перше списання"
           }
         }
       }
@@ -682,6 +758,16 @@
         }
       }
     },
+    "Monthly": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Щомісяця"
+          }
+        }
+      }
+    },
     "Months": {
       "localizations": {
         "uk": {
@@ -732,6 +818,16 @@
         }
       }
     },
+    "New Subscription": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нова підписка"
+          }
+        }
+      }
+    },
     "No expenses in this period": {
       "localizations": {
         "uk": {
@@ -748,6 +844,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "У цьому діапазоні витрат немає"
+          }
+        }
+      }
+    },
+    "No subscriptions yet": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ще немає підписок"
           }
         }
       }
@@ -792,6 +898,16 @@
         }
       }
     },
+    "Per month": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "На місяць"
+          }
+        }
+      }
+    },
     "Period": {
       "localizations": {
         "uk": {
@@ -818,6 +934,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Діапазон"
+          }
+        }
+      }
+    },
+    "Record": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Записати"
+          }
+        }
+      }
+    },
+    "Recorded": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Записано"
           }
         }
       }
@@ -868,6 +1004,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Зберегти"
+          }
+        }
+      }
+    },
+    "Service, for example Netflix": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сервіс, наприклад Netflix"
           }
         }
       }
@@ -923,6 +1069,16 @@
         }
       }
     },
+    "Subscriptions": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Підписки"
+          }
+        }
+      }
+    },
     "Tap + or set up a double tap on the back of your iPhone": {
       "localizations": {
         "uk": {
@@ -963,6 +1119,16 @@
         }
       }
     },
+    "The icon is looked up online by the service name, so the icon server learns that name.": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Іконку шукаємо в мережі за назвою сервісу, тож сервер іконок дізнається цю назву."
+          }
+        }
+      }
+    },
     "This file was re-saved by Excel. Import the original Kalyta export.": {
       "localizations": {
         "uk": {
@@ -993,6 +1159,16 @@
         }
       }
     },
+    "Tomorrow: %@": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Завтра: %@"
+          }
+        }
+      }
+    },
     "Transport": {
       "localizations": {
         "uk": {
@@ -1019,6 +1195,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Тиждень"
+          }
+        }
+      }
+    },
+    "Yearly": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Щороку"
           }
         }
       }

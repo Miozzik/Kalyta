@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import UIKit
 
 /// Verifies the logic most likely to break silently, then exits the process.
 ///
@@ -59,6 +60,7 @@ func runSelfCheck() {
     runMigrationCheck()
     runImportCheck()
     runStatisticsCheck()
+    runSubscriptionCheck()
 
     // The Shortcuts action: an empty or unknown category must record into "Other", never fail.
     assert(Store.category(forKey: nil, in: context).key == "other", "An empty category did not fall back to Other")
@@ -89,7 +91,7 @@ func runSelfCheck() {
     exit(0)  // Without this the app keeps running and holds the launching console open.
 }
 
-/// Replaces all expenses and categories with the built-ins and sample data from the last week.
+/// Replaces all data with the built-in categories and sample expenses from the last week.
 ///
 /// The optional `-demoOffsetDays <n>` argument moves every sample `n` days further
 /// back, so tests can reproduce dates near a month boundary on any calendar day.
@@ -103,6 +105,7 @@ func seedDemoData() {
     deleteExpenses(where: #Predicate { _ in true }, in: context)
     // Reset categories too, so every run starts from the built-ins alone.
     for category in try! context.fetch(FetchDescriptor<ExpenseCategory>()) { context.delete(category) }
+    for subscription in try! context.fetch(FetchDescriptor<Subscription>()) { context.delete(subscription) }
     try! context.save()
     try! Store.ensureCategories(in: context)
 
@@ -342,4 +345,67 @@ func runStatisticsCheck() {
         .filter { $0.month == months[5] }
     assert(segments.count == Statistics.maximumCategorySegments + 1, "Categories were not folded: \(segments.count)")
     assert(segments.first { $0.categoryKey == Statistics.restKey }?.total == 21, "The rest segment has the wrong total")
+}
+
+/// Verifies subscription date arithmetic, monthly cost, icon names and avatar colours.
+@MainActor
+func runSubscriptionCheck() {
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.timeZone = TimeZone(identifier: "Europe/Kyiv")!
+    func date(_ year: Int, _ month: Int, _ day: Int) -> Date {
+        calendar.date(from: DateComponents(year: year, month: month, day: day, hour: 12))!
+    }
+    let jan31 = date(2026, 1, 31)
+    func charge(_ index: Int, from first: Date = jan31, _ period: BillingPeriod = .monthly) -> Date {
+        SubscriptionMath.chargeDate(firstCharge: first, period: period, index: index, calendar: calendar)
+    }
+    func charge2() -> Date { charge(1) }
+    // Counting from the first charge: the 31st comes back after a short month.
+    assert(charge(1) == date(2026, 2, 28) && charge(2) == date(2026, 3, 31), "Monthly charges drift after February")
+    assert(charge(1, from: date(2028, 1, 31)) == date(2028, 2, 29), "A leap-year February was missed")
+    assert(charge(1, from: date(2024, 2, 29), .yearly) == date(2025, 2, 28), "A yearly charge from 29 February failed")
+
+    let next = { SubscriptionMath.nextCharge(firstCharge: jan31, period: .monthly, now: $0, calendar: calendar) }
+    assert(next(date(2026, 2, 15)) == date(2026, 2, 28), "The next charge after mid-February is wrong")
+    assert(next(date(2026, 3, 1)) == date(2026, 3, 31), "The next charge in March is wrong")
+    assert(next(date(2026, 2, 28)) == date(2026, 2, 28), "A charge today must still be the next one")
+    assert(next(date(2025, 12, 1)) == jan31, "Before the first charge, the first charge is next")
+    let last = SubscriptionMath.lastCharge(
+        firstCharge: jan31, period: .monthly, now: date(2026, 3, 5), calendar: calendar)
+    assert(last == date(2026, 2, 28), "The charge to record in early March is wrong")
+
+    let cost = SubscriptionMath.monthlyCost(of: [(amount: 100, period: .monthly), (amount: 1_200, period: .yearly)])
+    assert(cost == 200, "A yearly plan must count as a twelfth per month: \(cost)")
+
+    assert(SubscriptionMath.iconSlug(for: " YouTube Music ") == "youtube-music", "Slug for a two-word name")
+    assert(SubscriptionMath.iconSlug(for: "Café") == "cafe", "Diacritics must fold for Latin names")
+    assert(SubscriptionMath.iconSlug(for: "Київстар") == nil, "A Cyrillic name must not be looked up")
+
+    // An offline attempt must not be remembered as "no icon", or the icon never comes.
+    let png = UIGraphicsImageRenderer(size: CGSize(width: 1, height: 1)).pngData { _ in }
+    let found = SubscriptionIcons.classify(statusCode: 200, mimeType: "image/png", data: png)
+    assert(found == .found(png) && found.isFinal, "A valid icon was not accepted")
+    assert(
+        SubscriptionIcons.classify(statusCode: 404, mimeType: "text/plain", data: nil).isFinal, "A 404 must be final")
+    assert(!SubscriptionIcons.classify(statusCode: nil, mimeType: nil, data: nil).isFinal, "Offline must be retried")
+    assert(
+        !SubscriptionIcons.classify(statusCode: 503, mimeType: nil, data: nil).isFinal, "A server error must be retried"
+    )
+    assert(
+        SubscriptionIcons.classify(statusCode: 200, mimeType: "text/html", data: Data("<html>".utf8)) == .missing,
+        "A page that is not an image must not count as an icon")
+
+    // Recording the same charge twice must be caught, despite sub-second stored dates.
+    let charge = ExpenseRecord(date: jan31, amount: 199, categoryKey: "fun", categoryName: "", note: "Netflix")
+    let stored = ExpenseRecord(
+        date: jan31.addingTimeInterval(0.3), amount: 199, categoryKey: "fun", categoryName: "Розваги", note: "Netflix")
+    assert(SubscriptionMath.isAlreadyRecorded(charge, among: [stored]), "A recorded charge was not recognised")
+    let other = ExpenseRecord(date: charge2(), amount: 199, categoryKey: "fun", categoryName: "", note: "Netflix")
+    assert(
+        !SubscriptionMath.isAlreadyRecorded(other, among: [stored]), "The next month's charge was taken for a duplicate"
+    )
+
+    // A fixed value (sum of scalars of "megogo" mod 13 = orange, computed independently),
+    // so a colour that depends on the per-process hash seed fails here.
+    assert(SubscriptionMath.avatarColor(for: "Megogo") == .orange, "The avatar colour is not stable")
 }

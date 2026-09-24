@@ -51,6 +51,11 @@ git status --short && git diff
 Building writes only to DerivedData; that is allowed.
 
 ## Known traps in this project
+- Two xcodebuild test runs on the same simulator kill each other's app with no crash
+  report. While a gate B is running on "iPhone 17", the team lead runs mutations on a
+  clone ("iPhone 17 Mutations", made with `xcrun simctl clone`).
+- `xcodebuild test -only-testing:` sometimes does not exit after the tests finish; wrap
+  it in a watchdog: `perl -e 'alarm 600; exec @ARGV' xcodebuild test …`.
 - The AppIntents metadata extractor accepts only literal dictionaries (`caseDisplayRepresentations`).
 - `xcodebuild` extracts strings but does not write them into the catalog; the IDE does.
   From the CLI: `xcrun xcstringstool sync Kalyta/Localizable.xcstrings --stringsdata <each .stringsdata>`.

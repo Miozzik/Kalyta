@@ -109,13 +109,66 @@ enum SchemaV2: VersionedSchema {
     }
 }
 
+/// The data model with subscriptions added; expenses and categories are unchanged from V2.
+///
+/// Adding a model is a lightweight migration. The V2 model types are reused as they are.
+enum SchemaV3: VersionedSchema {
+    static var versionIdentifier: Schema.Version { Schema.Version(3, 0, 0) }
+    static var models: [any PersistentModel.Type] {
+        [SchemaV2.Expense.self, SchemaV2.ExpenseCategory.self, Subscription.self]
+    }
+
+    /// A recurring payment the person wants to keep track of and be reminded about.
+    @Model
+    final class Subscription {
+        /// A stable identifier, also used for the reminder notification.
+        @Attribute(.unique) var key: String
+        var name: String
+        /// The amount of one charge, in hryvnias.
+        var amount: Double
+        var period: BillingPeriod
+        /// The first charge; every later charge is computed from it, never from the previous one.
+        var firstChargeDate: Date
+        /// The key of the category a recorded charge goes into.
+        var categoryKey: String
+        /// The ``CategoryColor`` name of the letter avatar, chosen once at creation.
+        var colorName: String
+        /// The downloaded service icon, stored so it is fetched (and disclosed) only once.
+        @Attribute(.externalStorage) var iconData: Data?
+        /// The icon slug last looked up, so a missing icon is not requested on every launch.
+        var iconSlugTried: String?
+
+        /// Creates a subscription.
+        ///
+        /// - Parameters:
+        ///   - name: The service name, such as "Netflix".
+        ///   - amount: The amount of one charge.
+        ///   - period: How often it is charged.
+        ///   - firstChargeDate: The first charge.
+        ///   - categoryKey: The category recorded charges go into.
+        init(name: String, amount: Double, period: BillingPeriod, firstChargeDate: Date, categoryKey: String) {
+            self.key = UUID().uuidString
+            self.name = name
+            self.amount = amount
+            self.period = period
+            self.firstChargeDate = firstChargeDate
+            self.categoryKey = categoryKey
+            self.colorName = SubscriptionMath.avatarColor(for: name).rawValue
+        }
+    }
+}
+
 typealias Expense = SchemaV2.Expense
 typealias ExpenseCategory = SchemaV2.ExpenseCategory
+typealias Subscription = SchemaV3.Subscription
 
 /// How stores move between schema versions.
 enum KalytaMigrationPlan: SchemaMigrationPlan {
-    static var schemas: [any VersionedSchema.Type] { [SchemaV1.self, SchemaV2.self] }
+    static var schemas: [any VersionedSchema.Type] { [SchemaV1.self, SchemaV2.self, SchemaV3.self] }
     static var stages: [MigrationStage] {
-        [.lightweight(fromVersion: SchemaV1.self, toVersion: SchemaV2.self)]
+        [
+            .lightweight(fromVersion: SchemaV1.self, toVersion: SchemaV2.self),
+            .lightweight(fromVersion: SchemaV2.self, toVersion: SchemaV3.self),
+        ]
     }
 }

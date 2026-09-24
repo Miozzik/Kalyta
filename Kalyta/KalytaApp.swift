@@ -11,6 +11,8 @@ import SwiftUI
 ///   the upgrade to this one, then exits.
 @main
 struct KalytaApp: App {
+    @Environment(\.scenePhase) private var scenePhase
+
     init() {
         if CommandLine.arguments.contains("--selfcheck") { MainActor.assumeIsolated { runSelfCheck() } }
         if CommandLine.arguments.contains("--demo") { MainActor.assumeIsolated { seedDemoData() } }
@@ -25,10 +27,22 @@ struct KalytaApp: App {
                     .tabItem { Label("Expenses", systemImage: "list.bullet.rectangle") }
                 StatisticsView()
                     .tabItem { Label("Statistics", systemImage: "chart.bar") }
+                SubscriptionsView()
+                    .tabItem { Label("Subscriptions", systemImage: "repeat.circle") }
                 SettingsView()
                     .tabItem { Label("Settings", systemImage: "gearshape") }
             }
             .task { try? Store.ensureCategories(in: Store.container.mainContext) }
+            // Only the next charge of each subscription is scheduled, so refresh on every return.
+            .onChange(of: scenePhase, initial: true) {
+                if scenePhase == .active {
+                    Task {
+                        await SubscriptionReminders.reschedule(from: Store.container.mainContext)
+                        // An icon lookup that got no answer (offline) is retried on every return.
+                        await SubscriptionIcons.retryUnsettled(in: Store.container.mainContext)
+                    }
+                }
+            }
         }
         .modelContainer(Store.container)
     }

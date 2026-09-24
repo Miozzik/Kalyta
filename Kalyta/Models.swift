@@ -144,10 +144,10 @@ enum Store {
     /// Creates a container on the current schema, migrating older stores.
     ///
     /// - Parameter url: The store file, or `nil` for the app's default location.
-    /// - Returns: A container whose stores use ``SchemaV2``.
+    /// - Returns: A container whose stores use ``SchemaV3``.
     /// - Throws: An error if the store cannot be opened or migrated.
     static func makeContainer(url: URL? = nil) throws -> ModelContainer {
-        let schema = Schema(versionedSchema: SchemaV2.self)
+        let schema = Schema(versionedSchema: SchemaV3.self)
         let configuration =
             url.map { ModelConfiguration(schema: schema, url: $0) } ?? ModelConfiguration(schema: schema)
         return try ModelContainer(for: schema, migrationPlan: KalytaMigrationPlan.self, configurations: configuration)
