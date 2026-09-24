@@ -8,7 +8,7 @@ import SwiftUI
 /// must never change. Each built-in also exists as an ``ExpenseCategory`` record
 /// whose key is the raw value.
 enum Category: String, Codable, CaseIterable, Identifiable {
-    case food, transport, home, health, fun, other
+    case food, transport, home, health, fun, other, income
 
     var id: String { rawValue }
 
@@ -21,6 +21,7 @@ enum Category: String, Codable, CaseIterable, Identifiable {
         case .health: String(localized: "Health")
         case .fun: String(localized: "Entertainment")
         case .other: String(localized: "Other")
+        case .income: String(localized: "Income")
         }
     }
 
@@ -33,6 +34,7 @@ enum Category: String, Codable, CaseIterable, Identifiable {
         case .health: "cross.case.fill"
         case .fun: "gamecontroller.fill"
         case .other: "ellipsis.circle.fill"
+        case .income: "banknote.fill"
         }
     }
 
@@ -45,6 +47,7 @@ enum Category: String, Codable, CaseIterable, Identifiable {
         case .health: .pink
         case .fun: .green
         case .other: .gray
+        case .income: .green
         }
     }
 }
@@ -108,8 +111,8 @@ extension ExpenseCategory {
     var isBuiltIn: Bool { Category(rawValue: key) != nil }
 
     /// Whether the person may hide it. "Other" always stays: Back Tap entries without a
-    /// category land there.
-    var canHide: Bool { key != Category.other.rawValue }
+    /// category land there. "Income" stays too: hiding it would leave income nowhere to go.
+    var canHide: Bool { key != Category.other.rawValue && key != Category.income.rawValue }
 
     /// Whether the person may delete it for good: only custom categories without expenses.
     /// A used category is hidden instead, so past months keep their categories.
@@ -144,10 +147,10 @@ enum Store {
     /// Creates a container on the current schema, migrating older stores.
     ///
     /// - Parameter url: The store file, or `nil` for the app's default location.
-    /// - Returns: A container whose stores use ``SchemaV3``.
+    /// - Returns: A container whose stores use ``SchemaV4``.
     /// - Throws: An error if the store cannot be opened or migrated.
     static func makeContainer(url: URL? = nil) throws -> ModelContainer {
-        let schema = Schema(versionedSchema: SchemaV3.self)
+        let schema = Schema(versionedSchema: SchemaV4.self)
         let configuration =
             url.map { ModelConfiguration(schema: schema, url: $0) } ?? ModelConfiguration(schema: schema)
         return try ModelContainer(for: schema, migrationPlan: KalytaMigrationPlan.self, configurations: configuration)
@@ -168,7 +171,7 @@ enum Store {
         for (index, builtIn) in Category.allCases.enumerated() where byKey[builtIn.rawValue] == nil {
             let record = ExpenseCategory(
                 key: builtIn.rawValue, customName: nil, symbol: builtIn.icon,
-                colorName: builtIn.defaultColor.rawValue, sortOrder: index)
+                colorName: builtIn.defaultColor.rawValue, sortOrder: index, isIncome: builtIn == .income)
             context.insert(record)
             byKey[builtIn.rawValue] = record
         }

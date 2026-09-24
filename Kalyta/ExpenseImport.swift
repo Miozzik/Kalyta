@@ -133,6 +133,8 @@ enum ExpenseImport {
         let kopiykas: Int
         let categoryKey: String
         let note: String
+        /// Part of the key, so an income and an expense alike in every other way stay apart.
+        let isIncome: Bool
 
         /// Creates the key of a record.
         ///
@@ -142,6 +144,7 @@ enum ExpenseImport {
             kopiykas = Int((record.amount * 100).rounded())
             categoryKey = record.categoryKey
             note = record.note
+            isIncome = record.isIncome
         }
     }
 
@@ -186,11 +189,18 @@ enum ExpenseImport {
                 invalidLines.append(row.line)
                 continue
             }
+            // Files from before income existed have no `kind`; an empty value means spending too.
+            let kind = value("kind") ?? ""
+            guard kind.isEmpty || kind == ExpenseCSV.expenseKind || kind == ExpenseCSV.incomeKind else {
+                invalidLines.append(row.line)
+                continue
+            }
             let record = ExpenseRecord(
                 date: date, amount: amount, categoryKey: key, categoryName: value("category_name") ?? key,
                 note: value("note") ?? "",
                 categorySymbol: value("category_symbol") ?? Category.other.icon,
-                categoryColorName: value("category_color") ?? CategoryColor.gray.rawValue)
+                categoryColorName: value("category_color") ?? CategoryColor.gray.rawValue,
+                isIncome: kind == ExpenseCSV.incomeKind)
             if seen.insert(DuplicateKey(record)).inserted {
                 toInsert.append(record)
             } else {
@@ -232,7 +242,7 @@ enum ExpenseImport {
                     ?? CategoryColor.allCases[nextSortOrder % CategoryColor.allCases.count]
                 category = ExpenseCategory(
                     key: record.categoryKey, customName: record.categoryName, symbol: symbol, colorName: color.rawValue,
-                    sortOrder: nextSortOrder)
+                    sortOrder: nextSortOrder, isIncome: record.isIncome)
                 context.insert(category)
                 byKey[record.categoryKey] = category
                 nextSortOrder += 1
@@ -240,7 +250,10 @@ enum ExpenseImport {
             }
             // Always set the link: the launch relink would otherwise move a custom-category
             // row to its legacy built-in value.
-            context.insert(Expense(amount: record.amount, category: category, note: record.note, date: record.date))
+            context.insert(
+                Expense(
+                    amount: record.amount, category: category, note: record.note, date: record.date,
+                    isIncome: record.isIncome))
         }
         try context.save()
         return createdCount

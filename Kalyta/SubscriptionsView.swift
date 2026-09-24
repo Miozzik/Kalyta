@@ -221,7 +221,7 @@ struct SubscriptionEditor: View {
                     .pickerStyle(.segmented)
                     DatePicker("First charge", selection: $firstChargeDate, displayedComponents: .date)
                     Picker("Category", selection: $categoryKey) {
-                        ForEach(categories.filter { !$0.isHidden || $0.key == categoryKey }) { item in
+                        ForEach(categories.filter { !$0.isIncome && (!$0.isHidden || $0.key == categoryKey) }) { item in
                             Text(item.title).tag(item.key)
                         }
                     }

@@ -74,17 +74,19 @@ enum Statistics {
     /// HIG Charts: keep charts simple; more segments than this turn into colour noise.
     static let maximumCategorySegments = 5
 
-    /// Returns the expenses whose dates fall within the given months.
+    /// Returns the spending whose dates fall within the given months.
+    ///
+    /// The one place Statistics leaves income out: every screen starts from this.
     ///
     /// - Parameters:
-    ///   - records: All expenses.
+    ///   - records: All entries.
     ///   - months: Adjacent months, oldest first.
-    /// - Returns: The expenses from the start of the first month to the end of the last.
+    /// - Returns: The expenses, not income, from the start of the first month to the end of the last.
     /// - Complexity: O(*n*).
     static func records(_ records: [ExpenseRecord], within months: [DateInterval]) -> [ExpenseRecord] {
         guard let first = months.first, let last = months.last else { return [] }
         let span = DateInterval(start: first.start, end: last.end)
-        return records.filter { span.containsExcludingEnd($0.date) }
+        return records.filter { !$0.isIncome && span.containsExcludingEnd($0.date) }
     }
 
     /// Returns the total of each month, including months without expenses.

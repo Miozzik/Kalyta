@@ -12,7 +12,7 @@ final class ImportUITests: KalytaUITestCase {
 
         openImport(of: backup)
         XCTAssertTrue(preview().contains("1 new expense will be added"), "Unexpected preview: \(preview())")
-        XCTAssertTrue(preview().contains("8 already here"), "Unexpected preview: \(preview())")
+        XCTAssertTrue(preview().contains("9 already here"), "Unexpected preview: \(preview())")
         app.alerts.buttons["Import"].tap()
         XCTAssertTrue(app.alerts.staticTexts["Imported 1 expense."].waitForExistence(timeout: 10), "No import result")
         app.alerts.buttons["OK"].tap()

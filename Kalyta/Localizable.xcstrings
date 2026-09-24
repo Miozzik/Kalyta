@@ -72,7 +72,7 @@
         }
       }
     },
-    "%lld expenses": {
+    "%lld entries": {
       "localizations": {
         "en": {
           "variations": {
@@ -80,13 +80,13 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld expense"
+                  "value": "%lld entry"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld expenses"
+                  "value": "%lld entries"
                 }
               }
             }
@@ -98,25 +98,25 @@
               "few": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld витрати"
+                  "value": "%lld записи"
                 }
               },
               "many": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld витрат"
+                  "value": "%lld записів"
                 }
               },
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld витрата"
+                  "value": "%lld запис"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld витрати"
+                  "value": "%lld запису"
                 }
               }
             }
@@ -553,6 +553,16 @@
         }
       }
     },
+    "Expense": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Витрата"
+          }
+        }
+      }
+    },
     "Expense deleted": {
       "localizations": {
         "uk": {
@@ -735,8 +745,28 @@
         }
       }
     },
+    "Income": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Дохід"
+          }
+        }
+      }
+    },
     "Kalyta": {
       "shouldTranslate": false
+    },
+    "Kind": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вид"
+          }
+        }
+      }
     },
     "Line %lld is not in hryvnias. Kalyta only imports hryvnia amounts.": {
       "localizations": {
@@ -1215,6 +1245,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Вчора"
+          }
+        }
+      }
+    },
+    "earned %@ · left %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "earned %1$@ · left %2$@"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "зароблено %1$@ · лишилось %2$@"
           }
         }
       }

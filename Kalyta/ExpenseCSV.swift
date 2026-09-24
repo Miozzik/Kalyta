@@ -20,6 +20,8 @@ struct ExpenseRecord: Sendable, Equatable {
     var categorySymbol: String = Category.other.icon
     /// The ``CategoryColor`` name of the category, not an RGB value, so it keeps adapting to dark mode.
     var categoryColorName: String = CategoryColor.gray.rawValue
+    /// Whether the entry is income rather than spending.
+    var isIncome: Bool = false
 }
 
 extension ExpenseRecord {
@@ -34,7 +36,8 @@ extension ExpenseRecord {
             categoryName: expense.categoryTitle,
             note: expense.note,
             categorySymbol: expense.categoryIcon,
-            categoryColorName: expense.assignedCategory?.colorName ?? expense.legacyCategory.defaultColor.rawValue
+            categoryColorName: expense.assignedCategory?.colorName ?? expense.legacyCategory.defaultColor.rawValue,
+            isIncome: expense.isIncome
         )
     }
 }
@@ -46,8 +49,13 @@ extension ExpenseRecord {
 enum ExpenseCSV {
     /// The header names, in the order the columns are written. Append only.
     static let columns = [
-        "date", "amount", "currency", "category", "category_name", "note", "category_symbol", "category_color",
+        "date", "amount", "currency", "category", "category_name", "note", "category_symbol", "category_color", "kind",
     ]
+
+    /// The `kind` value of an income row; spending is ``expenseKind``, and older files have no `kind`.
+    static let incomeKind = "income"
+    /// The `kind` value of a spending row.
+    static let expenseKind = "expense"
 
     /// The columns every export since the first has had; an import requires them, in order.
     static let requiredColumns = Array(columns.prefix(6))
@@ -81,6 +89,7 @@ enum ExpenseCSV {
                 record.note,
                 record.categorySymbol,
                 record.categoryColorName,
+                record.isIncome ? incomeKind : expenseKind,
             ]
             .map(field)
             .joined(separator: ",")

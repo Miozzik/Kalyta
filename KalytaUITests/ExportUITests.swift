@@ -45,12 +45,12 @@ final class ExportUITests: KalytaUITestCase {
         XCTAssertTrue(shareSheetTitle().waitForNonExistence(timeout: 5), "The share sheet did not close")
     }
 
-    /// Returns the share sheet's navigation bar, titled with the number of exported expenses.
+    /// Returns the share sheet's navigation bar, titled with the number of exported entries.
     private func shareSheetTitle() -> XCUIElement {
-        app.navigationBars.matching(NSPredicate(format: "identifier ENDSWITH %@", "expenses")).firstMatch
+        app.navigationBars.matching(NSPredicate(format: "identifier ENDSWITH %@", "entries")).firstMatch
     }
 
-    /// Returns the number of expenses the share sheet says it exports, such as 9 for "9 expenses".
+    /// Returns the number of expenses the share sheet says it exports, such as 10 for "10 entries".
     private func exportedCount() -> Int {
         Int(digits(shareSheetTitle().identifier)) ?? -1
     }

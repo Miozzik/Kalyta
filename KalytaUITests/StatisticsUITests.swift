@@ -26,5 +26,6 @@ final class StatisticsUITests: KalytaUITestCase {
         XCTAssertTrue(app.navigationBars["Biggest Expenses"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts["Сільпо"].waitForExistence(timeout: 3), "The list did not load")
         XCTAssertFalse(app.staticTexts["Комуналка"].exists, "A deleted expense is still in Statistics")
+        XCTAssertFalse(app.staticTexts["Зарплата"].exists, "Income is listed among the biggest expenses")
     }
 }

@@ -11,7 +11,10 @@ struct CategoriesView: View {
     var body: some View {
         List {
             Section {
-                ForEach(categories.filter { !$0.isHidden }) { row(for: $0) }
+                ForEach(categories.filter { !$0.isHidden && !$0.isIncome }) { row(for: $0) }
+            }
+            Section("Income") {
+                ForEach(categories.filter { !$0.isHidden && $0.isIncome }) { row(for: $0) }
             }
             let hidden = categories.filter(\.isHidden)
             if !hidden.isEmpty {
@@ -63,6 +66,8 @@ struct CategoryEditor: View {
     private let category: ExpenseCategory?
     /// Called with the new category after it is created.
     private let onCreate: ((ExpenseCategory) -> Void)?
+    /// Whether a new category is for income; an edited one keeps its kind.
+    private let isIncome: Bool
 
     @State private var name: String
     @State private var symbol: String
@@ -73,9 +78,11 @@ struct CategoryEditor: View {
     ///
     /// - Parameters:
     ///   - category: The category to edit, or `nil` to create one.
+    ///   - isIncome: Whether a new category is for income.
     ///   - onCreate: Called with the created category, so the caller can select it.
-    init(category: ExpenseCategory? = nil, onCreate: ((ExpenseCategory) -> Void)? = nil) {
+    init(category: ExpenseCategory? = nil, isIncome: Bool = false, onCreate: ((ExpenseCategory) -> Void)? = nil) {
         self.category = category
+        self.isIncome = category?.isIncome ?? isIncome
         self.onCreate = onCreate
         _name = State(initialValue: category?.customName ?? "")
         _symbol = State(initialValue: category?.symbol ?? CategorySymbols.all[0])
@@ -182,7 +189,7 @@ struct CategoryEditor: View {
             // A new key is made once and never changes, so renaming keeps the CSV key stable.
             let created = ExpenseCategory(
                 key: UUID().uuidString, customName: customName, symbol: symbol, colorName: color.rawValue,
-                sortOrder: (categories.map(\.sortOrder).max() ?? 0) + 1)
+                sortOrder: (categories.map(\.sortOrder).max() ?? 0) + 1, isIncome: isIncome)
             context.insert(created)
             onCreate?(created)
         }

@@ -20,6 +20,8 @@ struct ExpenseEditor: View {
     /// The picked category, or `nil` until one is picked for a new expense.
     @State private var category: ExpenseCategory?
     @State private var isCreatingCategory = false
+    /// Whether the entry is income; the grid then offers income categories only.
+    @State private var isIncome: Bool
     @State private var note: String
     @State private var date: Date
     @FocusState private var isAmountFocused: Bool
@@ -34,6 +36,7 @@ struct ExpenseEditor: View {
         self.onDelete = onDelete
         _amount = State(initialValue: expense?.amount)
         _category = State(initialValue: expense?.assignedCategory)
+        _isIncome = State(initialValue: expense?.isIncome ?? false)
         _note = State(initialValue: expense?.note ?? "")
         _date = State(initialValue: expense?.date ?? .now)
     }
@@ -43,13 +46,21 @@ struct ExpenseEditor: View {
     /// The categories offered in the grid: visible ones, plus the current one even if hidden,
     /// so editing an old expense never silently changes its category.
     private var pickableCategories: [ExpenseCategory] {
-        categories.filter { !$0.isHidden || $0 == category }
+        categories.filter { $0.isIncome == isIncome && (!$0.isHidden || $0 == category) }
     }
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 24) {
+                    Picker("Kind", selection: $isIncome) {
+                        Text("Expense").tag(false)
+                        Text("Income").tag(true)
+                    }
+                    .pickerStyle(.segmented)
+                    .padding(.top, 8)
+                    .onChange(of: isIncome) { category = pickableCategories.first }
+
                     HStack(alignment: .firstTextBaseline, spacing: 4) {
                         TextField("0", value: $amount, format: .number)
                             .keyboardType(.decimalPad)
@@ -128,7 +139,7 @@ struct ExpenseEditor: View {
                 if category == nil { category = pickableCategories.first }
             }
             .sheet(isPresented: $isCreatingCategory) {
-                CategoryEditor { created in category = created }
+                CategoryEditor(isIncome: isIncome) { created in category = created }
             }
         }
     }
@@ -145,8 +156,9 @@ struct ExpenseEditor: View {
             expense.legacyCategory = Category(rawValue: category.key) ?? .other
             expense.note = note
             expense.date = date
+            expense.isIncome = isIncome
         } else {
-            context.insert(Expense(amount: amount, category: category, note: note, date: date))
+            context.insert(Expense(amount: amount, category: category, note: note, date: date, isIncome: isIncome))
         }
         try? context.save()
         dismiss()

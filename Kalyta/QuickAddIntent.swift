@@ -75,7 +75,8 @@ struct CategoryQuery: EntityQuery {
 
     @MainActor
     func suggestedEntities() async throws -> [CategoryEntity] {
-        try allCategories().filter { !$0.isHidden }.map(CategoryEntity.init)
+        // The action records spending only, so income categories are not offered.
+        try allCategories().filter { !$0.isHidden && !$0.isIncome }.map(CategoryEntity.init)
     }
 
     /// Returns every category, built-ins first, after making sure the built-ins exist.

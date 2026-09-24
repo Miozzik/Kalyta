@@ -54,6 +54,15 @@ struct ContentView: View {
         expenses.filter { $0 !== pendingDeletion }
     }
 
+    /// The visible entries that are spending, not income.
+    ///
+    /// The one place income is left out: every total, bar and chart reads this.
+    ///
+    /// - Complexity: O(*n*).
+    private var visibleSpending: [Expense] {
+        visibleExpenses.filter { !$0.isIncome }
+    }
+
     private var intervals: [DateInterval] { period.intervals() }
 
     private var selectedInterval: DateInterval {
@@ -62,16 +71,28 @@ struct ContentView: View {
 
     private var isCurrentPeriodSelected: Bool { selectedInterval == intervals.last }
 
-    /// - Complexity: O(*n*), where *n* is the number of expenses.
-    private var periodExpenses: [Expense] {
+    /// Every visible entry of the selected period, income included, for the list.
+    ///
+    /// - Complexity: O(*n*), where *n* is the number of entries.
+    private var periodEntries: [Expense] {
         visibleExpenses.filter { selectedInterval.containsExcludingEnd($0.date) }
+    }
+
+    /// The spending of the selected period.
+    ///
+    /// - Complexity: O(*n*), where *n* is the number of entries.
+    private var periodExpenses: [Expense] {
+        visibleSpending.filter { selectedInterval.containsExcludingEnd($0.date) }
     }
 
     private var periodTotal: Double { periodExpenses.reduce(0) { $0 + $1.amount } }
 
+    /// The income of the selected period.
+    private var periodIncome: Double { periodEntries.filter(\.isIncome).reduce(0) { $0 + $1.amount } }
+
     /// - Complexity: O(*n*), where *n* is the number of expenses.
     private var todayTotal: Double {
-        visibleExpenses.filter { Calendar.current.isDateInToday($0.date) }.reduce(0) { $0 + $1.amount }
+        visibleSpending.filter { Calendar.current.isDateInToday($0.date) }.reduce(0) { $0 + $1.amount }
     }
 
     /// - Complexity: O(*n* × *p*), where *n* is the number of expenses and *p* the number of bars.
@@ -79,7 +100,7 @@ struct ContentView: View {
         intervals.map { interval in
             PeriodBar(
                 interval: interval,
-                total: visibleExpenses.filter { interval.containsExcludingEnd($0.date) }.reduce(0) { $0 + $1.amount },
+                total: visibleSpending.filter { interval.containsExcludingEnd($0.date) }.reduce(0) { $0 + $1.amount },
                 label: period.shortLabel(for: interval)
             )
         }
@@ -108,7 +129,7 @@ struct ContentView: View {
 
     /// Expenses of the selected period grouped by day, most recent day first.
     private var expensesByDay: [(day: Date, items: [Expense])] {
-        Dictionary(grouping: periodExpenses) { Calendar.current.startOfDay(for: $0.date) }
+        Dictionary(grouping: periodEntries) { Calendar.current.startOfDay(for: $0.date) }
             .map { (day: $0.key, items: $0.value.sorted { $0.date > $1.date }) }
             .sorted { $0.day > $1.day }
     }
@@ -130,7 +151,8 @@ struct ContentView: View {
                     SummaryCard(
                         title: summaryTitle,
                         total: periodTotal,
-                        todayTotal: isCurrentPeriodSelected ? todayTotal : nil
+                        todayTotal: isCurrentPeriodSelected ? todayTotal : nil,
+                        income: periodIncome > 0 ? periodIncome : nil
                     )
 
                     if !totalsByCategory.isEmpty {
@@ -200,7 +222,7 @@ struct ContentView: View {
                     // One snapshot feeds both the file and the title, so the count shown is what is exported.
                     let export = ExpenseExport(records: visibleExpenses.map(ExpenseRecord.init), createdAt: .now)
                     ShareLink(
-                        item: export, preview: SharePreview(String(localized: "\(export.records.count) expenses"))
+                        item: export, preview: SharePreview(String(localized: "\(export.records.count) entries"))
                     ) {
                         Label("Export", systemImage: "square.and.arrow.up")
                     }
@@ -310,6 +332,8 @@ private struct SummaryCard: View {
     let total: Double
     /// Today's total, or `nil` to hide the line when a past period is selected.
     let todayTotal: Double?
+    /// The period's income, or `nil` to show nothing about income when there is none.
+    let income: Double?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -322,6 +346,16 @@ private struct SummaryCard: View {
                 .font(.system(size: 40, weight: .bold, design: .rounded))
                 .foregroundStyle(.white)
                 .contentTransition(.numericText())
+            if let income {
+                // What is left can be negative: spending more than came in.
+                Label(
+                    "earned \(formattedHryvnias(income)) · left \(formattedHryvnias(income - total))",
+                    systemImage: "arrow.down.circle"
+                )
+                .font(.footnote)
+                .foregroundStyle(.white.opacity(0.85))
+                .accessibilityIdentifier("summaryIncome")
+            }
             if let todayTotal {
                 Label("today \(formattedHryvnias(todayTotal))", systemImage: "clock")
                     .font(.footnote)

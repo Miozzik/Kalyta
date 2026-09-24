@@ -43,7 +43,7 @@ func runSelfCheck() {
     let csv = ExpenseCSV.document(for: [record], timeZone: TimeZone(identifier: "Europe/Kyiv")!)
     let csvLines = csv.components(separatedBy: "\r\n")
     assert(
-        csvLines.first == "date,amount,currency,category,category_name,note,category_symbol,category_color",
+        csvLines.first == "date,amount,currency,category,category_name,note,category_symbol,category_color,kind",
         "CSV header changed: \(csvLines[0])")
     assert(csv.hasSuffix("\r\n") && csvLines.count == 3, "CSV records must end in CRLF")
     assert(csvLines[1].hasPrefix("2026-09-23T12:18:00+03:00,"), "CSV date not in local time: \(csvLines[1])")
@@ -112,7 +112,10 @@ func seedDemoData() {
     for sample in demoSamples {
         let date = Calendar.current.date(byAdding: .day, value: -(sample.daysAgo + offsetDays), to: .now)!
         let record = Store.category(withKey: sample.category.rawValue, in: context)!
-        context.insert(Expense(amount: sample.amount, category: record, note: sample.note, date: date))
+        context.insert(
+            Expense(
+                amount: sample.amount, category: record, note: sample.note, date: date,
+                isIncome: sample.category == .income))
     }
     try! context.save()
 }
@@ -122,6 +125,8 @@ let demoSamples: [(amount: Double, category: Category, note: String, daysAgo: In
     (248.90, .food, "АТБ", 0), (65, .transport, "Метро", 0), (120, .fun, "Кава з Оксаною", 0),
     (1450, .home, "Комуналка", 1), (89.50, .food, "Пекарня", 1), (320, .health, "Аптека", 2),
     (540, .food, "Сільпо", 3), (200, .transport, "Таксі", 4), (99, .fun, "Підписка", 6),
+    // Income: if any total, chart or statistic forgets to leave it out, a test sees 5,000 too many.
+    (5_000, .income, "Зарплата", 1),
 ]
 
 /// Verifies that a store in the first release's shape opens on the current schema and
@@ -165,8 +170,11 @@ func runUpgradeCheck() {
     let context = Store.container.mainContext
     try! Store.ensureCategories(in: context)
     let stored = try! context.fetch(FetchDescriptor<Expense>())
-    assert(stored.count == demoSamples.count, "Upgrade changed the number of expenses: \(stored.count)")
-    for sample in demoSamples {
+    // Builds before income seeded no income sample, so only the spending samples are expected.
+    let expected = demoSamples.filter { $0.category != .income }
+    assert(stored.count == expected.count, "Upgrade changed the number of expenses: \(stored.count)")
+    assert(stored.allSatisfy { !$0.isIncome }, "Upgrade turned existing expenses into income")
+    for sample in expected {
         let matches = stored.filter { $0.note == sample.note }
         assert(matches.count == 1, "Sample \(sample.note) found \(matches.count) times")
         assert(matches[0].amount == sample.amount, "Sample \(sample.note) changed amount: \(matches[0].amount)")
@@ -250,6 +258,23 @@ func runImportCheck() {
     // Double("inf") parses and is > 0; such a row would poison every total.
     let infinite = csv + "2026-09-23T12:18:00+03:00,inf,UAH,food,Їжа,,fork.knife,orange\r\n"
     assert(plan(infinite, "Infinite amount").invalidLines == [5], "An infinite amount was accepted")
+
+    // Income survives a round trip; a file from before income existed imports as spending.
+    let salary = ExpenseRecord(
+        date: tricky.date, amount: 5_000, categoryKey: "income", categoryName: "Дохід", note: "Зарплата",
+        categorySymbol: "banknote.fill", categoryColorName: "green", isIncome: true)
+    assert(
+        plan(ExpenseCSV.document(for: [salary], timeZone: kyiv), "Income").toInsert == [salary], "Income lost its kind")
+    let oldFormat =
+        "date,amount,currency,category,category_name,note\r\n2026-09-23T12:18:00+03:00,10,UAH,food,Їжа,Хліб\r\n"
+    assert(
+        plan(oldFormat, "Old file").toInsert.first?.isIncome == false, "A file without kind did not import as spending")
+    let badKind = csv + "2026-09-23T12:18:00+03:00,1,UAH,food,Їжа,,fork.knife,orange,refund\r\n"
+    assert(plan(badKind, "Unknown kind").invalidLines == [5], "An unknown kind was accepted")
+    let spendingTwin = ExpenseRecord(
+        date: salary.date, amount: 5_000, categoryKey: "income", categoryName: "", note: "Зарплата")
+    assert(
+        !SubscriptionMath.isAlreadyRecorded(spendingTwin, among: [salary]), "Income and spending merged as duplicates")
 
     let spreadsheet = "date;amount;currency;category;category_name;note\r\n23.09.2026 12:18;89,5;UAH;food;Їжа;\r\n"
     assert(
@@ -339,6 +364,15 @@ func runStatisticsCheck() {
     let atb = places.first { $0.name == "АТБ" }
     assert(atb?.count == 3 && atb?.total == 60, "Spellings of one place were not grouped: \(places)")
     assert(places.count == 3, "Different Ukrainian letters were merged, or an empty note became a place: \(places)")
+
+    // Statistics count spending only.
+    let withIncome = [
+        record(100, day(9, 10)),
+        ExpenseRecord(
+            date: day(9, 11), amount: 5_000, categoryKey: "income", categoryName: "", note: "", isIncome: true),
+    ]
+    assert(
+        Statistics.records(withIncome, within: months).map(\.amount) == [100], "Statistics counted income as spending")
 
     let manyCategories = (0..<7).map { record(Double(10 + $0), day(9, 10), key: "k\($0)") }
     let segments = Statistics.categoryTotalsByMonth(manyCategories, months: months, restName: "Rest")
