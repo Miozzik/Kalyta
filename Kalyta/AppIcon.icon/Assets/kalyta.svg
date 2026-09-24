@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Kalyta: a drawstring leather purse hanging from a belt. One-colour glyph; the
+       background gradient lives in AppIcon.icon/icon.json, not here. -->
+  <g fill="#FFFFFF">
+    <path d="M110 166Q512 256 914 166A40 40 0 0 1 914 246Q512 336 110 246A40 40 0 0 1 110 166Z"/>
+    <rect x="480" y="280" width="64" height="66" rx="14"/>
+    <path d="M370 338Q406 304 441 338Q476 302 512 338Q548 302 583 338Q618 304 654 338L583 422H441Z"/>
+    <rect x="424" y="432" width="176" height="42" rx="21"/>
+    <path d="M444 484C270 528 200 650 208 764C218 876 360 902 512 902C664 902 806 876 816 764C824 650 754 528 580 484Z"/>
+  </g>
+</svg>

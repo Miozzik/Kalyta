@@ -20,4 +20,6 @@ DEVELOPMENT_TEAM =
 // in xcconfig files, so the scheme separator is written as "/$()/".
 ICON_BASE_URL = https:/$()/cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@cf87d9bbd47792b20893f090ff48763fe874b05d/png
 
+ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon
+
 #include? "Local.xcconfig"
