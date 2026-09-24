@@ -204,7 +204,7 @@ struct SubscriptionEditor: View {
     }
 
     private var trimmedName: String { name.trimmingCharacters(in: .whitespacesAndNewlines) }
-    private var canSave: Bool { !trimmedName.isEmpty && (amount ?? 0) > 0 && (amount ?? 0).isFinite }
+    private var canSave: Bool { !trimmedName.isEmpty && amount.map(isValidAmount) == true }
 
     var body: some View {
         NavigationStack {

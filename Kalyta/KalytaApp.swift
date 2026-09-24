@@ -3,12 +3,13 @@ import SwiftUI
 
 /// The app entry point.
 ///
-/// Two launch arguments exist for development:
+/// Launch arguments for development:
 /// - `--selfcheck` runs ``runSelfCheck()`` and exits.
 /// - `--demo` replaces all expenses with sample data for screenshots.
 /// - `--measure-import` times planning and inserting 10,000 imported rows, then exits.
 /// - `--check-upgrade` verifies that sample data written by an older release survived
 ///   the upgrade to this one, then exits.
+/// - `-scanPayload <text>` (debug builds) makes Scan Receipt read `<text>` instead of the camera.
 @main
 struct KalytaApp: App {
     @Environment(\.scenePhase) private var scenePhase

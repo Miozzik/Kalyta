@@ -51,6 +51,10 @@ git status --short && git diff
 Building writes only to DerivedData; that is allowed.
 
 ## Known traps in this project
+- Mutation copies set `PRODUCT_BUNDLE_IDENTIFIER = org.merzlov.kalyta.mutation` in the COPY's `Config/Kalyta.xcconfig`
+  (not on the xcodebuild command line: that also overrides the UI-test runner's id and every launch crashes).
+  Reason: XCTest fails any UI run when a crash report for the app's bundle id appears from any simulator on the host.
+- Only one full UI suite runs at a time on this Mac (ask the team lead for the slot); shut your simulator down when idle.
 - Two xcodebuild test runs on the same simulator kill each other's app with no crash
   report. While a gate B is running on "iPhone 17", the team lead runs mutations on a
   clone ("iPhone 17 Mutations", made with `xcrun simctl clone`).

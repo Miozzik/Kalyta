@@ -182,7 +182,7 @@ enum ExpenseImport {
             }
             guard
                 let dateText = value("date"), let date = try? Date(dateText, strategy: .iso8601),
-                let amountText = value("amount"), let amount = Double(amountText), amount.isFinite, amount > 0,
+                let amountText = value("amount"), let amount = Double(amountText), isValidAmount(amount),
                 let key = value("category"), !key.isEmpty
             else {
                 if value("date").map({ $0.contains(".") && !$0.contains("T") }) == true { sawSpreadsheetDate = true }

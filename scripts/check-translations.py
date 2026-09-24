@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fails if any string in the String Catalog lacks a finished translation.
+"""Fails if any string in the String Catalogs lacks a finished translation.
 
 Xcode adds new strings from the code to Kalyta/Localizable.xcstrings on every
 build, but nothing stops the app from shipping them untranslated: the
@@ -12,7 +12,9 @@ import json
 import pathlib
 import sys
 
-CATALOG = pathlib.Path(__file__).resolve().parent.parent / "Kalyta" / "Localizable.xcstrings"
+APP = pathlib.Path(__file__).resolve().parent.parent / "Kalyta"
+# The interface strings, and the Info.plist ones such as the camera permission text.
+CATALOGS = [APP / "Localizable.xcstrings", APP / "InfoPlist.xcstrings"]
 
 
 def string_units(localization: dict) -> list[dict]:
@@ -39,15 +41,18 @@ def missing_translations(catalog: dict, language: str) -> list[str]:
 
 
 def main() -> int:
-    catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
     failed = False
-    for language in sys.argv[1:] or ["uk"]:
-        missing = missing_translations(catalog, language)
-        for key in missing:
-            print(f"{language}: missing translation for {key!r}")
-        failed = failed or bool(missing)
+    total = 0
+    for path in CATALOGS:
+        catalog = json.loads(path.read_text(encoding="utf-8"))
+        total += len(catalog["strings"])
+        for language in sys.argv[1:] or ["uk"]:
+            missing = missing_translations(catalog, language)
+            for key in missing:
+                print(f"{path.name}: {language}: missing translation for {key!r}")
+            failed = failed or bool(missing)
     if not failed:
-        print(f"All {len(catalog['strings'])} strings are translated.")
+        print(f"All {total} strings are translated.")
     return 1 if failed else 0
 
 

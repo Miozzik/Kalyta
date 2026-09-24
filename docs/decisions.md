@@ -37,7 +37,7 @@ PM боявся, що колонки експорту зміняться під 
 Розглянуто:
 - (a) вимкнути autosave і зберігати вручну. **Відхилено PM:** кожне місце запису відповідає за своє збереження, і пропущене збереження губить нову витрату — небезпечний напрямок. До того ж App Intent зберігає той самий контекст і достроково закомітив би видалення.
 - (b) плашка повертає копію значень — два джерела правди, струс однаково зламаний.
-- (c) м'яке видалення прапорцем — зміна схеми бази в етапі 1.
+- (c) м’яке видалення прапорцем — зміна схеми бази в етапі 1.
 - **(d) відкладене видалення — вибрано.** Свайп ховає витрату й показує плашку; справжнє `delete` — коли плашка зникає, починається інше видалення, застосунок іде у фон або екран зникає. Autosave лишається. Якщо застосунок убили протягом цих секунд — витрата вціліла, тобто безпечний напрямок.
 - Інваріант: схована витрата випадає з **усіх** похідних значень, тому є одне місце фільтрації — `visibleExpenses`.
 - Ціна: струсу для скасування немає. HIG каже, що люди на нього очікують, але з autosave він надійно не працює.
@@ -48,7 +48,7 @@ PM боявся, що колонки експорту зміняться під 
 
 PM дав STOP: два з чотирьох тригерів коміту («наступне видалення» і «застосунок пішов у фон») не мали тесту, тож їхні мутації вижили б. Тести додано, мутації доведено червоними.
 
-**Поправка до правила 5 (перевірка мутацією):** логіка, що живе в стані в'ю SwiftUI (відкладене видалення, вибір періоду), перевіряється UI-тестами XCTest (`KalytaUITests`), а не `runSelfCheck()`: самоперевірка не бачить в'ю. Вимога мутації лишається та сама — зламана логіка має давати червоний тест.
+**Поправка до правила 5 (перевірка мутацією):** логіка, що живе в стані в’ю SwiftUI (відкладене видалення, вибір періоду), перевіряється UI-тестами XCTest (`KalytaUITests`), а не `runSelfCheck()`: самоперевірка не бачить в’ю. Вимога мутації лишається та сама — зламана логіка має давати червоний тест.
 
 ## 2026-09-23 — Гейт A етапу 2: редагування й дата
 
@@ -59,7 +59,7 @@ PM дав STOP: два з чотирьох тригерів коміту («на
 - **Тест через межу місяця** — неправильна цифра на картці підсумку підриває довіру найшвидше.
 
 Умови PM:
-- Аркуш редагує **копії** полів і пише їх у модель лише на «Зберегти». Прив'язка напряму до моделі + autosave зберігала б кожне натискання клавіші, і «Скасувати» нічого б не скасовувало.
+- Аркуш редагує **копії** полів і пише їх у модель лише на «Зберегти». Прив’язка напряму до моделі + autosave зберігала б кожне натискання клавіші, і «Скасувати» нічого б не скасовувало.
 - **Прихована вада, знайдена заодно:** нова витрата вставлялась без явного збереження. Після урока етапу 1 (autosave не встигає до вбивства процесу) — явне `save()` на «Зберегти».
 - Один аркуш: `expense: Expense?`, `nil` — нова. «Видалити» з аркуша викликає те саме відкладене видалення з плашкою.
 - Без діалогу підтвердження — HIG, дія скасовувана.
@@ -70,9 +70,9 @@ PM дав STOP: два з чотирьох тригерів коміту («на
 
 **Спір C3 — категорія ключем чи назвою. Компроміс, прийнятий обома:** дві колонки — `category` (сталий ключ, `food`) і `category_name` (назва мовою застосунку). PM: одні й ті самі дані не повинні давати різні файли залежно від мови телефону. Клієнт: файл читає людина, а свої категорії матимуть лише назву. Умова на етап 4: своя категорія отримує сталий ідентифікатор один раз при створенні, і перейменування його не змінює.
 
-**Спір C4 — BOM. Переміг PM; клієнт поступився.** Клієнт хотів BOM, щоб Excel не псував кирилицю. Вирішальний факт (заміряно через .NET culture data): в українській регіональній схемі роздільник списку — `;`, тож подвійний клік по CSV з комами кладе рядок в одну колонку **незалежно від BOM**. Робочий шлях — «Дані → З тексту/CSV», де людина сама вибирає UTF-8. За умовою клієнта цей рядок з'являється в README, щоб перший користувач Windows не вирішив, що експорт зламаний.
+**Спір C4 — BOM. Переміг PM; клієнт поступився.** Клієнт хотів BOM, щоб Excel не псував кирилицю. Вирішальний факт (заміряно через .NET culture data): в українській регіональній схемі роздільник списку — `;`, тож подвійний клік по CSV з комами кладе рядок в одну колонку **незалежно від BOM**. Робочий шлях — «Дані → З тексту/CSV», де людина сама вибирає UTF-8. За умовою клієнта цей рядок з’являється в README, щоб перший користувач Windows не вирішив, що експорт зламаний.
 
-**CSV-ін'єкції:** примітки приходять з автоматизації «Транзакція» (назви продавців — зовнішні дані), і примітка на `=`, `+`, `-`, `@` в Excel виконається як формула (OWASP). **Рішення — дані не змінювати:** це резервна копія, вона має повертатись без втрат.
+**CSV-ін’єкції:** примітки приходять з автоматизації «Транзакція» (назви продавців — зовнішні дані), і примітка на `=`, `+`, `-`, `@` в Excel виконається як формула (OWASP). **Рішення — дані не змінювати:** це резервна копія, вона має повертатись без втрат.
 
 ## 2026-09-23 — Підписки: іконки тягнуться автоматично (рішення користувача)
 
@@ -109,9 +109,9 @@ PM дав STOP: два з чотирьох тригерів коміту («на
 - Іконки — ~40 системних символів; кольори — ~12 системних, що підлаштовуються під темну тему. Довільна палітра дає два майже однакові сині в донаті.
 
 Технічне рішення PM (варіант (i), найпростіший):
-- **V2 — легка міграція без власної стадії:** enum лишається як `legacyCategory` (перейменування через `originalName`), додається необов'язковий зв'язок `category` і модель `ExpenseCategory` з унікальним `key`.
-- **Одне ідемпотентне `ensureCategories()` при кожному запуску:** додає 6 вбудованих за ключем і пов'язує витрати без категорії за старим значенням. Кожен запуск, а не лише міграція: свіжа установка міграції не має, а перерваний вбитим процесом перелінк доробиться наступного разу.
-- Відхилено «запам'ятати в пам'яті між willMigrate і didMigrate»: якщо процес уб'ють посередині, сховище вже V2, а категорії втрачено назавжди.
+- **V2 — легка міграція без власної стадії:** enum лишається як `legacyCategory` (перейменування через `originalName`), додається необов’язковий зв’язок `category` і модель `ExpenseCategory` з унікальним `key`.
+- **Одне ідемпотентне `ensureCategories()` при кожному запуску:** додає 6 вбудованих за ключем і пов’язує витрати без категорії за старим значенням. Кожен запуск, а не лише міграція: свіжа установка міграції не має, а перерваний вбитим процесом перелінк доробиться наступного разу.
+- Відхилено «запам’ятати в пам’яті між willMigrate і didMigrate»: якщо процес уб’ють посередині, сховище вже V2, а категорії втрачено назавжди.
 - **V1 — точна форма того, що вже стоїть на телефоні**, інакше сховище не відкриється.
 - **Доказ:** тест оновлення поверх старої збірки в симуляторі (install main → `--demo` → install гілки поверх, дані лишаються) + самоперевірка. Перед установкою на iPhone — **спершу експорт CSV**: для цього CSV і йшов раніше.
 - **Шорткати:** `id` сутності = старий `rawValue` (`food`). Як Shortcuts поводиться зі збереженим параметром після зміни AppEnum → AppEntity, не задокументовано — перевірити в симуляторі шорткатом, створеним до оновлення. Якщо категорія злітає в «Інше» — README каже переобрати, і це записується тут.
@@ -124,7 +124,7 @@ PM дав STOP: два з чотирьох тригерів коміту («на
 
 **Спір I6 — попередній перегляд до запису. Переміг клієнт, PM поступився.** Злиття не можна скасувати, і помилково вибраний торішній файл додав би сотні рядків, які прибирати лише вручну. Перегляд «Додати 120 · вже є 40 · пропущено 3 (рядки …) · Імпорт / Скасувати» коштує одну кнопку між розбором і записом. Умови PM: цифри перегляду і запис — з **одного** плану (без другого пошуку дублікатів), а «Скасувати» не записує нічого, навіть категорій.
 
-**I2:** для відомого ключа локальні назва, іконка, колір і прихованість лишаються — копія лише заповнює відсутнє. У кінець експорту додаються `category_symbol` і `category_color` (ім'я символу й назва з палітри, не RGB), у тому самому релізі, що й імпорт.
+**I2:** для відомого ключа локальні назва, іконка, колір і прихованість лишаються — копія лише заповнює відсутнє. У кінець експорту додаються `category_symbol` і `category_color` (ім’я символу й назва з палітри, не RGB), у тому самому релізі, що й імпорт.
 
 Технічні умови PM: `\r\n` у Swift — один `Character`, тож парсер обробляє `\r\n`, `\n` і `\r` явно; ключ дублікату — секунди й копійки (експорт пише цілі секунди, у сховищі — частки); самоперевірка «експорт → імпорт → рівно» і «імпорт двічі — нічого не додалось» з мутаціями; розбір поза головним потоком, запис одним `save`; 10 000 рядків заміряти, і лише якщо інтерфейс зависає довше ~1 с — фоновий контекст.
 
@@ -177,11 +177,11 @@ exit 1
 - **Місця** — найчастіші нотатки: «куди йдуть гроші?» Назви продавців уже заповнює автоматизація «Транзакція».
 - **Найбільші витрати** — «що вдарило цього місяця?»
 
-Відкинуто як цікавинки, з якими нічого не роблять: день тижня, час доби, будні проти вихідних; «цей період проти минулого» вже показують стовпчики головного екрана. На кожному екрані один графік і короткий список (він же запасний варіант для VoiceOver). Без копії донату, без «балів фінансового здоров'я», прогнозів і тексту-«інсайтів», без горизонтальної прокрутки й налаштувань усередині.
+Відкинуто як цікавинки, з якими нічого не роблять: день тижня, час доби, будні проти вихідних; «цей період проти минулого» вже показують стовпчики головного екрана. На кожному екрані один графік і короткий список (він же запасний варіант для VoiceOver). Без копії донату, без «балів фінансового здоров’я», прогнозів і тексту-«інсайтів», без горизонтальної прокрутки й налаштувань усередині.
 
-**Спір O1 — черговість. Переміг PM, клієнт поступився:** статистика йде **перед підписками**: вона лише читає дані (без схеми, мережі й дозволів), тобто ризик нульовий. До того ж довід клієнта «вкладки з'являться разом із підписками» відпав — вкладки вже є з етапу 4. І користувач попросив статистику щойно.
+**Спір O1 — черговість. Переміг PM, клієнт поступився:** статистика йде **перед підписками**: вона лише читає дані (без схеми, мережі й дозволів), тобто ризик нульовий. До того ж довід клієнта «вкладки з’являться разом із підписками» відпав — вкладки вже є з етапу 4. І користувач попросив статистику щойно.
 
-**Спір O2 — діапазони. Переміг PM:** 6 місяців / 12 місяців / усе. Діапазон «місяць» дав би графік з одного стовпчика. Умови клієнта: **типово 6 місяців**, щоб перше відкриття показало тренд; усі чотири екрани — в одному спільному діапазоні, який пам'ятається (`@AppStorage`).
+**Спір O2 — діапазони. Переміг PM:** 6 місяців / 12 місяців / усе. Діапазон «місяць» дав би графік з одного стовпчика. Умови клієнта: **типово 6 місяців**, щоб перше відкриття показало тренд; усі чотири екрани — в одному спільному діапазоні, який пам’ятається (`@AppStorage`).
 
 Умови PM: агрегати — чисті функції над `ExpenseRecord` з мутаціями в самоперевірці; середнє — лише за **завершені** місяці з даними; місяці ділить наявний `Period` (без другого розбивача); **групування місць без `.diacriticInsensitive`** — заміряно, воно псує українську («Київ» → «киів», «Мій» → «міи»), лише обрізка пробілів + регістр + ширина; до 5 категорій у стовпчику, решта — «Решта»; підписи VoiceOver і Audio Graphs; замір 10 000 рядків; UI-тест, що витрата у вікні скасування не потрапляє в статистику після перемикання вкладки.
 
@@ -189,37 +189,230 @@ exit 1
 
 - **Схема V3** — нова модель `Subscription`; вона додається легкою міграцією, а моделі V2 перевикористано без змін. Доказ: оновлення поверх збірки з `main` (V2) — `UPGRADE OK`; самоперевірка V1 → V3 зелена.
 - **Дати списань — від першого списання** (+n періодів): 31 січня → 28 лютого → 31 березня, 29 лютого у високосний рік. Мутація «від попереднього» дає 28 березня — червона.
-- **Іконки** — з `homarr-labs/dashboard-icons`, закріпленого на коміті `cf87d9b`. Адреса лежить у `Config/Kalyta.xcconfig` (`https:/$()/…`, бо `//` у xcconfig — коментар), до застосунку потрапляє через `Info.plist`. Запит іде лише при створенні чи перейменуванні; кирилична назва нікуди не запитується; відповідь перевіряється (200, зображення, ≤ 512 КБ, декодується), іконка зберігається в базі, а спроба запам'ятовується. UI-тест завантажує справжню іконку Netflix.
+- **Іконки** — з `homarr-labs/dashboard-icons`, закріпленого на коміті `cf87d9b`. Адреса лежить у `Config/Kalyta.xcconfig` (`https:/$()/…`, бо `//` у xcconfig — коментар), до застосунку потрапляє через `Info.plist`. Запит іде лише при створенні чи перейменуванні; кирилична назва нікуди не запитується; відповідь перевіряється (200, зображення, ≤ 512 КБ, декодується), іконка зберігається в базі, а спроба запам’ятовується. UI-тест завантажує справжню іконку Netflix.
 - **Колір аватара** — із суми скалярів назви, а не з `hashValue`; перевірено незалежним розрахунком у Python («Megogo» → orange). Мій перший здогад був неправильний: перевірка без незалежного джерела довела б лише, що я вмію вгадувати.
 - **Нагадування** — лише найближче списання кожної підписки (ліміт iOS — 64), перепланування при кожному поверненні застосунку на передній план; дозвіл питається при першій підписці.
 - **Списання записується свайпом «Записати»** — з датою останнього списання, назвою як нотаткою й категорією підписки.
 
 **Гейт B підписок — STOP від PM, виправлено:**
-- Іконка, яку не вдалося завантажити без мережі, запам'ятовувалась як «немає» — і вже ніколи не з'являлась. Тепер відповідь класифікується: знайдено / немає (404) / не вдалося (без відповіді, 429, 5xx). Запам'ятовуються лише перші два результати; «не вдалося» повторюється при наступному збереженні або поверненні в застосунок.
+- Іконка, яку не вдалося завантажити без мережі, запам’ятовувалась як «немає» — і вже ніколи не з’являлась. Тепер відповідь класифікується: знайдено / немає (404) / не вдалося (без відповіді, 429, 5xx). Запам’ятовуються лише перші два результати; «не вдалося» повторюється при наступному збереженні або поверненні в застосунок.
 - «Записати» до першого списання вигадувало списання, якого ще не було (саме проти цього клієнт обрав запис одним тапом). Тепер дія ховається, поки першого списання не було.
 - «Записати» двічі давало дві витрати. Тепер це розпізнається тим самим ключем дублікату, що й в імпорті, і показується «Вже записано».
-- Свою категорію, яку використовує лише підписка, можна видалити; тоді її списання падають в «Інше» (запасний варіант `Store.category(forKey:)`). **Прийнято**, а не виправлено: `ExpenseCategory` не має зв'язку з підписками, і додавати його заради рідкісного випадку — зміна схеми без користі для людини.
+- Свою категорію, яку використовує лише підписка, можна видалити; тоді її списання падають в «Інше» (запасний варіант `Store.category(forKey:)`). **Прийнято**, а не виправлено: `ExpenseCategory` не має зв’язку з підписками, і додавати його заради рідкісного випадку — зміна схеми без користі для людини.
 
 ## 2026-09-24 — Гейт A: доходи (рахунки відхилено)
 
 **Погоджено обома: лише доходи, рахунки — ні.** Люди хочуть знати, скільки лишилось від зарплати. Рахунки з переказами — це вже бухгалтерія: ризик подвійного обліку, початкові залишки, звірка; баланс розходиться з банківським, а реальні залишки й так показує банк. Ніхто про рахунки конкретно не просив. Якщо колись знадобляться: переказ — окремий вид, що не входить ні в доходи, ні у витрати; баланс обчислюється, а не зберігається; наявні рядки мігрують на один рахунок за замовчуванням. Відкинуто також (YAGNI): регулярні доходи, бюджети, окремий екран доходів.
 
 - **Той самий аркуш** з перемикачем «Витрата / Дохід» угорі (типово — витрата). Back Tap і «Транзакція» лишаються лише для витрат, **без нового параметра**: E3 показав, що поведінка збережених шорткатів при зміні параметрів не задокументована.
-- **Картка підсумку:** велике число лишається витратами; рядок «зароблено · лишилось» з'являється, лише коли в періоді є дохід. Хто доходи не записує, не побачить жодної різниці.
-- **Модель (PM):** `isIncome: Bool = false` на наявному `Expense` у схемі V4 — легка міграція. Відхилено знакову суму (кожна наявна сума тихо перетворила б дохід на «від'ємні витрати», а `amount > 0` перевіряється в чотирьох місцях) і окрему модель доходу (дубль редактора, списку, видалення, CSV, імпорту). Назву `Expense` лишаємо й документуємо: документованого способу перейменувати сутність у SwiftData немає.
+- **Картка підсумку:** велике число лишається витратами; рядок «зароблено · лишилось» з’являється, лише коли в періоді є дохід. Хто доходи не записує, не побачить жодної різниці.
+- **Модель (PM):** `isIncome: Bool = false` на наявному `Expense` у схемі V4 — легка міграція. Відхилено знакову суму (кожна наявна сума тихо перетворила б дохід на «від’ємні витрати», а `amount > 0` перевіряється в чотирьох місцях) і окрему модель доходу (дубль редактора, списку, видалення, CSV, імпорту). Назву `Expense` лишаємо й документуємо: документованого способу перейменувати сутність у SwiftData немає.
 - **Одна точка фільтра витрат** і доказ, що жоден екран її не оминув: у демо-дані додається дохід (5 000 «Зарплата»), а тести перевіряють конкретні підсумки.
 - **Ключ дублікату містить вид запису** — інакше дохід і витрата з однаковими часом, сумою й нотаткою злились би.
 - **CSV:** у кінець додається `kind` (`expense` / `income`). Старі файли без колонки й порожнє значення означають витрату; інше значення — битий рядок.
 
-**Спір — категорії доходу. Переміг PM, клієнт поступився:** одна вбудована категорія «Дохід» (вона потрібна й так, бо кожен рядок мусить мати категорію, щоб пережити переприв'язку при запуску та імпорт). Набір «Зарплата / Подарунок / Повернення» — YAGNI: розподіл ніде не використовується, а нотатка вже каже «Зарплата». **Умова клієнта, прийнята:** у категорії є ознака «дохідна», тож дохід ніколи не потрапить у сітку витрат і донат, а свої дохідні категорії пізніше працюватимуть у тому самому редакторі.
+**Спір — категорії доходу. Переміг PM, клієнт поступився:** одна вбудована категорія «Дохід» (вона потрібна й так, бо кожен рядок мусить мати категорію, щоб пережити переприв’язку при запуску та імпорт). Набір «Зарплата / Подарунок / Повернення» — YAGNI: розподіл ніде не використовується, а нотатка вже каже «Зарплата». **Умова клієнта, прийнята:** у категорії є ознака «дохідна», тож дохід ніколи не потрапить у сітку витрат і донат, а свої дохідні категорії пізніше працюватимуть у тому самому редакторі.
 
 ## 2026-09-24 — Гейт A: фіскальний QR та іконка — позиція клієнта (PM ще не питали)
 
 **QR:**
 - Кнопка «Сканувати чек» **в аркуші вводу**, а не окрема на головному екрані: категорія вибирається тут же. Системний сканер VisionKit, без залежностей.
 - **Найважливіше — дублікати з Apple Pay:** автоматизація «Транзакція» вже записала 432,90 в АТБ, людина сканує чек — це та сама витрата. Якщо витрата з тією ж сумою є в межах ~30 хвилин, треба відкрити **її** для редагування (дата й час з чека), а не створювати нову. Клієнт змінить думку, якщо PM покаже, що перевірка дорожча за один запит.
-- Кнопки «Відкрити чек» і збереженого посилання поки немає: паперовий чек і так у руках. Необов'язкове поле для посилання — легка міграція, коли знадобиться.
+- Кнопки «Відкрити чек» і збереженого посилання поки немає: паперовий чек і так у руках. Необов’язкове поле для посилання — легка міграція, коли знадобиться.
 - Чужий QR (сайт, Wi-Fi) → «Не фіскальний чек», сканування триває.
 - Доступ до камери заборонено → один рядок і кнопка в Налаштування; ручне введення ніколи не блокується. QR розбирається на телефоні без мережі — «усе локально» лишається правдою, написати в README.
 
 **Іконка:** гліф калити (гаманця на поясі) — це назва; ₴ чи «K» виглядає як будь-який банк. Градієнт teal → indigo, як на картці підсумку. Світла, темна й тонована — з одного джерела інструментами Apple; у тонованому режимі гліф мусить читатись однокольоровим силуетом.
+
+## 2026-09-24 — Гейт B доходів: GO
+
+- **Докази:** оновлення на місці V3 → V4 — `UPGRADE OK`; SELFCHECK OK; мутації червоні — фільтр доходу в Статистиці, вид запису в ключі дублікату, вид у CSV, `visibleSpending`. UI: 29 пройдено, 2 пропущено законно — `ScreenshotUITests` (лише з `KALYTA_SCREENSHOTS=1`) і `ShortcutUpgradeUITests` (лише коли змінюються параметри `QuickAddExpense`).
+- Злито в `main` squash-комітом `4b1007f`, гілку видалено.
+- **Не блокує, пішло в TODO:** знак «+» у рядку доходу зібрано вручну, а не стратегією знаку Foundation; `CategoryQuery.entities(for:)` не відсіює дохідні категорії, а дія завжди записує витрату; імпорт CSV бере наявну категорію за ключем, не звіряючи її вид.
+
+## 2026-09-24 — Гейт A: фіскальний QR та іконка — вердикт PM: GO
+
+**Черговість:** QR — етап 9, іконка — етап 10.
+
+**QR — прийнято позиції клієнта:** кнопка в аркуші вводу; без «Відкрити чек»; «Не фіскальний чек» для чужих QR; заборонена камера — один рядок і кнопка в Налаштування.
+
+**Спір — збіг з Apple Pay. Переміг клієнт, PM поступився,** але додав умову. Правило: ±30 хв, та сама сума з точністю до пів копійки, ніколи не дохід, виграє найближча, лише для нового запису. **Умова PM:** показати, з яким записом збіглося, і дати вихід «Зберегти як новий» — інакше хибний збіг мовчки проковтнув би покупку готівкою.
+
+**Розбір (PM):** `URLComponents`, хост точно `cabinet.tax.gov.ua` (схожі на нього відкидаються), час `HHmm` або `HHmmss`, часовий пояс Europe/Kyiv, дата не пізніша за «зараз», `mac` необов’язковий. Кнопка сканування ховається, коли `DataScannerViewController.isSupported` — false. Текст дозволу на камеру — через `INFOPLIST_KEY_NSCameraUsageDescription` у xcconfig, переклад у `Kalyta/InfoPlist.xcstrings`; `check-translations` мусить його покривати. Чеки повернення — поза межами.
+
+**Іконка — позицію клієнта прийнято:** гліф калити й градієнт teal → indigo, як на картці підсумку (`ContentView.swift`); заливка задається всередині Icon Composer. **Умови PM:** власний SVG — ліцензія SF Symbols забороняє їх в іконках. Одне джерело — файл `.icon` з Icon Composer (працює й на iOS 17), а не Asset Catalog.
+
+**Що вимагатиме гейт B:** випадки розбору й мутації; часовий пояс літом і взимку; межі збігу й мутації; UI-тести через налагоджувальний аргумент запуску `-scanPayload`; перевірка `Info.plist` у зібраному застосунку; вручну на справжньому iPhone — камера дозволена/заборонена, справжній чек АТБ, іконка світла/темна/тонована.
+
+Джерела: документація Apple (`DataScannerViewController` `isSupported`/`isAvailable`, Icon Composer); формат QR — ДПС, https://kyiv.tax.gov.ua/media-ark/news-ark/620014.html.
+
+## 2026-09-24 — Stage 10 icon: gate B GO, client dispute wins
+
+- **PM gate B: GO** on `8270bb3` (branch `stage-10-icon`).
+- **Client disputed the look:** the belt reads as a clothes hanger, the glyph is too small, the rhombus is a speck, and the tinted dark variant is weak.
+- **Client wins.** The PM had noted the hanger problem itself. The designer reworks the artwork before merge; the stage is not merged yet.
+
+## 2026-09-24 — Gate A: automatic recording (stages 11–13) — PM GO
+
+**User's need:** as much automation as possible (records nothing by hand if avoidable), pays cash too, has a monobank card.
+
+- **Stage 11 — merchant → category memory** in `QuickAddIntent`: a merchant seen before gets its last category. No schema or parameter change. Includes the fix for the stage 8 follow-up (`CategoryQuery.entities(for:)` must reject income categories).
+- **Stage 12 — one-tap receipt scanner:** `ScanReceiptIntent` (`openAppWhenRun`) exposed as an App Shortcut, so it works from the Action button, Back Tap, Spotlight and Siri. Plus a widget extension: iOS 17 Lock/Home Screen button widget; iOS 18 `ControlWidgetButton` under `@available`. No App Group needed yet.
+- **Stage 13 — monobank personal API, opt-in:** token in Keychain; sync on app open, throttled to once per 60 s; window 31 days + 1 hour; dedupe through `matchingExpense`; MCC → category table; merchant memory beats MCC. Webhook rejected (needs a server). The README privacy line («Що покидає телефон») must change.
+
+**Rejected:** FinanceKit (US/UK Apple Card/Cash only, needs an organization account); PrivatBank API (legal entities/FOP only); reading SMS or notifications (no API); LockedCameraCapture.
+
+**Disputes:** the client conceded nothing contested. The PM conceded: merchant memory goes first, monobank is opt-in, Siri comes last.
+
+**Release:** no public release is planned.
+
+**Open:** the user must check on the iPhone that the Wallet "Transaction" automation runs silently and passes merchant and amount. It validates the README wiring instructions, not the stage 11 code.
+
+## 2026-09-24 — Stage 10 icon: rework accepted, merged
+
+- The designer reworked the artwork: no buckle, thicker stem, so the belt no longer reads as a hanger.
+- The client accepted the rework. Squash-merged to `main` as `482044c`; branch and worktree removed.
+
+## 2026-09-24 — Automatic recording: PM final verdict (supersedes the stage 11–13 split above)
+
+Two stages now, no stage 13. The rejections, the iPhone check and "no public release" from the earlier entry still stand.
+
+**Stage 11 — monobank sync, opt-in.** Step 1: merchant/MCC → category through one shared function: the user's last category for this merchant → MCC table → Other.
+- Schema V5: optional `bankID` on `Expense` (lightweight migration).
+- Dedupe: by `bankID` first; otherwise `matchingExpense` (merges with the Apple Pay entry and attaches the `bankID`).
+- Use `amount`, not `operationAmount`. Skip positive amounts and own-account transfers.
+- Holds: re-fetch the last 3 days and update by id.
+- Fetch window 31 days + 1 hour; at most one sync per 60 s.
+- Paging is defensive: a 500-item limit is not in the current spec (v250818). If exactly 500 items come back, fetch again; otherwise it is harmless.
+- Token in Keychain, `AfterFirstUnlockThisDeviceOnly`.
+- Sync when `scenePhase` becomes `.active`, plus an opportunistic `BGAppRefreshTask`.
+- Webhook rejected: needs a public URL, must answer within 5 s, is disabled after 3 failures.
+
+**Stage 12 — one-tap receipt entry points.** `ScanReceipt` intent (`openAppWhenRun`) sets a flag, and the app opens the entry sheet with the scanner.
+- Step 1: an `AppShortcutsProvider` phrase, which gives Siri, Spotlight, the Action button and Back Tap.
+- Step 2: widget extension — Lock/Home Screen widget through `widgetURL` → `onOpenURL`, plus `ControlWidgetButton` on iOS 18.
+
+**Known limits:**
+- Two identical purchases within 30 minutes collapse into one entry.
+- Free team: every target's provisioning profile expires after 7 days.
+
+## 2026-09-24 — Security review
+
+**Stage 9 — verdict FIX** (developer fixing):
+- `sm` accepted `1e308` and `0x10` → infinite totals.
+- Year unbounded (`00010101` parsed).
+- URL scheme not checked.
+- Privacy manifest missing: needs `UserDefaults` reason `CA92.1`; no tracking, no collected data.
+
+**Stage 11 — monobank secure design (rules before code):**
+- Keychain generic password, service `<bundle id>.monobank`, `AfterFirstUnlockThisDeviceOnly`, `synchronizable` false, no access control or access group.
+- Keychain survives app deletion → an `@AppStorage` "linked" flag; on launch, delete the token if the flag is missing.
+- Entry: `SecureField`, format `^[A-Za-z0-9_-]{20,128}$`, verified once via `client-info`. The token is never shown again: the screen shows "Підключено" and "Відключити" (deletes the item, clears the flag, cancels the background task) plus a link to api.monobank.ua to revoke.
+- Never log the token, `X-Token` or account ids (`URLError` contains the URL) — status code only. Keep nothing from `client-info` except the account id, in memory.
+- `bankID` stays out of CSV, or goes only as the last column.
+- Ephemeral `URLSession` (the shared one caches statements in `Cache.db`); default ATS; one `https://api.monobank.ua` constant; reject redirects to another host.
+- Strict `Codable`; reject the whole page on any bad item; body ≤ 1 MB. Item bounds: `amount` −1e9…−1 integer kopiykas; account currency 980; id 1–64 allowed characters; `time` within [from, to], at most 5 min in the future; `mcc` 0…9999; `description` stripped of control characters, ≤ 200 chars.
+- HTTP 429 → back off at least 60 s.
+- **Page size, for the PM:** security says reject a page with more than 500 items; the PM says fetch again at exactly 500. Compatible: exactly 500 → fetch again, more than 500 → reject.
+
+## 2026-09-24 — Security audit #2 (main) and routing
+
+- **Stage 9 fix (developer):** one shared `maximumAmount = 10_000_000`, checked at every boundary.
+- **Stage 11:** `QuickAddIntent` — reject infinite amounts, reject income categories (stage 8 follow-up B), limit note length.
+- **Stage 13 — hardening, after stage 9 merges:**
+  - CSV formula injection: on export, prefix `'` to text fields starting with `=` `+` `-` `@`, tab, CR, LF or full-width `＝` `＋` `－` `＠`; strip it on import; round-trip assert with `=1+1`.
+  - CSV dates bounded to 2000-01-01 … now + 1 day.
+  - Import read capped with `FileHandle.read(upToCount:)` when `fileSize` is nil.
+  - Text limits: category key 64, name 100, note 1000. Import checks `kind` against the category's `isIncome` (stage 8 follow-up C).
+  - Icon fetch: reject redirects to another host, reject images larger than 1024 px, ephemeral session with a neutral User-Agent.
+  - README privacy line: «…сервер іконок бачить цю назву і твою IP-адресу».
+- **Open (unverified):** the Transaction automation passes a currency value; a foreign-currency payment may be saved as hryvnias. The user's iPhone check should include a non-UAH payment if possible.
+
+## 2026-09-24 — Receipt items via in-app reCAPTCHA: rejected
+
+**Idea (user):** let the person solve the tax site's reCAPTCHA inside the app, so the app can read the receipt items.
+
+**Rejected by the user, siding with the client.** The PM's research was stopped before a verdict.
+- A captcha on every receipt defeats the fastest-entry flow.
+- Google reCAPTCHA and Analytics (`G-T0LC02LFHL`) would see every visit, which breaks "everything stays local".
+- Fragile: any change to the site breaks it.
+- Amount + time from the QR, plus the Apple Pay dedupe, already give about 95% of the value.
+
+The "Open Receipt" button also stays out. **Revisit** if the tax service (DPS) publishes an API or a page without a captcha.
+
+## 2026-09-24 — Gate A: today's total on Lock Screen / Home widget — PM GO (stage 14)
+
+**User wants it.** PM GO for option 2 as **stage 14, after stage 12 merges**. Stage 12 widgets leave a slot for the total.
+
+- **No store move:** moving the SwiftData store on a live iPhone risks a half-copied WAL, and `GroupContainer` only affects new stores.
+- **App Group** (works on the free team); group ID in the xcconfig.
+- **Publisher:** the app writes `{total, dayStart}` to `UserDefaults(suiteName:)` on `ModelContext.didSave` of `Store.container.mainContext` and on `scenePhase` `.active`, then calls `WidgetCenter.reloadTimelines`. This covers `QuickAddIntent`, monobank sync and CSV import.
+- **One shared today-spending function** (`!isIncome`), used by both `ContentView` `todayTotal` and the publisher.
+- **Timeline:** now + next start of day with 0, policy `.atEnd`; show 0 if the stored `dayStart` is not today.
+- `.privacySensitive()` on the amount only.
+- README: the total is stored in the group container. PrivacyInfo: the suite needs `CA92.1`; the widget extension has its own manifest.
+
+**Gate B will demand:**
+- (a) self-check for today-spending, with mutations;
+- (b) self-check for a stale day, with mutations;
+- (c) evidence the hook fires when `QuickAddIntent` records with no UI;
+- (d) both targets build;
+- (e) on a real iPhone: data intact, amount redacted when locked, 0 after midnight.
+
+## 2026-09-24 — Ukrainian strings audit (designer)
+
+110 keys checked, 14 fixes, applied in `7ff9f15`: «ти» tone; Undo = «Відмінити»; «Зберегти як нову»; plural forms for unreadable rows; «Тип»; «Учора» / «Уже»; «Імпорт із»; «за місяцями»; ’ apostrophe (U+2019). Fix #7 («Редагування витрати») was later retracted by stage 15 #4.
+
+## 2026-09-24 — Stage 15: UX polish (designer's full-app audit, client's order)
+
+Source: designer's audit. Evidence in `docs/specs/stage15/`: `1-2-subscriptions.png` (#1, #2), `3-summary-contrast.png` (#3), `4-uk-sheet-titles.png` (#4). Starts after stage 9 merges; the designer writes the spec. Client's verdict, in this order:
+
+1. **#1** A subscription charge can only be recorded with a hidden swipe → a Record button in the editor (context menu optional).
+2. **#2** Next charge shows "5 seconds ago" → Today / Tomorrow / date.
+3. **#8** A built-in category's name field looks empty → footer or prefill.
+4. **#4** Ukrainian sheet titles are truncated → «Категорія», «Підписка»; keep «Редагування». This retracts strings-audit #7 («Редагування витрати»).
+5. **#5** VoiceOver reads raw SF Symbol names and English colour names.
+6. **#6** Donut sectors are unlabeled.
+7. **#3** Summary card contrast 2.57:1 → darker teal start `Color(red: 0.12, green: 0.45, blue: 0.51)` = 5.5:1. Client approved; the app icon stays unchanged.
+8. **#7** Empty-state Add button — only if it takes one line.
+9. **#9** Row wrapping at XXL text size — last.
+
+## 2026-09-24 — Stage 15 #4 revised: sheet titles at accessibility sizes
+
+Supersedes the #4 fix above (shorter titles alone).
+- **Evidence:** at the largest accessibility text size no Ukrainian title fits: 87 pt is left between «Скасувати» and «Зберегти», and «Редагування витрати» shows as «Редагу…» (`docs/specs/stage15/4-uk-title-axxxl.png`).
+- **Fix:** on iOS 26, `Button(role: .cancel)` and `Button(role: .confirm)` render as xmark / checkmark glass icons and free ~250 pt; use them on all 5 sheets. Text buttons stay for iOS 17–25. `ButtonRole.confirm` is iOS 26.0+ (Apple docs).
+- The Edit Expense title in Ukrainian goes back to «Редагування».
+
+## 2026-09-24 — Stage 11 engine security review (`78d3f3f`): FIX
+
+Verdicts on the engine's deviations from the «Security review» rules:
+- **(2) CONFIRMED:** bound `amount` to ±1e9 first, then skip positive amounts. A zero amount skips that item, not the whole page.
+- **(3) REFUSED:** the monobank spec marks no field as required, so `description` and `hold` are optional with defaults. Rejecting a page would never advance `syncedUntil` — a permanent stall. This supersedes "reject the whole page on any bad item" for missing optional fields.
+- **(4) CONFIRMED:** account `"0"` (default account); nothing is kept from `client-info`. Added a `notHryvnia` status.
+
+Engine OK on: Keychain, network, orphaned token, pasteboard.
+
+**Pulled into stage 11:** CSV formula injection (was stage 13); strip `.format` characters (bidi, zero-width); 20 s request timeout; guard on `isProtectedDataAvailable`.
+
+## 2026-09-24 — monobank transfers (client; the user may override)
+
+- Import MCC 4829 transfers as spending into category «Перекази».
+- Skip only transfers whose description matches a jar title from `client-info`; the titles are held in memory only.
+- If jar names do not appear in descriptions, import plainly — no heuristics.
+
+## 2026-09-24 — Jar titles in memory: security OK on 5 conditions
+
+An exception to "keep nothing from `client-info`", for the transfers rule:
+1. A minimal `Decodable` with only `jars[].title`.
+2. The same HTTP boundary checks; at most 100 jars; each title 1–100 characters, stripped.
+3. A decode failure or HTTP 429 → skip the transfer rule for that run; never fail the sync.
+4. Titles are local to one run only: never stored, logged or exported.
+5. One `client-info` call + one `statement` call per run, under the throttle.
+
+## 2026-09-24 — Stage 14 app side done: 2 deviations accepted
+
+Branch `stage-14-today-total` (`2254e0f`). Corrects the stage 14 gate A entry and the «Security review» manifest line.
+- **Privacy reason:** the App Group suite uses `1C8F.1` (same App Group), not `CA92.1` (the app itself only). `Kalyta/PrivacyInfo.xcprivacy` declares both; the widget extension's manifest needs `1C8F.1`.
+- **Publisher:** observes `ModelContext.didSave` from every context of `Store.container`, not only `mainContext` — CSV import saves on a background context. Saves from other containers (the self-check's temporary store) are ignored.
+- `APP_GROUP_ID = group.$(PRODUCT_BUNDLE_IDENTIFIER)` in `Config/Kalyta.xcconfig`.

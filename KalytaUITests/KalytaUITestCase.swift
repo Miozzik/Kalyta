@@ -78,4 +78,25 @@ class KalytaUITestCase: XCTestCase {
         app.launchArguments = arguments + languageArguments
         app.launch()
     }
+
+    /// Types text into a focused field one character at a time, waiting until each one shows.
+    ///
+    /// Typing a whole amount at once lost or reordered keystrokes on a busy simulator,
+    /// such as "43290" for "432.90", so a test could check an amount nobody meant to enter.
+    ///
+    /// - Parameters:
+    ///   - text: The text to type, appended to what the field already holds.
+    ///   - field: The focused field.
+    func type(_ text: String, into field: XCUIElement) {
+        var expected = field.value as? String ?? ""
+        if expected == field.placeholderValue { expected = "" }
+        for character in text {
+            expected.append(character)
+            field.typeText(String(character))
+            let shown = NSPredicate(format: "value == %@", expected)
+            XCTAssertEqual(
+                XCTWaiter().wait(for: [XCTNSPredicateExpectation(predicate: shown, object: field)], timeout: 3),
+                .completed, "The field shows \(field.value ?? "nothing") instead of \(expected)")
+        }
+    }
 }

@@ -61,6 +61,7 @@ func runSelfCheck() {
     runImportCheck()
     runStatisticsCheck()
     runSubscriptionCheck()
+    runReceiptCheck()
 
     // The Shortcuts action: an empty or unknown category must record into "Other", never fail.
     assert(Store.category(forKey: nil, in: context).key == "other", "An empty category did not fall back to Other")
@@ -258,6 +259,9 @@ func runImportCheck() {
     // Double("inf") parses and is > 0; such a row would poison every total.
     let infinite = csv + "2026-09-23T12:18:00+03:00,inf,UAH,food,Їжа,,fork.knife,orange\r\n"
     assert(plan(infinite, "Infinite amount").invalidLines == [5], "An infinite amount was accepted")
+    // Amounts are capped: two rows of 1e308 would sum to infinity, and one traps the duplicate key.
+    let huge = csv + "2026-09-23T12:18:00+03:00,10000000.01,UAH,food,Їжа,,fork.knife,orange\r\n"
+    assert(plan(huge, "Huge amount").invalidLines == [5], "An amount above the maximum was accepted")
 
     // Income survives a round trip; a file from before income existed imports as spending.
     let salary = ExpenseRecord(

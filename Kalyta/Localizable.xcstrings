@@ -199,28 +199,28 @@
         "uk": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Не вдалося прочитати %1$lld рядок: %2$@%3$@."
+                }
+              },
               "few": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%1$lld рядки не вдалося прочитати (рядки %2$@%3$@)."
+                  "value": "Не вдалося прочитати %1$lld рядки: %2$@%3$@."
                 }
               },
               "many": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%1$lld рядків не вдалося прочитати (рядки %2$@%3$@)."
-                }
-              },
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%1$lld рядок не вдалося прочитати (рядки %2$@%3$@)."
+                  "value": "Не вдалося прочитати %1$lld рядків: %2$@%3$@."
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%1$lld рядка не вдалося прочитати (рядки %2$@%3$@)."
+                  "value": "Не вдалося прочитати %1$lld рядків: %2$@%3$@."
                 }
               }
             }
@@ -368,7 +368,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Вже записано за %@."
+            "value": "Уже записано за %@."
           }
         }
       }
@@ -413,6 +413,16 @@
         }
       }
     },
+    "Camera access is off": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Доступ до камери вимкнено"
+          }
+        }
+      }
+    },
     "Cancel": {
       "localizations": {
         "uk": {
@@ -438,7 +448,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Категорії по місяцях"
+            "value": "Категорії за місяцями"
           }
         }
       }
@@ -528,7 +538,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Редагування"
+            "value": "Редагування витрати"
           }
         }
       }
@@ -618,7 +628,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Здоров'я"
+            "value": "Здоров’я"
           }
         }
       }
@@ -688,7 +698,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Імпорт з CSV"
+            "value": "Імпорт із CSV"
           }
         }
       }
@@ -763,7 +773,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Вид"
+            "value": "Тип"
           }
         }
       }
@@ -774,6 +784,32 @@
           "stringUnit": {
             "state": "translated",
             "value": "Рядок %lld не в гривнях. Kalyta імпортує лише суми в гривнях."
+          }
+        }
+      }
+    },
+    "Matches the entry recorded at %@": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Збігається з витратою, записаною о %@"
+          }
+        }
+      }
+    },
+    "Matches “%@”, recorded at %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Matches “%1$@”, recorded at %2$@"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Збігається з витратою «%1$@», записаною о %2$@"
           }
         }
       }
@@ -888,6 +924,16 @@
         }
       }
     },
+    "Not a fiscal receipt": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не фіскальний чек"
+          }
+        }
+      }
+    },
     "Note": {
       "localizations": {
         "uk": {
@@ -914,6 +960,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "OK"
+          }
+        }
+      }
+    },
+    "Open Settings": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Відкрити Параметри"
           }
         }
       }
@@ -1038,6 +1094,26 @@
         }
       }
     },
+    "Save as New": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Зберегти як нову"
+          }
+        }
+      }
+    },
+    "Scan Receipt": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сканувати чек"
+          }
+        }
+      }
+    },
     "Service, for example Netflix": {
       "localizations": {
         "uk": {
@@ -1114,7 +1190,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Натисни «+» або налаштуй подвійний тап по спинці"
+            "value": "Натисни «+» або налаштуй «Торкання ззаду» в Параметрах"
           }
         }
       }
@@ -1164,7 +1240,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Цей файл перезбережено в Excel. Імпортуйте оригінальний експорт Kalyta."
+            "value": "Цей файл перезбережено в Excel. Імпортуй оригінальний експорт Kalyta."
           }
         }
       }
@@ -1214,7 +1290,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Скасувати"
+            "value": "Відмінити"
           }
         }
       }
@@ -1244,7 +1320,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Вчора"
+            "value": "Учора"
           }
         }
       }

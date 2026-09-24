@@ -1,5 +1,7 @@
+import AVFoundation
 import SwiftData
 import SwiftUI
+import VisionKit
 
 /// The sheet for entering a new expense or editing a saved one.
 ///
@@ -9,9 +11,21 @@ import SwiftUI
 struct ExpenseEditor: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
 
     /// The expense being edited, or `nil` when entering a new one.
-    private let expense: Expense?
+    ///
+    /// A scanned receipt can switch a new entry to the expense it matches.
+    @State private var expense: Expense?
+    /// Whether the sheet was opened for a new entry; only then does a scan look for a match.
+    private let isNew: Bool
+    /// The time of the expense a scanned receipt matched, shown so a wrong match is noticed.
+    @State private var matchedDate: Date?
+    /// Set by "Save as New" so a repeated scan does not match again.
+    @State private var savesAsNew = false
+    @State private var isScanning = false
+    @State private var isNotFiscal = false
+    @State private var isCameraDenied = false
     /// Deletes the edited expense through the list's deferred deletion, so the undo banner appears.
     private let onDelete: ((Expense) -> Void)?
 
@@ -32,7 +46,8 @@ struct ExpenseEditor: View {
     ///   - expense: The expense to edit, or `nil` to enter a new one.
     ///   - onDelete: Called with the edited expense when the person taps Delete.
     init(expense: Expense? = nil, onDelete: ((Expense) -> Void)? = nil) {
-        self.expense = expense
+        _expense = State(initialValue: expense)
+        isNew = expense == nil
         self.onDelete = onDelete
         _amount = State(initialValue: expense?.amount)
         _category = State(initialValue: expense?.assignedCategory)
@@ -41,7 +56,7 @@ struct ExpenseEditor: View {
         _date = State(initialValue: expense?.date ?? .now)
     }
 
-    private var canSave: Bool { (amount ?? 0) > 0 && category != nil }
+    private var canSave: Bool { amount.map(isValidAmount) == true && category != nil }
 
     /// The categories offered in the grid: visible ones, plus the current one even if hidden,
     /// so editing an old expense never silently changes its category.
@@ -59,7 +74,9 @@ struct ExpenseEditor: View {
                     }
                     .pickerStyle(.segmented)
                     .padding(.top, 8)
-                    .onChange(of: isIncome) { category = pickableCategories.first }
+                    .onChange(of: isIncome) {
+                        if category?.isIncome != isIncome { category = pickableCategories.first }
+                    }
 
                     HStack(alignment: .firstTextBaseline, spacing: 4) {
                         TextField("0", value: $amount, format: .number)
@@ -73,6 +90,8 @@ struct ExpenseEditor: View {
                     .font(.system(size: 52, weight: .bold, design: .rounded))
                     .frame(maxWidth: .infinity)
                     .padding(.top, 20)
+
+                    if canScan && !isIncome { scanControls }
 
                     LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 3), spacing: 12) {
                         ForEach(pickableCategories) { item in
@@ -138,10 +157,129 @@ struct ExpenseEditor: View {
                 isAmountFocused = expense == nil
                 if category == nil { category = pickableCategories.first }
             }
+            .fullScreenCover(isPresented: $isScanning) { scanner }
             .sheet(isPresented: $isCreatingCategory) {
                 CategoryEditor(isIncome: isIncome) { created in category = created }
             }
         }
+    }
+
+    /// Whether the device can scan receipts; the button is hidden rather than left doing nothing.
+    private var canScan: Bool {
+        #if DEBUG
+            if scanPayloadArgument != nil { return true }
+        #endif
+        return DataScannerViewController.isSupported
+    }
+
+    #if DEBUG
+        /// A payload given with `-scanPayload <text>`, fed to ``scan(_:)`` instead of the camera,
+        /// so UI tests on the simulator (which has no scanner) exercise the same path.
+        private var scanPayloadArgument: String? { UserDefaults.standard.string(forKey: "scanPayload") }
+    #endif
+
+    /// The Scan Receipt button, and a way to Settings when camera access is off.
+    private var scanControls: some View {
+        VStack(spacing: 8) {
+            Button("Scan Receipt", systemImage: "qrcode.viewfinder", action: startScan)
+                .buttonStyle(.bordered)
+            if isCameraDenied {
+                Text("Camera access is off")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                Button("Open Settings") { openURL(URL(string: UIApplication.openSettingsURLString)!) }
+                    .font(.footnote)
+            }
+            if let matchedDate {
+                // Naming the matched entry lets a wrong match be noticed without opening it.
+                let time = matchedDate.formatted(.dateTime.hour().minute())
+                let matchedNote = expense?.note.trimmingCharacters(in: .whitespaces) ?? ""
+                Group {
+                    if matchedNote.isEmpty {
+                        Text("Matches the entry recorded at \(time)")
+                    } else {
+                        Text("Matches “\(matchedNote)”, recorded at \(time)")
+                    }
+                }
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .accessibilityIdentifier("receiptMatch")
+                Button("Save as New") {
+                    expense = nil
+                    self.matchedDate = nil
+                    savesAsNew = true
+                }
+                .font(.footnote)
+            }
+        }
+    }
+
+    /// The full-screen camera, showing a hint while it sees a code that is not a receipt.
+    private var scanner: some View {
+        NavigationStack {
+            ReceiptScannerView { payload in isNotFiscal = !scan(payload) }
+                .ignoresSafeArea()
+                .overlay(alignment: .bottom) {
+                    if isNotFiscal {
+                        Text("Not a fiscal receipt")
+                            .padding()
+                            .background(.regularMaterial, in: .capsule)
+                            .padding(.bottom, 40)
+                    }
+                }
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") { isScanning = false }
+                    }
+                }
+        }
+        .onDisappear { isNotFiscal = false }
+    }
+
+    /// Opens the camera, asking for access first; manual entry stays available whatever the answer.
+    private func startScan() {
+        #if DEBUG
+            if let scanPayloadArgument {
+                _ = scan(scanPayloadArgument)
+                return
+            }
+        #endif
+        switch AVCaptureDevice.authorizationStatus(for: .video) {
+        case .authorized:
+            isScanning = true
+        case .notDetermined:
+            Task {
+                let granted = await AVCaptureDevice.requestAccess(for: .video)
+                isScanning = granted
+                isCameraDenied = !granted
+            }
+        default:
+            isCameraDenied = true
+        }
+    }
+
+    /// Fills the fields from a scanned receipt, switching a new entry to the expense it matches.
+    ///
+    /// - Parameter payload: The text of the scanned code.
+    /// - Returns: `false` if the code is not a fiscal receipt, so scanning goes on.
+    private func scan(_ payload: String) -> Bool {
+        guard let receipt = FiscalReceipt(payload: payload) else { return false }
+        isScanning = false
+        // The keyboard would cover the note and date the scan filled in.
+        isAmountFocused = false
+        isIncome = false
+        amount = receipt.amount
+        date = receipt.date
+        // Matched again on every scan, so scanning a different receipt drops a match that no longer fits.
+        if isNew && !savesAsNew {
+            expense = receipt.matchingExpense(in: context)
+            matchedDate = expense?.date
+            if let expense {
+                category = expense.assignedCategory
+                note = expense.note
+            }
+        }
+        return true
     }
 
     /// Writes the fields to the edited expense, or inserts a new one, and closes the sheet.
@@ -149,7 +287,7 @@ struct ExpenseEditor: View {
     /// Saves at once instead of waiting for autosave, which runs later: an app killed
     /// right after Save would otherwise lose the expense.
     private func save() {
-        guard let amount, amount > 0, let category else { return }
+        guard let amount, isValidAmount(amount), let category else { return }
         if let expense {
             expense.amount = amount
             expense.assignedCategory = category

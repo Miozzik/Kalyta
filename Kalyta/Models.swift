@@ -220,3 +220,17 @@ func formattedHryvnias(_ amount: Double) -> String {
 
 /// The ISO 4217 code of the hryvnia, the currency every amount in the app is in.
 let hryvniaCurrencyCode = "UAH"
+
+/// The largest amount one entry may hold, in hryvnias.
+///
+/// Anything larger is a typo or a crafted input; the bound also keeps every sum of
+/// entries finite, which `Double.isFinite` alone does not (two times `1e308` is infinity).
+let maximumAmount: Double = 10_000_000
+
+/// Returns whether an amount can be recorded: finite, positive and at most ``maximumAmount``.
+///
+/// - Parameter amount: The amount to check.
+/// - Returns: `true` if the amount is valid.
+func isValidAmount(_ amount: Double) -> Bool {
+    amount.isFinite && amount > 0 && amount <= maximumAmount
+}

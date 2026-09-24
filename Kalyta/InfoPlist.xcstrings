@@ -1,0 +1,24 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "NSCameraUsageDescription": {
+      "comment": "Privacy - Camera Usage Description",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Scan the QR code on a receipt to fill in its amount and time. The code is read on your iPhone; nothing is sent."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скануй QR-код на чеку — Kalyta заповнить суму й час. Код розпізнається на iPhone і нікуди не надсилається."
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}
