@@ -58,6 +58,7 @@ func runSelfCheck() {
 
     runMigrationCheck()
     runImportCheck()
+    runStatisticsCheck()
 
     // The Shortcuts action: an empty or unknown category must record into "Other", never fail.
     assert(Store.category(forKey: nil, in: context).key == "other", "An empty category did not fall back to Other")
@@ -282,5 +283,63 @@ func measureImport() {
     let planTime = clock.measure { plan = try! ExpenseImport.plan(csv: csv, existing: []) }
     let insertTime = clock.measure { try! ExpenseImport.apply(plan, in: context) }
     print("MEASURE bytes=\(csv.utf8.count) rows=\(plan.toInsert.count) plan=\(planTime) insert=\(insertTime)")
+
+    // Statistics: copy the stored rows once, then every aggregate over twelve months.
+    let stored = try! context.fetch(FetchDescriptor<Expense>())
+    var snapshot: [ExpenseRecord] = []
+    let snapshotTime = clock.measure { snapshot = stored.map(ExpenseRecord.init) }
+    let months = StatisticsRange.allTime.months(earliest: start)
+    let aggregateTime = clock.measure {
+        _ = Statistics.monthlyTotals(snapshot, months: months)
+        _ = Statistics.categoryTotalsByMonth(snapshot, months: months, restName: "Rest")
+        _ = Statistics.biggest(snapshot, limit: 20)
+        _ = Statistics.topPlaces(snapshot, limit: 15)
+    }
+    print("MEASURE statistics months=\(months.count) snapshot=\(snapshotTime) aggregates=\(aggregateTime)")
     exit(0)
+}
+
+/// Verifies the Statistics aggregates on a fixed calendar and moment.
+@MainActor
+func runStatisticsCheck() {
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.timeZone = TimeZone(identifier: "Europe/Kyiv")!
+    let now = calendar.date(from: DateComponents(year: 2026, month: 9, day: 23, hour: 12))!
+    func day(_ month: Int, _ day: Int, hour: Int = 12) -> Date {
+        calendar.date(from: DateComponents(year: 2026, month: month, day: day, hour: hour))!
+    }
+    func record(_ amount: Double, _ date: Date, key: String = "food", note: String = "") -> ExpenseRecord {
+        ExpenseRecord(date: date, amount: amount, categoryKey: key, categoryName: key, note: note)
+    }
+
+    let months = StatisticsRange.sixMonths.months(earliest: nil, now: now, calendar: calendar)
+    assert(months.count == 6 && months.first?.start == day(4, 1, hour: 0), "Six months must start on 1 April")
+
+    // Midnight on 1 September belongs to September, not August.
+    let boundary = [record(10, day(9, 1, hour: 0))]
+    let boundaryTotals = Statistics.monthlyTotals(boundary, months: months)
+    assert(boundaryTotals[5].total == 10 && boundaryTotals[4].total == 0, "A midnight expense went to the wrong month")
+
+    let spread = [record(300, day(7, 10)), record(100, day(8, 10)), record(50, day(9, 10))]
+    let average = Statistics.averageOfCompleteMonths(Statistics.monthlyTotals(spread, months: months), now: now)
+    assert(average == 200, "The average must use complete months with data only: \(average ?? -1)")
+
+    let ranked = Statistics.biggest([record(5, day(9, 1)), record(50, day(9, 2)), record(20, day(9, 3))], limit: 2)
+    assert(ranked.map(\.amount) == [50, 20], "Biggest expenses are not largest first: \(ranked.map(\.amount))")
+
+    // "Мій" and "Міи" differ only by й/и, exactly what ignoring diacritics would merge.
+    let places = Statistics.topPlaces(
+        [
+            record(10, day(9, 1), note: "АТБ"), record(20, day(9, 2), note: "атб "), record(30, day(9, 3), note: "АТБ"),
+            record(1, day(9, 4), note: "Мій"), record(2, day(9, 5), note: "Міи"), record(99, day(9, 6), note: "  "),
+        ], limit: 10)
+    let atb = places.first { $0.name == "АТБ" }
+    assert(atb?.count == 3 && atb?.total == 60, "Spellings of one place were not grouped: \(places)")
+    assert(places.count == 3, "Different Ukrainian letters were merged, or an empty note became a place: \(places)")
+
+    let manyCategories = (0..<7).map { record(Double(10 + $0), day(9, 10), key: "k\($0)") }
+    let segments = Statistics.categoryTotalsByMonth(manyCategories, months: months, restName: "Rest")
+        .filter { $0.month == months[5] }
+    assert(segments.count == Statistics.maximumCategorySegments + 1, "Categories were not folded: \(segments.count)")
+    assert(segments.first { $0.categoryKey == Statistics.restKey }?.total == 21, "The rest segment has the wrong total")
 }

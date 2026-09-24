@@ -212,8 +212,80 @@
         }
       }
     },
+    "%lld times": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld time"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld times"
+                }
+              }
+            }
+          }
+        },
+        "uk": {
+          "variations": {
+            "plural": {
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld рази"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld разів"
+                }
+              },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld раз"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld разу"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "0": {
       "shouldTranslate": false
+    },
+    "12 months": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "12 місяців"
+          }
+        }
+      }
+    },
+    "6 months": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "6 місяців"
+          }
+        }
+      }
     },
     "A category with expenses can only be hidden, so past months keep it.": {
       "localizations": {
@@ -245,12 +317,52 @@
         }
       }
     },
+    "All time": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Увесь час"
+          }
+        }
+      }
+    },
     "Amount": {
       "localizations": {
         "uk": {
           "stringUnit": {
             "state": "translated",
             "value": "Сума"
+          }
+        }
+      }
+    },
+    "Average": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Середнє"
+          }
+        }
+      }
+    },
+    "Average per month": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "У середньому за місяць"
+          }
+        }
+      }
+    },
+    "Biggest Expenses": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Найбільші витрати"
           }
         }
       }
@@ -271,6 +383,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Категорії"
+          }
+        }
+      }
+    },
+    "Categories by Month": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Категорії по місяцях"
           }
         }
       }
@@ -560,6 +682,16 @@
         }
       }
     },
+    "Months": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Місяці"
+          }
+        }
+      }
+    },
     "Name": {
       "localizations": {
         "uk": {
@@ -606,6 +738,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "За цей період витрат немає"
+          }
+        }
+      }
+    },
+    "No expenses in this range": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "У цьому діапазоні витрат немає"
           }
         }
       }
@@ -660,6 +802,26 @@
         }
       }
     },
+    "Places": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Місця"
+          }
+        }
+      }
+    },
+    "Range": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Діапазон"
+          }
+        }
+      }
+    },
     "Recorded %@": {
       "localizations": {
         "uk": {
@@ -676,6 +838,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Записує витрату в Kalyta без відкриття застосунку."
+          }
+        }
+      }
+    },
+    "Rest": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Решта"
           }
         }
       }
@@ -741,6 +913,16 @@
         }
       }
     },
+    "Statistics": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Статистика"
+          }
+        }
+      }
+    },
     "Tap + or set up a double tap on the back of your iPhone": {
       "localizations": {
         "uk": {
@@ -757,6 +939,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Сума має бути більшою за нуль."
+          }
+        }
+      }
+    },
+    "The average counts only finished months with expenses.": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Середнє враховує лише завершені місяці з витратами."
           }
         }
       }
