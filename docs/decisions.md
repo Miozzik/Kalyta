@@ -416,3 +416,10 @@ Branch `stage-14-today-total` (`2254e0f`). Corrects the stage 14 gate A entry an
 - **Privacy reason:** the App Group suite uses `1C8F.1` (same App Group), not `CA92.1` (the app itself only). `Kalyta/PrivacyInfo.xcprivacy` declares both; the widget extension's manifest needs `1C8F.1`.
 - **Publisher:** observes `ModelContext.didSave` from every context of `Store.container`, not only `mainContext` — CSV import saves on a background context. Saves from other containers (the self-check's temporary store) are ignored.
 - `APP_GROUP_ID = group.$(PRODUCT_BUNDLE_IDENTIFIER)` in `Config/Kalyta.xcconfig`.
+
+## 2026-09-24 — Stage 9 gate B: GO, merged
+
+- PM gate B: GO. Full suite on a quiet host: 33 passed, 2 skipped, 0 failed.
+- Squash-merged to `main` as `b035ca6`.
+- **Follow-ups (not blocking):** `runUpgradeCheck` still expects a pre-income build (`SelfCheck.swift:175–176`; stage 11 fixes it). "Save as New" keeps the matched entry's note and category, and a re-scan keeps them from the previous match.
+- **Still manual, on the user's iPhone:** camera allowed/denied, a real ATB receipt, a match with an Apple Pay entry.
