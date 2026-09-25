@@ -41,7 +41,7 @@ final class WidgetUITests: KalytaUITestCase {
         let scanned = expectation(for: NSPredicate(format: "value == %@", "987.65"), evaluatedWith: amount)
         XCTAssertEqual(
             XCTWaiter().wait(for: [scanned], timeout: 3), .timedOut, "The request scanned into the open sheet")
-        app.buttons["Cancel"].tap()
+        app.buttons["cancelButton"].tap()
         XCTAssertTrue(amount.waitForNonExistence(timeout: 5), "The Add sheet did not close")
         XCTAssertFalse(amount.waitForExistence(timeout: 3), "The dropped request opened the scanner later")
     }

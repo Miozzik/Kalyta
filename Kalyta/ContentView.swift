@@ -380,6 +380,8 @@ private struct CategoryBreakdown: View {
                 SectorMark(angle: .value("Amount", row.total), innerRadius: .ratio(0.62), angularInset: 2)
                     .foregroundStyle(row.color)
                     .cornerRadius(4)
+                    .accessibilityLabel(row.title)
+                    .accessibilityValue(formattedHryvnias(row.total))
             }
             .frame(height: 170)
             .chartLegend(.hidden)

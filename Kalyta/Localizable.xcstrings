@@ -423,6 +423,26 @@
         }
       }
     },
+    "Blue": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Синій"
+          }
+        }
+      }
+    },
+    "Brown": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Коричневий"
+          }
+        }
+      }
+    },
     "Camera access is off": {
       "localizations": {
         "uk": {
@@ -513,6 +533,16 @@
         }
       }
     },
+    "Cyan": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Блакитний"
+          }
+        }
+      }
+    },
     "Date": {
       "localizations": {
         "uk": {
@@ -598,7 +628,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Редагування витрати"
+            "value": "Редагування"
           }
         }
       }
@@ -679,6 +709,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Їжа"
+          }
+        }
+      }
+    },
+    "Green": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Зелений"
+          }
+        }
+      }
+    },
+    "Grey": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сірий"
           }
         }
       }
@@ -825,6 +875,16 @@
         }
       }
     },
+    "Indigo": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Індиго"
+          }
+        }
+      }
+    },
     "Kalyta": {
       "shouldTranslate": false
     },
@@ -834,6 +894,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Тип"
+          }
+        }
+      }
+    },
+    "Leave empty to keep the built-in name.": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Залиш порожнім, щоб лишилась стандартна назва."
           }
         }
       }
@@ -880,6 +950,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Збігається з витратою «%1$@», записаною о %2$@"
+          }
+        }
+      }
+    },
+    "Mint": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "М’ятний"
           }
         }
       }
@@ -1094,6 +1174,16 @@
         }
       }
     },
+    "Orange": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Помаранчевий"
+          }
+        }
+      }
+    },
     "Other": {
       "localizations": {
         "uk": {
@@ -1124,12 +1214,32 @@
         }
       }
     },
+    "Pink": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Рожевий"
+          }
+        }
+      }
+    },
     "Places": {
       "localizations": {
         "uk": {
           "stringUnit": {
             "state": "translated",
             "value": "Місця"
+          }
+        }
+      }
+    },
+    "Purple": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Фіолетовий"
           }
         }
       }
@@ -1160,6 +1270,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Записати"
+          }
+        }
+      }
+    },
+    "Record Charge": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Записати списання"
           }
         }
       }
@@ -1210,6 +1330,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Сама записує платежі з картки monobank. Токен дає лише читання — переказати гроші з ним неможливо."
+          }
+        }
+      }
+    },
+    "Red": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Червоний"
           }
         }
       }
@@ -1365,6 +1495,16 @@
         }
       }
     },
+    "Teal": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Бірюзовий"
+          }
+        }
+      }
+    },
     "The amount is too large.": {
       "localizations": {
         "uk": {
@@ -1465,6 +1605,16 @@
         }
       }
     },
+    "Tomorrow": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Завтра"
+          }
+        }
+      }
+    },
     "Tomorrow: %@": {
       "localizations": {
         "uk": {
@@ -1531,6 +1681,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Щороку"
+          }
+        }
+      }
+    },
+    "Yellow": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Жовтий"
           }
         }
       }

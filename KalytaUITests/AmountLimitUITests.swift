@@ -36,10 +36,10 @@ final class AmountLimitUITests: KalytaUITestCase {
     ///
     /// - Parameter openEditor: Opens a new editor and returns its focused, empty amount field.
     private func verifyLimit(openEditor: () -> XCUIElement) {
-        let save = app.buttons["Save"]
+        let save = app.buttons["saveButton"]
         type("10000000", into: openEditor())
         XCTAssertTrue(save.isEnabled, "Save is disabled for the maximum amount")
-        app.buttons["Cancel"].tap()
+        app.buttons["cancelButton"].tap()
 
         let amount = openEditor()
         type("10000001", into: amount)

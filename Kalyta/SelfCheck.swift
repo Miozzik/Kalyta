@@ -424,6 +424,14 @@ func runSubscriptionCheck() {
     let last = SubscriptionMath.lastCharge(
         firstCharge: jan31, period: .monthly, now: date(2026, 3, 5), calendar: calendar)
     assert(last == date(2026, 2, 28), "The charge to record in early March is wrong")
+    // Due text works by day: a charge at noon is "Today" at 23:59, never "in 12 hours".
+    let lateEvening = date(2026, 2, 28).addingTimeInterval(11 * 3600 + 59 * 60)
+    let due = { SubscriptionMath.dueText(for: $0, now: lateEvening, calendar: calendar) }
+    assert(due(date(2026, 2, 28)) == String(localized: "Today"), "A charge today is not shown as Today")
+    assert(due(date(2026, 3, 1)) == String(localized: "Tomorrow"), "A charge tomorrow is not shown as Tomorrow")
+    assert(
+        ![String(localized: "Today"), String(localized: "Tomorrow")].contains(due(date(2026, 3, 2))),
+        "A charge in two days is not a date")
 
     let cost = SubscriptionMath.monthlyCost(of: [(amount: 100, period: .monthly), (amount: 1_200, period: .yearly)])
     assert(cost == 200, "A yearly plan must count as a twelfth per month: \(cost)")

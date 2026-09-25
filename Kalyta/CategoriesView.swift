@@ -106,6 +106,10 @@ struct CategoryEditor: View {
                 Section {
                     TextField(namePlaceholder, text: $name)
                         .accessibilityIdentifier("categoryName")
+                } footer: {
+                    if category?.isBuiltIn == true {
+                        Text("Leave empty to keep the built-in name.")
+                    }
                 }
                 Section("Icon") {
                     LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 6), spacing: 12) {
@@ -119,7 +123,6 @@ struct CategoryEditor: View {
                                     .background(item == symbol ? color.color : color.color.opacity(0.15), in: .circle)
                             }
                             .buttonStyle(.plain)
-                            .accessibilityLabel(item)
                             .accessibilityAddTraits(item == symbol ? .isSelected : [])
                         }
                     }
@@ -138,7 +141,7 @@ struct CategoryEditor: View {
                                     }
                             }
                             .buttonStyle(.plain)
-                            .accessibilityLabel(item.rawValue)
+                            .accessibilityLabel(Text(item.title))
                             .accessibilityAddTraits(item == color ? .isSelected : [])
                         }
                     }
@@ -164,16 +167,7 @@ struct CategoryEditor: View {
             }
             .navigationTitle(category == nil ? "New Category" : "Edit Category")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save", action: save)
-                        .disabled(!canSave)
-                        .fontWeight(.semibold)
-                }
-            }
+            .toolbar { SheetToolbar(canSave: canSave, onCancel: { dismiss() }, onSave: save) }
         }
     }
 

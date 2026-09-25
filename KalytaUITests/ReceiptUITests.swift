@@ -17,7 +17,7 @@ final class ReceiptUITests: KalytaUITestCase {
         let noteField = app.textFields["Note"]
         noteField.tap()
         noteField.typeText(note)
-        app.buttons["Save"].tap()
+        app.buttons["saveButton"].tap()
         let labelBefore = row(note).label
 
         relaunch(with: ["-scanPayload", receiptPayload(amount: "432.90", at: .now.addingTimeInterval(-20 * 60))])
@@ -27,7 +27,7 @@ final class ReceiptUITests: KalytaUITestCase {
         let match = app.staticTexts["receiptMatch"]
         XCTAssertTrue(match.waitForExistence(timeout: 3), "The receipt did not match the recorded expense")
         app.buttons["Food"].tap()
-        app.buttons["Save"].tap()
+        app.buttons["saveButton"].tap()
 
         XCTAssertEqual(listedCount(note), 1, "The receipt added a second expense instead of updating the first")
         XCTAssertNotEqual(row(note).label, labelBefore, "The expense did not take the receipt's time")
@@ -81,7 +81,7 @@ final class ReceiptUITests: KalytaUITestCase {
         let seededNote = app.textFields["Note"]
         seededNote.tap()
         type("АТБ", into: seededNote)
-        app.buttons["Save"].tap()
+        app.buttons["saveButton"].tap()
 
         relaunch(with: ["-scanPayload", payload])
         app.buttons["Add"].tap()

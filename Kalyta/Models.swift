@@ -65,6 +65,25 @@ enum CategoryColor: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
+    /// The colour's name for VoiceOver.
+    var title: LocalizedStringResource {
+        switch self {
+        case .red: "Red"
+        case .orange: "Orange"
+        case .yellow: "Yellow"
+        case .green: "Green"
+        case .mint: "Mint"
+        case .teal: "Teal"
+        case .cyan: "Cyan"
+        case .blue: "Blue"
+        case .indigo: "Indigo"
+        case .purple: "Purple"
+        case .pink: "Pink"
+        case .brown: "Brown"
+        case .gray: "Grey"
+        }
+    }
+
     /// The SwiftUI colour of the palette entry.
     var color: Color {
         switch self {

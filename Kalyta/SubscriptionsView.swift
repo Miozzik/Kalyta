@@ -74,7 +74,7 @@ struct SubscriptionsView: View {
                 }
             }
             .sheet(isPresented: $isAdding) { SubscriptionEditor() }
-            .sheet(item: $editing) { SubscriptionEditor(subscription: $0) }
+            .sheet(item: $editing) { SubscriptionEditor(subscription: $0, onRecord: record) }
             .alert(
                 "Recorded",
                 isPresented: Binding(get: { recordedMessage != nil }, set: { if !$0 { recordedMessage = nil } }),
@@ -132,12 +132,19 @@ private struct SubscriptionRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(subscription.name)
                 // Both parts are already localized; joining them needs no catalog entry.
-                Text(verbatim: "\(formattedHryvnias(subscription.amount)) · \(subscription.period.title)")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                // At large text sizes they stack, so no line starts with the separator.
+                ViewThatFits(in: .horizontal) {
+                    Text(verbatim: "\(formattedHryvnias(subscription.amount)) · \(subscription.period.title)")
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text(verbatim: formattedHryvnias(subscription.amount))
+                        Text(subscription.period.title)
+                    }
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
             }
             Spacer()
-            Text(nextCharge, format: .relative(presentation: .named))
+            Text(SubscriptionMath.dueText(for: nextCharge))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
@@ -184,6 +191,8 @@ struct SubscriptionEditor: View {
 
     /// The subscription being edited, or `nil` when adding one.
     private let subscription: Subscription?
+    /// Records the latest charge; set only when editing an existing subscription.
+    private let onRecord: ((Subscription) -> Void)?
 
     @State private var name: String
     @State private var amount: Double?
@@ -193,9 +202,12 @@ struct SubscriptionEditor: View {
 
     /// Creates the sheet for a new subscription, or for editing `subscription`.
     ///
-    /// - Parameter subscription: The subscription to edit, or `nil` to add one.
-    init(subscription: Subscription? = nil) {
+    /// - Parameters:
+    ///   - subscription: The subscription to edit, or `nil` to add one.
+    ///   - onRecord: Records the latest charge of the edited subscription, or `nil` to hide the button.
+    init(subscription: Subscription? = nil, onRecord: ((Subscription) -> Void)? = nil) {
         self.subscription = subscription
+        self.onRecord = onRecord
         _name = State(initialValue: subscription?.name ?? "")
         _amount = State(initialValue: subscription?.amount)
         _period = State(initialValue: subscription?.period ?? .monthly)
@@ -230,6 +242,17 @@ struct SubscriptionEditor: View {
                 }
                 if let subscription {
                     Section {
+                        // Before the first charge there is nothing to record.
+                        if let onRecord,
+                            SubscriptionMath.lastCharge(
+                                firstCharge: subscription.firstChargeDate, period: subscription.period) != nil
+                        {
+                            Button("Record Charge", systemImage: "checkmark.circle") {
+                                // Dismiss first, so the list shows its Recorded alert.
+                                dismiss()
+                                onRecord(subscription)
+                            }
+                        }
                         Button("Delete Subscription", role: .destructive) {
                             context.delete(subscription)
                             try? context.save()
@@ -241,12 +264,7 @@ struct SubscriptionEditor: View {
             }
             .navigationTitle(subscription == nil ? "New Subscription" : "Edit Subscription")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save", action: save).disabled(!canSave).fontWeight(.semibold)
-                }
-            }
+            .toolbar { SheetToolbar(canSave: canSave, onCancel: { dismiss() }, onSave: save) }
         }
     }
 

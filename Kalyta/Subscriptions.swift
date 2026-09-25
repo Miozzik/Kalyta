@@ -76,6 +76,28 @@ enum SubscriptionMath {
         return chargeDate(firstCharge: firstCharge, period: period, index: index, calendar: calendar)
     }
 
+    /// Returns when a charge is due, by day: "Today", "Tomorrow", or the day and month.
+    ///
+    /// A relative format would count down to the stored time of day ("in 5 seconds").
+    ///
+    /// - Parameters:
+    ///   - charge: The charge date.
+    ///   - now: The current moment.
+    ///   - calendar: The calendar that defines days.
+    /// - Returns: The localized text for the list row.
+    static func dueText(for charge: Date, now: Date = .now, calendar: Calendar = .current) -> String {
+        if calendar.isDate(charge, inSameDayAs: now) { return String(localized: "Today") }
+        if let tomorrow = calendar.date(byAdding: .day, value: 1, to: now),
+            calendar.isDate(charge, inSameDayAs: tomorrow)
+        {
+            return String(localized: "Tomorrow")
+        }
+        var style = Date.FormatStyle.dateTime.day().month()
+        style.calendar = calendar
+        style.timeZone = calendar.timeZone
+        return charge.formatted(style)
+    }
+
     /// Returns whether a charge is already among the recorded expenses.
     ///
     /// Uses the import's duplicate key (whole second, kopiykas, category, note), so a

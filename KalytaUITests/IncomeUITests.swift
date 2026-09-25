@@ -15,7 +15,7 @@ final class IncomeUITests: KalytaUITestCase {
         let note = app.textFields["Note"]
         note.tap()
         note.typeText("Премія")
-        app.buttons["Save"].tap()
+        app.buttons["saveButton"].tap()
 
         XCTAssertEqual(summaryTotal(), spentBefore, "Income was added to spending")
         let incomeLine = app.staticTexts["summaryIncome"]

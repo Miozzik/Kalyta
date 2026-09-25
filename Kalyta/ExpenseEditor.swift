@@ -149,16 +149,7 @@ struct ExpenseEditor: View {
             .background(Color(.systemGroupedBackground))
             .navigationTitle(expense == nil ? "New Expense" : "Edit Expense")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save", action: save)
-                        .disabled(!canSave)
-                        .fontWeight(.semibold)
-                }
-            }
+            .toolbar { SheetToolbar(canSave: canSave, onCancel: { dismiss() }, onSave: save) }
             .onAppear {
                 if category == nil { category = pickableCategories.first }
                 if startsScanning && canScan {

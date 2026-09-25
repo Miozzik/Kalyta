@@ -36,7 +36,7 @@ final class EditingUITests: KalytaUITestCase {
         // Picked after the date, so no tap that closes the calendar can land on the grid and change it.
         app.buttons["Food"].tap()
         XCTAssertTrue(app.buttons["Food"].isSelected, "Food is not selected before Save")
-        app.buttons["Save"].tap()
+        app.buttons["saveButton"].tap()
 
         XCTAssertEqual(
             amount(in: summaryTotal()), currentBefore - 120, "The current month still counts the moved expense")
@@ -64,7 +64,7 @@ final class EditingUITests: KalytaUITestCase {
         XCTAssertTrue(amount.waitForExistence(timeout: 3))
         amount.tap()
         amount.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: 6) + "999")
-        app.buttons["Cancel"].tap()
+        app.buttons["cancelButton"].tap()
         XCTAssertTrue(digits(row(sampleNote).label).hasSuffix("120"), "Cancel kept the edit: \(row(sampleNote).label)")
 
         XCUIDevice.shared.press(.home)
@@ -83,7 +83,7 @@ final class EditingUITests: KalytaUITestCase {
         let note = app.textFields["Note"]
         note.tap()
         note.typeText("Probe")
-        app.buttons["Save"].tap()
+        app.buttons["saveButton"].tap()
         app.terminate()
 
         relaunchWithoutDemoData()

@@ -83,19 +83,25 @@ class KalytaUITestCase: XCTestCase {
     ///
     /// Typing a whole amount at once lost or reordered keystrokes on a busy simulator,
     /// such as "43290" for "432.90", so a test could check an amount nobody meant to enter.
+    /// A number field may regroup its text while it is being typed ("1,000" for "1000"), a
+    /// SwiftUI race under load, so grouping separators are ignored; the decimal point is not.
+    /// This assumes the en_US locale the tests launch with (`languageArguments`): in Ukrainian
+    /// the comma is the decimal separator and must not be dropped.
     ///
     /// - Parameters:
     ///   - text: The text to type, appended to what the field already holds.
     ///   - field: The focused field.
     func type(_ text: String, into field: XCUIElement) {
+        func ungrouped(_ value: String) -> String { value.filter { $0 != "," && !$0.isWhitespace } }
         var expected = field.value as? String ?? ""
         if expected == field.placeholderValue { expected = "" }
         for character in text {
             expected.append(character)
             field.typeText(String(character))
-            let shown = NSPredicate(format: "value == %@", expected)
+            let target = ungrouped(expected)
+            let shown = NSPredicate { _, _ in ungrouped(field.value as? String ?? "") == target }
             XCTAssertEqual(
-                XCTWaiter().wait(for: [XCTNSPredicateExpectation(predicate: shown, object: field)], timeout: 10),
+                XCTWaiter().wait(for: [XCTNSPredicateExpectation(predicate: shown, object: nil)], timeout: 10),
                 .completed, "The field shows \(field.value ?? "nothing") instead of \(expected)")
         }
     }

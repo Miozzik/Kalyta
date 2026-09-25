@@ -12,7 +12,7 @@ final class CategoryUITests: KalytaUITestCase {
         createCategory(named: "Кафе")
 
         XCTAssertTrue(app.buttons["Кафе"].isSelected, "The new category was not selected in the sheet")
-        app.buttons["Save"].tap()
+        app.buttons["saveButton"].tap()
         XCTAssertTrue(isListed("Кафе"), "The expense was not saved in the new category")
     }
 
@@ -33,7 +33,7 @@ final class CategoryUITests: KalytaUITestCase {
         let hide = app.switches["Hide"]
         hide.coordinate(withNormalizedOffset: CGVector(dx: 0.95, dy: 0.5)).tap()
         XCTAssertEqual(hide.value as? String, "1", "The Hide switch did not turn on")
-        app.buttons["Save"].tap()
+        app.buttons["saveButton"].tap()
 
         app.tabBars.buttons["Expenses"].tap()
         XCTAssertTrue(row("АТБ").label.contains("АТБ"), "An expense in the hidden category disappeared")
@@ -48,7 +48,7 @@ final class CategoryUITests: KalytaUITestCase {
         let name = app.textFields["categoryName"]
         name.tap()
         name.typeText("Продукти")
-        app.buttons["Save"].tap()
+        app.buttons["saveButton"].tap()
 
         app.tabBars.buttons["Expenses"].tap()
         XCTAssertTrue(app.staticTexts["Продукти"].waitForExistence(timeout: 3), "The chart still shows the old name")
@@ -94,7 +94,7 @@ final class CategoryUITests: KalytaUITestCase {
         field.tap()
         field.typeText(name)
         // Scope to this sheet's bar: the expense sheet underneath has its own Save.
-        app.navigationBars["New Category"].buttons["Save"].tap()
+        app.navigationBars["New Category"].buttons["saveButton"].tap()
         XCTAssertTrue(field.waitForNonExistence(timeout: 3), "The category sheet did not close")
     }
 
