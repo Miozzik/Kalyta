@@ -466,3 +466,10 @@ The widget gallery does not list a newly installed app's widgets until the simul
 
 - **#7 skipped:** the empty-state Add button needs a builder `init`, about 6 lines per screen — more than the one line the client allowed.
 - **Accepted:** the widget shares `SummaryGradient`'s darker teal (`Color(red: 0.12, green: 0.45, blue: 0.51)`), same as the summary card.
+
+## 2026-09-25 — Stage 13 gate B: GO, merged
+
+- PM gate B: GO, on condition that `ImportUITests` pass on a quiet host — met.
+- Full suite on a quiet host: 35 passed, 2 skipped, 0 failed.
+- Squash-merged to `main` as `3fe17bc`.
+- Also closed: stage 8 follow-up C (an imported row's kind must match its category) and the stage 9 follow-up ("Save as New" and a re-scan without a match restore the note and category from before the match).
