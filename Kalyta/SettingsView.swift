@@ -22,6 +22,11 @@ struct SettingsView: View {
                 }
                 Section("Bank") {
                     MonobankSettingsRow()
+                    NavigationLink {
+                        AutopaySetupView()
+                    } label: {
+                        Label("Set Up Automatic Recording", systemImage: "wave.3.right")
+                    }
                 }
                 Section {
                     Button {

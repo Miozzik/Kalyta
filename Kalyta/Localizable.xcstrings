@@ -363,6 +363,16 @@
         }
       }
     },
+    "Add the Shortcut": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Додати команду"
+          }
+        }
+      }
+    },
     "Add what you pay for regularly to see the monthly cost and get a reminder the day before each charge.": {
       "localizations": {
         "uk": {
@@ -399,6 +409,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Сума"
+          }
+        }
+      }
+    },
+    "Automatic Recording": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Автозапис оплат"
           }
         }
       }
@@ -519,6 +539,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Перевіряю…"
+          }
+        }
+      }
+    },
+    "Choose Shortcuts in the list, then tap Add Shortcut.": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вибери «Команди» у списку, потім натисни «Додати команду»."
           }
         }
       }
@@ -895,6 +925,16 @@
         }
       }
     },
+    "In the shortcut, tap ⓘ, then Privacy, and turn on Allow Running When Locked.": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "У команді натисни ⓘ, потім «Приватність» і ввімкни «Дозволити запуск під замком»."
+          }
+        }
+      }
+    },
     "Income": {
       "localizations": {
         "uk": {
@@ -917,6 +957,26 @@
     },
     "Kalyta": {
       "shouldTranslate": false
+    },
+    "Kalyta Autopay": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Автозапис Kalyta"
+          }
+        }
+      }
+    },
+    "Kalyta can record every Apple Pay payment by itself, with its amount and merchant. iOS lets only you switch this on, in Shortcuts. It takes about a minute.": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kalyta може сама записувати кожну оплату Apple Pay — із сумою й продавцем. Увімкнути це iOS дозволяє лише тобі, у «Командах». Це займе хвилину."
+          }
+        }
+      }
     },
     "Kalyta is open source under the MIT License.": {
       "localizations": {
@@ -1224,6 +1284,16 @@
         }
       }
     },
+    "Open the Shortcut": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Відкрити команду"
+          }
+        }
+      }
+    },
     "Opens Kalyta with the camera ready to scan a receipt's QR code.": {
       "localizations": {
         "uk": {
@@ -1494,6 +1564,16 @@
         }
       }
     },
+    "Set Up Automatic Recording": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Налаштувати автозапис оплат"
+          }
+        }
+      }
+    },
     "Settings": {
       "localizations": {
         "uk": {
@@ -1545,6 +1625,36 @@
         }
       }
     },
+    "Step 1": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Крок 1"
+          }
+        }
+      }
+    },
+    "Step 2": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Крок 2"
+          }
+        }
+      }
+    },
+    "Step 3": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Крок 3"
+          }
+        }
+      }
+    },
     "Subscriptions": {
       "localizations": {
         "uk": {
@@ -1571,6 +1681,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Натисни «+» або налаштуй «Торкання ззаду» в Параметрах"
+          }
+        }
+      }
+    },
+    "Tap Edit, then Automation, then Transaction. Choose your cards and tap Done.": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Натисни «Редагувати», потім «Автоматизація» і «Трансакція». Вибери свої картки й натисни «Готово»."
           }
         }
       }
