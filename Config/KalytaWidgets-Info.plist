@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!-- The App Group the app publishes today's total to; the same group as the app's
+	     (APP_GROUP_ID is set for this target from the app's bundle identifier). -->
+	<key>KalytaAppGroup</key>
+	<string>$(APP_GROUP_ID)</string>
 	<!-- Merged with the generated Info.plist; build settings cannot set this dictionary. -->
 	<key>NSExtension</key>
 	<dict>

@@ -45,6 +45,10 @@ struct KalytaApp: App {
                         await SubscriptionReminders.reschedule(from: Store.container.mainContext)
                         // An icon lookup that got no answer (offline) is retried on every return.
                         await SubscriptionIcons.retryUnsettled(in: Store.container.mainContext)
+                        // A new day may have started while the app was away.
+                        if let defaults = TodayTotal.sharedDefaults {
+                            TodayTotal.publish(from: Store.container.mainContext, to: defaults)
+                        }
                         MonobankSync.removeOrphanedToken()
                         await MonobankSync.runIfLinked()
                     }

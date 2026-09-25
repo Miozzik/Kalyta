@@ -3,6 +3,9 @@
 <plist version="1.0">
 <dict>
 	<!-- Merged with the generated Info.plist. The value comes from Config/Kalyta.xcconfig. -->
+	<!-- The App Group of today's total; the value comes from APP_GROUP_ID in Config/Kalyta.xcconfig. -->
+	<key>KalytaAppGroup</key>
+	<string>$(APP_GROUP_ID)</string>
 	<key>KalytaIconBaseURL</key>
 	<string>$(ICON_BASE_URL)</string>
 	<!-- The opportunistic monobank refresh; the identifier matches MonobankSync.refreshTaskID. -->

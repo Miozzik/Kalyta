@@ -489,3 +489,26 @@ The widget gallery does not list a newly installed app's widgets until the simul
 - PM gate B: GO after the docs fixes (`SheetToolbar` `///`, README, TODO).
 - Full suite on a quiet host: 39 passed, 2 skipped, 1 failed — `ImportUITests.testReimportAddsNothing` at line 58, the known save-picker flake. `ImportUITests` rerun: 3/3 passed.
 - Squash-merged to `main` as `ea2d49b`.
+
+## 2026-09-25 — Stage 14 gate B: GO on conditions
+
+- **Conditions:** (1) on a quiet host, both targets build, `--selfcheck` passes, and the full suite with the widget reboot setup is green; (2) the mutation table is recorded — done, below.
+- **Deviation, accepted:** the widget extension's `APP_GROUP_ID` is derived in `project.pbxproj` as `group.$(PRODUCT_BUNDLE_IDENTIFIER:base)`, not in `Config/Kalyta.xcconfig`: `:base` strips the extension's `.widgets` suffix, so both targets get the same group. The app keeps `group.$(PRODUCT_BUNDLE_IDENTIFIER)` in the xcconfig.
+- **Mutation table** (developer). Each mutation ran on a scratch copy built as `org.merzlov.kalyta.mutation`, and `--selfcheck` failed with the named assertion in `Kalyta/TodayCheck.swift` (current line numbers):
+
+| gate B | mutation | red at |
+|---|---|---|
+| a | income counted (`!$0.isIncome` dropped) | :29 "Today's spending is 1011.0, expected 11" |
+| a | end of day included (`containsExcludingEnd` → `contains`) | :29 (10011.0) |
+| a | day start excluded (`date > start`) | :29 (10.0) |
+| b | reader ignores the stored day | :39 "Yesterday's total was shown after midnight" |
+| b | publish stores `now` instead of the day's start | :38 "The published total reads back as 0.0" |
+| b | timeline keeps the total after midnight | :46 "The widget timeline is wrong" |
+| b | timeline's second entry an hour after midnight | :46 |
+| b | widget kind renamed "ScanReceipt" → "TodayTotal" | :50 "The widget kind changed; placed widgets would disappear" |
+| c | observer not registered when `Store.container` is created | :66 "A save by the Shortcuts action was not published: -1.0" |
+| c | only the main context observed (background saves ignored) | :78 "A background import was not published: -1.0" |
+
+  The two (c) mutations ran when those assertions sat at :58 and :70; later asserts moved them down 8 lines, unchanged.
+  Not in the table: the container-guard mutation (ignore saves from other containers) — it cannot be caught by a test.
+- **Full suite:** pending.

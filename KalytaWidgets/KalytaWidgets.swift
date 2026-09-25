@@ -11,43 +11,58 @@ struct KalytaWidgets: WidgetBundle {
     }
 }
 
-/// A Home Screen and Lock Screen widget that opens the receipt scanner.
+/// A Home Screen and Lock Screen widget that opens the receipt scanner and shows today's spending.
 ///
-/// It shows no data, so its timeline holds one entry that never changes.
+/// The app publishes the total after every save; the widget reads it and drops to 0 at midnight.
 struct ScanReceiptWidget: Widget {
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: "ScanReceipt", provider: Provider()) { _ in
-            ScanReceiptWidgetView()
+        StaticConfiguration(kind: TodayTotal.widgetKind, provider: Provider()) { entry in
+            ScanReceiptWidgetView(total: entry.total)
         }
         .configurationDisplayName("Scan Receipt")
         .description("Quick receipt scan.")
         .supportedFamilies([.systemSmall, .accessoryCircular, .accessoryRectangular])
     }
 
-    /// Supplies the single, unchanging entry.
+    /// Supplies today's published total now and 0 from midnight; the app reloads it after each save.
     struct Provider: TimelineProvider {
-        func placeholder(in context: Context) -> SimpleEntry { SimpleEntry(date: .now) }
+        func placeholder(in context: Context) -> SimpleEntry { SimpleEntry(date: .now, total: 0) }
 
         func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> Void) {
-            completion(SimpleEntry(date: .now))
+            completion(SimpleEntry(date: .now, total: storedTotal()))
         }
 
         func getTimeline(in context: Context, completion: @escaping (Timeline<SimpleEntry>) -> Void) {
-            completion(Timeline(entries: [SimpleEntry(date: .now)], policy: .never))
+            let entries = TodayTotal.timeline(total: storedTotal()).map { SimpleEntry(date: $0.date, total: $0.total) }
+            completion(Timeline(entries: entries, policy: .atEnd))
+        }
+
+        private func storedTotal() -> Double {
+            TodayTotal.sharedDefaults.map { TodayTotal.storedTotal(in: $0) } ?? 0
         }
     }
 
-    /// The only entry: the widget shows nothing that changes over time.
+    /// Today's spending at a moment of the timeline.
     struct SimpleEntry: TimelineEntry {
         let date: Date
+        /// Today's spending in hryvnias.
+        let total: Double
     }
 }
 
-/// The widget's face: the scan symbol, with its title where there is room.
+/// The widget's face: the scan symbol and today's spending, with the title where there is room.
 ///
-/// Tapping anywhere opens the app through ``ScanRequest/url``; the widget reads no data.
+/// Tapping anywhere opens the app through ``ScanRequest/url``. Only the amount is marked
+/// private, so a locked iPhone still shows what the widget is.
 private struct ScanReceiptWidgetView: View {
     @Environment(\.widgetFamily) private var family
+    /// Today's spending in hryvnias.
+    let total: Double
+
+    /// The amount, hidden while the iPhone is locked.
+    private var amount: some View {
+        Text(formattedHryvnias(total)).privacySensitive()
+    }
 
     var body: some View {
         Group {
@@ -55,19 +70,30 @@ private struct ScanReceiptWidgetView: View {
             case .accessoryCircular:
                 ZStack {
                     AccessoryWidgetBackground()
-                    Image(systemName: "qrcode.viewfinder")
-                        .font(.title)
+                    VStack(spacing: 0) {
+                        Image(systemName: "qrcode.viewfinder")
+                            .font(.body)
+                            .accessibilityLabel("Scan Receipt")
+                        amount
+                            .font(.caption2)
+                            .minimumScaleFactor(0.5)
+                            .lineLimit(1)
+                    }
+                    .padding(4)
                 }
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel("Scan Receipt")
+                .accessibilityElement(children: .combine)
                 .accessibilityHint("Scan a receipt")
                 .containerBackground(for: .widget) {}
             case .accessoryRectangular:
-                // Stage 14 adds today's total under the title in both layouts below.
                 VStack(alignment: .leading) {
                     Label("Scan Receipt", systemImage: "qrcode.viewfinder")
                         .font(.headline)
                         .accessibilityHint("Scan a receipt")
+                    HStack(spacing: 4) {
+                        Text("Today")
+                        amount
+                    }
+                    .accessibilityElement(children: .combine)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .containerBackground(for: .widget) {}
@@ -80,6 +106,14 @@ private struct ScanReceiptWidgetView: View {
                     Text("Scan Receipt")
                         .font(.headline)
                         .accessibilityHint("Scan a receipt")
+                    HStack(spacing: 4) {
+                        Text("Today")
+                        amount
+                    }
+                    .font(.subheadline)
+                    .minimumScaleFactor(0.7)
+                    .lineLimit(1)
+                    .accessibilityElement(children: .combine)
                 }
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)

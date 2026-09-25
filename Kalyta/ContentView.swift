@@ -91,9 +91,7 @@ struct ContentView: View {
     private var periodIncome: Double { periodEntries.filter(\.isIncome).reduce(0) { $0 + $1.amount } }
 
     /// - Complexity: O(*n*), where *n* is the number of expenses.
-    private var todayTotal: Double {
-        visibleSpending.filter { Calendar.current.isDateInToday($0.date) }.reduce(0) { $0 + $1.amount }
-    }
+    private var todayTotal: Double { TodayTotal.spending(of: visibleExpenses) }
 
     /// - Complexity: O(*n* × *p*), where *n* is the number of expenses and *p* the number of bars.
     private var bars: [PeriodBar] {

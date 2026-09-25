@@ -26,4 +26,8 @@ INFOPLIST_KEY_NSCameraUsageDescription = Scan the QR code on a receipt to fill i
 
 ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon
 
+// The App Group the app shares today's total through with its widget. Derived from the
+// bundle identifier, so a unique identifier in Local.xcconfig gives a unique group too.
+APP_GROUP_ID = group.$(PRODUCT_BUNDLE_IDENTIFIER)
+
 #include? "Local.xcconfig"
