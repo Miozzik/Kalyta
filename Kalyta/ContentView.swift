@@ -155,7 +155,14 @@ struct ContentView: View {
 
                     if !totalsByCategory.isEmpty {
                         CategoryBreakdown(rows: totalsByCategory, total: periodTotal)
-                    } else if !visibleExpenses.isEmpty {
+                    } else if visibleExpenses.isEmpty {
+                        // Below the card, not an overlay: an overlay centres on the whole list and covers the card.
+                        ContentUnavailableView(
+                            "Nothing recorded yet",
+                            systemImage: "hryvniasign.circle",
+                            description: Text("Tap + or set up a double tap on the back of your iPhone")
+                        )
+                    } else {
                         Text("No expenses in this period")
                             .foregroundStyle(.secondary)
                             .padding(.vertical, 24)
@@ -233,15 +240,6 @@ struct ContentView: View {
             .sheet(isPresented: $isAddingExpense) { ExpenseEditor() }
             .sheet(item: $editingExpense) { expense in
                 ExpenseEditor(expense: expense, onDelete: delete)
-            }
-            .overlay {
-                if visibleExpenses.isEmpty {
-                    ContentUnavailableView(
-                        "Nothing recorded yet",
-                        systemImage: "hryvniasign.circle",
-                        description: Text("Tap + or set up a double tap on the back of your iPhone")
-                    )
-                }
             }
         }
     }
@@ -360,6 +358,8 @@ private struct SummaryCard: View {
                     .foregroundStyle(.white.opacity(0.85))
             }
         }
+        // In a list row a label gets a fixed-width icon column; keep the icon next to its text.
+        .labelStyle(.titleAndIcon)
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(20)
         .background(.summaryGradient, in: .rect(cornerRadius: 24))
