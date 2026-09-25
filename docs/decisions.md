@@ -473,3 +473,13 @@ The widget gallery does not list a newly installed app's widgets until the simul
 - Full suite on a quiet host: 35 passed, 2 skipped, 0 failed.
 - Squash-merged to `main` as `3fe17bc`.
 - Also closed: stage 8 follow-up C (an imported row's kind must match its category) and the stage 9 follow-up ("Save as New" and a re-scan without a match restore the note and category from before the match).
+
+## 2026-09-25 — Stage 14 security review (`e476852`): OK
+
+- Entitlements: `application-groups` only, in both targets; no keychain sharing.
+- The group suite holds only `todayTotal` and `todayStart`.
+- The SwiftData store stays in the app's own sandbox.
+- A stale day or a time-zone change shows 0.
+- To verify on a locked iPhone: the `.privacySensitive()` amount is redacted on the Lock Screen and in StandBy.
+
+**Correction (security, of its earlier reviews):** `CA92.1` = user defaults only the app itself reads; `1C8F.1` = the same App Group (not a third-party SDK — the SDK-wrapper reason is `C56D.1`). The app declares `CA92.1` + `1C8F.1`; the widget extension declares `1C8F.1`. Source: Apple, `NSPrivacyAccessedAPITypeReasons` (checked against the doc JSON).
