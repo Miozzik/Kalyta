@@ -456,3 +456,13 @@ The widget gallery does not list a newly installed app's widgets until the simul
 **Designer's widget spec:** symbol `qrcode.viewfinder`, label «Сканувати чек», teal. The Home Screen small widget sits on `SummaryGradient`. No logo. Widget description: «Швидке сканування чека.»
 
 **Confirmed (tester, `w3base`):** the widget gallery on a freshly erased simulator lists a new app's widgets only after a reboot. This settles the earlier "being confirmed" entry.
+
+## 2026-09-25 — Stage 12 merged
+
+- Squash-merged to `main` as `7d268f7`. Full suite: 38 passed, 2 skipped, 0 failed.
+- Widget UI tests need the reboot setup: install, reboot the simulator, then run.
+
+## 2026-09-25 — Stage 15 gate B
+
+- **#7 skipped:** the empty-state Add button needs a builder `init`, about 6 lines per screen — more than the one line the client allowed.
+- **Accepted:** the widget shares `SummaryGradient`'s darker teal (`Color(red: 0.12, green: 0.45, blue: 0.51)`), same as the summary card.
