@@ -483,3 +483,9 @@ The widget gallery does not list a newly installed app's widgets until the simul
 - To verify on a locked iPhone: the `.privacySensitive()` amount is redacted on the Lock Screen and in StandBy.
 
 **Correction (security, of its earlier reviews):** `CA92.1` = user defaults only the app itself reads; `1C8F.1` = the same App Group (not a third-party SDK — the SDK-wrapper reason is `C56D.1`). The app declares `CA92.1` + `1C8F.1`; the widget extension declares `1C8F.1`. Source: Apple, `NSPrivacyAccessedAPITypeReasons` (checked against the doc JSON).
+
+## 2026-09-25 — Stage 15 gate B: GO, merged
+
+- PM gate B: GO after the docs fixes (`SheetToolbar` `///`, README, TODO).
+- Full suite on a quiet host: 39 passed, 2 skipped, 1 failed — `ImportUITests.testReimportAddsNothing` at line 58, the known save-picker flake. `ImportUITests` rerun: 3/3 passed.
+- Squash-merged to `main` as `ea2d49b`.
