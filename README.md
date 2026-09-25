@@ -33,7 +33,7 @@
 Тобто весь застосунок — це база, кілька екранів, два App Intent (**Додати витрату**, **Сканувати чек**) і віджет.
 Решту робить система.
 
-![головний екран](docs/screen-main.png) ![статистика](docs/screen-statistics.png) ![чек збігся із записом Apple Pay](docs/screen-receipt.png) ![віджет на домашньому екрані](docs/screen-widget.png) ![скан чека](docs/screen-receipt.png) ![віджет](docs/screen-widget.png)
+![головний екран](docs/screen-main.png) ![статистика](docs/screen-statistics.png) ![чек збігся із записом Apple Pay](docs/screen-receipt.png) ![віджет на домашньому екрані](docs/screen-widget.png)
 
 ## Стан
 
