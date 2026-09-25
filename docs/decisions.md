@@ -513,3 +513,23 @@ The widget gallery does not list a newly installed app's widgets until the simul
   Not in the table: the container-guard mutation (ignore saves from other containers) — it cannot be caught by a test.
 - **Full suite** on a quiet host, with the widget reboot setup: both targets built, SELFCHECK OK, 40 passed, 2 skipped, 0 failed.
 - Squash-merged to `main` as `5adfa95`. All stages 1–15 are in `main`; every stage branch and worktree is deleted.
+
+## 2026-09-25 — Official sources behind stages 9–15
+
+Documentation read before each decision (from the gate reports):
+- VisionKit: https://developer.apple.com/documentation/visionkit/datascannerviewcontroller/issupported, …/isavailable
+- Icon Composer: https://developer.apple.com/documentation/xcode/creating-your-app-icon-using-icon-composer
+- Fiscal QR format (DPS): https://kyiv.tax.gov.ua/media-ark/news-ark/620014.html
+- monobank personal API: https://api.monobank.ua/docs/
+- FinanceKit (rejected): https://developer.apple.com/financekit/
+- App Shortcuts: https://developer.apple.com/documentation/appintents/app-shortcuts, AppShortcutPhrase
+- Widgets: https://developer.apple.com/documentation/widgetkit/linking-to-specific-app-scenes-from-your-widget-or-live-activity, https://developer.apple.com/documentation/swiftui/view/widgeturl(_:)
+- Controls: https://developer.apple.com/documentation/swiftui/controlwidget, https://developer.apple.com/documentation/widgetkit/creating-controls-to-perform-actions-across-the-system
+- Background refresh: https://developer.apple.com/documentation/backgroundtasks/bgapprefreshtask
+- Keychain: https://developer.apple.com/documentation/security/ksecattraccessibleafterfirstunlockthisdeviceonly
+- Privacy manifest reasons: https://developer.apple.com/documentation/bundleresources/describing-use-of-required-reason-api, https://developer.apple.com/documentation/bundleresources/app-privacy-configuration/nsprivacyaccessedapitypes/nsprivacyaccessedapitypereasons
+- Capabilities (App Groups on a free team): https://developer.apple.com/help/account/reference/supported-capabilities-ios
+- SwiftData: ModelContext.didSave, ModelConfiguration.GroupContainer; SwiftUI: privacySensitive(_:), PasteButton, ButtonRole.confirm (iOS 26)
+- Wallet Transaction trigger: https://support.apple.com/guide/shortcuts/transaction-trigger-apd65c67538a/ios
+- HIG: widgets, controls, settings, entering-data, sf-symbols, accessibility, toolbars
+- CSV injection: https://owasp.org/www-community/attacks/CSV_Injection
