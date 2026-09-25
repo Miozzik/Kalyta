@@ -63,4 +63,3 @@ xcrun xcstringstool sync Kalyta/Localizable.xcstrings --stringsdata <кожен 
       при закритому застосунку з’являється в сумі віджета.
 
 **Дрібне (не блокує):**
-- [ ] Знак «+» у рядку доходу зібрано вручну (`Kalyta/ExpenseListRows.swift:63`) — взяти стратегію знаку Foundation.
