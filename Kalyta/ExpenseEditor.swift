@@ -30,6 +30,8 @@ struct ExpenseEditor: View {
     @State private var isCameraDenied = false
     /// Deletes the edited expense through the list's deferred deletion, so the undo banner appears.
     private let onDelete: ((Expense) -> Void)?
+    /// Whether the scanner opens as soon as the sheet appears.
+    private let startsScanning: Bool
 
     @Query(sort: \ExpenseCategory.sortOrder) private var categories: [ExpenseCategory]
     @State private var amount: Double?
@@ -47,10 +49,12 @@ struct ExpenseEditor: View {
     /// - Parameters:
     ///   - expense: The expense to edit, or `nil` to enter a new one.
     ///   - onDelete: Called with the edited expense when the person taps Delete.
-    init(expense: Expense? = nil, onDelete: ((Expense) -> Void)? = nil) {
+    ///   - startsScanning: Whether to open the receipt scanner at once, as a shortcut or widget asks.
+    init(expense: Expense? = nil, onDelete: ((Expense) -> Void)? = nil, startsScanning: Bool = false) {
         _expense = State(initialValue: expense)
         isNew = expense == nil
         self.onDelete = onDelete
+        self.startsScanning = startsScanning
         _amount = State(initialValue: expense?.amount)
         _category = State(initialValue: expense?.assignedCategory)
         _isIncome = State(initialValue: expense?.isIncome ?? false)
@@ -156,8 +160,12 @@ struct ExpenseEditor: View {
                 }
             }
             .onAppear {
-                isAmountFocused = expense == nil
                 if category == nil { category = pickableCategories.first }
+                if startsScanning && canScan {
+                    startScan()
+                } else {
+                    isAmountFocused = expense == nil
+                }
             }
             .fullScreenCover(isPresented: $isScanning) { scanner }
             .sheet(isPresented: $isCreatingCategory) {

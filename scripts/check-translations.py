@@ -13,14 +13,18 @@ import pathlib
 import sys
 
 APP = pathlib.Path(__file__).resolve().parent.parent / "Kalyta"
-# The interface strings, and the Info.plist ones such as the camera permission text.
-CATALOGS = [APP / "Localizable.xcstrings", APP / "InfoPlist.xcstrings"]
+# The interface strings, the Info.plist ones such as the camera permission text, and the Siri phrases.
+CATALOGS = [APP / "Localizable.xcstrings", APP / "InfoPlist.xcstrings", APP / "AppShortcuts.xcstrings"]
 
 
 def string_units(localization: dict) -> list[dict]:
     """Returns every string unit of a localization, including plural and device variants."""
     if "stringUnit" in localization:
         return [localization["stringUnit"]]
+    if "stringSet" in localization:
+        # App Shortcut phrases: several ways to say one phrase, and at least one is needed.
+        string_set = localization["stringSet"]
+        return [{"state": string_set.get("state"), "value": value} for value in string_set.get("values") or [""]]
     units = []
     for variants in localization.get("variations", {}).values():
         for variant in variants.values():

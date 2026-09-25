@@ -1084,6 +1084,16 @@
         }
       }
     },
+    "Opens Kalyta with the camera ready to scan a receipt's QR code.": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Відкриває Kalyta з камерою, готовою сканувати QR-код чека."
+          }
+        }
+      }
+    },
     "Other": {
       "localizations": {
         "uk": {
@@ -1120,6 +1130,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Місця"
+          }
+        }
+      }
+    },
+    "Quick receipt scan.": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Швидке сканування чека."
           }
         }
       }
@@ -1240,6 +1260,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Сканувати чек"
+          }
+        }
+      }
+    },
+    "Scan a receipt": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Відсканувати чек"
           }
         }
       }

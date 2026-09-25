@@ -1,0 +1,28 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "Scan a receipt in ${applicationName}": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringSet": {
+            "state": "translated",
+            "values": [
+              "Scan a receipt in ${applicationName}"
+            ]
+          }
+        },
+        "uk": {
+          "stringSet": {
+            "state": "translated",
+            "values": [
+              "Сканувати чек у ${applicationName}",
+              "Скануй чек у ${applicationName}"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

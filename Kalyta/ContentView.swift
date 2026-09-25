@@ -364,10 +364,7 @@ private struct SummaryCard: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(20)
-        .background(
-            LinearGradient(colors: [.teal, .indigo], startPoint: .topLeading, endPoint: .bottomTrailing),
-            in: .rect(cornerRadius: 24)
-        )
+        .background(.summaryGradient, in: .rect(cornerRadius: 24))
     }
 }
 

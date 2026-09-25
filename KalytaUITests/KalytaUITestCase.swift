@@ -99,4 +99,17 @@ class KalytaUITestCase: XCTestCase {
                 .completed, "The field shows \(field.value ?? "nothing") instead of \(expected)")
         }
     }
+
+    /// Returns the link a fiscal receipt's QR code holds, with the time printed in Kyiv time.
+    ///
+    /// - Parameters:
+    ///   - amount: The receipt total as printed, such as "432.90".
+    ///   - date: When the receipt was issued.
+    func receiptPayload(amount: String, at date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(identifier: "Europe/Kyiv")
+        formatter.dateFormat = "'date='yyyyMMdd'&time='HHmm"
+        return "https://cabinet.tax.gov.ua/cashregs/check?\(formatter.string(from: date))&sm=\(amount)&fn=4000123456"
+    }
 }

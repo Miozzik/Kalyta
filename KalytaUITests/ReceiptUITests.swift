@@ -105,17 +105,4 @@ final class ReceiptUITests: KalytaUITestCase {
         XCTAssertTrue(app.buttons["Entertainment"].isSelected, "The category picked before the scan was lost")
         XCTAssertFalse(app.buttons["Food"].isSelected, "The matched category is still selected")
     }
-
-    /// Returns the link a fiscal receipt's QR code holds, with the time printed in Kyiv time.
-    ///
-    /// - Parameters:
-    ///   - amount: The receipt total as printed, such as "432.90".
-    ///   - date: When the receipt was issued.
-    private func receiptPayload(amount: String, at date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.timeZone = TimeZone(identifier: "Europe/Kyiv")
-        formatter.dateFormat = "'date='yyyyMMdd'&time='HHmm"
-        return "https://cabinet.tax.gov.ua/cashregs/check?\(formatter.string(from: date))&sm=\(amount)&fn=4000123456"
-    }
 }
