@@ -492,7 +492,7 @@ The widget gallery does not list a newly installed app's widgets until the simul
 
 ## 2026-09-25 — Stage 14 gate B: GO on conditions
 
-- **Conditions:** (1) on a quiet host, both targets build, `--selfcheck` passes, and the full suite with the widget reboot setup is green; (2) the mutation table is recorded — done, below.
+- **Conditions:** (1) on a quiet host, both targets build, `--selfcheck` passes, and the full suite with the widget reboot setup is green — met; (2) the mutation table is recorded — done, below.
 - **Deviation, accepted:** the widget extension's `APP_GROUP_ID` is derived in `project.pbxproj` as `group.$(PRODUCT_BUNDLE_IDENTIFIER:base)`, not in `Config/Kalyta.xcconfig`: `:base` strips the extension's `.widgets` suffix, so both targets get the same group. The app keeps `group.$(PRODUCT_BUNDLE_IDENTIFIER)` in the xcconfig.
 - **Mutation table** (developer). Each mutation ran on a scratch copy built as `org.merzlov.kalyta.mutation`, and `--selfcheck` failed with the named assertion in `Kalyta/TodayCheck.swift` (current line numbers):
 
@@ -511,4 +511,5 @@ The widget gallery does not list a newly installed app's widgets until the simul
 
   The two (c) mutations ran when those assertions sat at :58 and :70; later asserts moved them down 8 lines, unchanged.
   Not in the table: the container-guard mutation (ignore saves from other containers) — it cannot be caught by a test.
-- **Full suite:** pending.
+- **Full suite** on a quiet host, with the widget reboot setup: both targets built, SELFCHECK OK, 40 passed, 2 skipped, 0 failed.
+- Squash-merged to `main` as `5adfa95`. All stages 1–15 are in `main`; every stage branch and worktree is deleted.
