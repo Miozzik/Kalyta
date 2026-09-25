@@ -432,3 +432,14 @@ Branch `stage-14-today-total` (`2254e0f`). Corrects the stage 14 gate A entry an
   - Export/Import: the document picker is slow at load 300–600.
 - Fixed in this stage: stage 8 follow-up B (`CategoryQuery.entities(for:)` returns spending categories only) and the stage 9 follow-up (`runUpgradeCheck` now expects a V4 build).
 - **Still manual, on the user's iPhone:** a real token; no jar top-ups in «Перекази» after the first sync; background refresh; reinstall removes the token; token revocation at api.monobank.ua.
+
+## 2026-09-25 — Amount field "1,000" flake: pre-existing, not a stage 15 regression
+
+- **Evidence (developer-ux):** interleaved A/B, 5 × 5 runs. Base `b035ca6` passed 4/5, stage 15 passed 3/5. Every failure happened at 1-minute load ≥ 287, every pass at ≤ 204.
+- **Cause:** a SwiftUI race in `TextField(value:format:)` regrouping digits while the field is focused. It exists before stage 15; stage 15 stays unchanged.
+- **Test-side fix:** `type()` compares digits only.
+- **App-side fix** (a `String` field with its own parsing): a possible future stage, only if the client wants no regrouping while typing.
+
+## 2026-09-25 — Widget gallery on a freshly erased simulator (tester; being confirmed)
+
+The widget gallery does not list a newly installed app's widgets until the simulator reboots. Gate B setup for widget stages: install, reboot the simulator, then run.
