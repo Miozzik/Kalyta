@@ -33,7 +33,7 @@
 Тобто весь застосунок — це база, кілька екранів, два App Intent (**Додати витрату**, **Сканувати чек**) і віджет.
 Решту робить система.
 
-![головний екран](docs/screen-main.png) ![статистика](docs/screen-statistics.png)
+![головний екран](docs/screen-main.png) ![статистика](docs/screen-statistics.png) ![скан чека](docs/screen-receipt.png) ![віджет](docs/screen-widget.png)
 
 ## Стан
 
