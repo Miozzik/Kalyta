@@ -423,3 +423,12 @@ Branch `stage-14-today-total` (`2254e0f`). Corrects the stage 14 gate A entry an
 - Squash-merged to `main` as `b035ca6`.
 - **Follow-ups (not blocking):** `runUpgradeCheck` still expects a pre-income build (`SelfCheck.swift:175–176`; stage 11 fixes it). "Save as New" keeps the matched entry's note and category, and a re-scan keeps them from the previous match.
 - **Still manual, on the user's iPhone:** camera allowed/denied, a real ATB receipt, a match with an Apple Pay entry.
+
+## 2026-09-25 — Stage 11 gate B: GO, merged
+
+- PM gate B: GO. Squash-merged to `main` as `df71b3c`.
+- Full suite under load: 28 of 33 passed. The tester analysed the 5 failures; none is a regression:
+  - `EditingUITests` is flaky on `main` too: the `PopoverDismissRegion` tap lands on the Health chip.
+  - Export/Import: the document picker is slow at load 300–600.
+- Fixed in this stage: stage 8 follow-up B (`CategoryQuery.entities(for:)` returns spending categories only) and the stage 9 follow-up (`runUpgradeCheck` now expects a V4 build).
+- **Still manual, on the user's iPhone:** a real token; no jar top-ups in «Перекази» after the first sync; background refresh; reinstall removes the token; token revocation at api.monobank.ua.
