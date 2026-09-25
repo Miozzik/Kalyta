@@ -65,7 +65,8 @@
 xcodebuild -scheme Kalyta -destination 'platform=iOS Simulator,name=iPhone 17' build
 ```
 
-Або відкрити `Kalyta.xcodeproj` у Xcode і натиснути Run. Мінімум iOS 17 (SwiftData). Схема `Kalyta` збирає
+Або відкрити `Kalyta.xcodeproj` у Xcode і натиснути Run. Потрібен Xcode 27 — на ньому проєкт зібрано й перевірено;
+щонайменше треба iOS 26 SDK (`ButtonRole.confirm`, іконка Icon Composer `.icon`). Застосунок працює з iOS 17 (SwiftData). Схема `Kalyta` збирає
 застосунок і вбудоване розширення віджетів `KalytaWidgets` (`<bundle id>.widgets`).
 
 Для запуску на своєму iPhone створи `Config/Local.xcconfig` (git його ігнорує):
@@ -94,13 +95,16 @@ DEVELOPMENT_TEAM = <твій Team ID>
 - Форматування — вбудований у Xcode `swift-format` з конфігом `.swift-format` (4 пробіли, 120 символів):
 
 ```sh
-swift format lint -r Kalyta      # перевірити
-swift format -i -r Kalyta        # виправити
+swift format lint -r Kalyta KalytaUITests KalytaWidgets     # перевірити
+swift format -i -r Kalyta KalytaUITests KalytaWidgets       # виправити
 ```
 
 ## Перевірка
 
 ```sh
+xcodebuild -scheme Kalyta -destination 'platform=iOS Simulator,name=iPhone 17' -derivedDataPath <dd> build
+xcrun simctl boot "iPhone 17"
+xcrun simctl install booted <dd>/Build/Products/Debug-iphonesimulator/Kalyta.app
 xcrun simctl launch --console-pty booted org.merzlov.kalyta --selfcheck -AppleLocale uk_UA   # → SELFCHECK OK
 xcrun simctl launch booted org.merzlov.kalyta --demo                      # наповнити прикладами
 ```
@@ -123,9 +127,12 @@ perl -e 'alarm 900; exec @ARGV' xcodebuild test -scheme Kalyta -destination 'pla
 - Тести віджетів: встановити застосунок → перезавантажити симулятор → запускати. На щойно стертому симуляторі
   галерея віджетів не бачить нового застосунку до перезавантаження.
 - Повний набір — один одночасно і на тихій машині: під навантаженням флейкають вибір документа та інші UI-тести.
-- Кожна нова логіка доводиться мутацією: навмисно зламати на копії → перевірка червона. Мутаційні копії
-  збирати з `PRODUCT_BUNDLE_IDENTIFIER=org.merzlov.kalyta.mutation` — падіння того самого bundle id на будь-якому
-  симуляторі валить чужий UI-прогін («Critical process Kalyta crashed»).
+- Кожна нова логіка доводиться мутацією: навмисно зламати на копії → перевірка червона. XCTest пов’язує падіння
+  із застосунком за bundle id і назвою процесу, тож падіння мутації на будь-якому симуляторі валить чужий UI-прогін
+  («Critical process Kalyta crashed»). Тому в **копії**: `PRODUCT_BUNDLE_IDENTIFIER = org.merzlov.kalyta.mutation`
+  у `Config/Kalyta.xcconfig` і `PRODUCT_NAME = KalytaMutation` замість обох `PRODUCT_NAME = "$(TARGET_NAME)";`
+  цілі застосунку в `project.pbxproj`. Ніколи не з командного рядка `xcodebuild`: там це перейменовує й
+  раннер UI-тестів, і кожен запуск падає.
 - Перед релізом, що змінює параметри дії **Додати витрату**: `scripts/check-shortcut-upgrade.sh` (збережений шорткат
   мусить пережити оновлення).
 
@@ -173,9 +180,9 @@ Numbers і Google Sheets відкривають файл одразу. **Excel:*
 це імпорт у порожній застосунок. Свої категорії відтворюються з тими самими ключами; якщо категорія
 вже є, її поточна назва, іконка й колір лишаються.
 
-Імпорт відкидає рядок, якщо дата раніша за 2000-01-01 або пізніша за завтра, сума не від 0 до 10 000 000,
-ключ категорії довший за 64 символи, назва — за 100, нотатка — за 1000, або вид запису не збігається
-з категорією (дохід у витратній категорії). Файл читається не більше 10 МБ.
+Імпорт приймає рядок, лише якщо дата — від 2000-01-01 до завтра, сума більша за 0 і не більша за 10 000 000,
+ключ категорії — до 64 символів, назва — до 100, нотатка — до 1000, а вид запису збігається з категорією
+(дохід не потрапить у витратну категорію). Решта рядків показується як непрочитані. Файл читається не більше 10 МБ.
 
 Приймається лише файл, який зробила сама Kalyta. Файл, перезбережений в Excel, має інші роздільники,
 десяткову кому й дати без поясу — його треба не «виправляти», а взяти оригінальний експорт.

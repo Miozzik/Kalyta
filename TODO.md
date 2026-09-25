@@ -25,7 +25,9 @@ https://developer.apple.com/help/app-store-connect/test-a-beta-version/testfligh
 2. Гілка `stage-N-…` в окремому worktree. `developer` пише код; паралельно `tester` пише тести й доводить мутаціями,
    що вони червоніють, `designer` робить ресурси й перевіряє екрани, `security` рев’юїть межі довіри.
    Кожен — на своєму симуляторі й зі своїм `-derivedDataPath`; спільний «iPhone 17» — лише для PM.
-   Мутаційні копії — з `PRODUCT_BUNDLE_IDENTIFIER=org.merzlov.kalyta.mutation`, інакше падіння валить чужий UI-прогін.
+   Мутаційна копія: `PRODUCT_BUNDLE_IDENTIFIER = org.merzlov.kalyta.mutation` у її `Config/Kalyta.xcconfig`
+   і `PRODUCT_NAME = KalytaMutation` у її `project.pbxproj` (ціль застосунку) — не в командному рядку `xcodebuild`.
+   Деталі — README, «Перевірка».
 3. Гейт B: PM сам проганяє все на тихій машині — повний набір UI-тестів лише один одночасно.
    PM інколи губить сповіщення після прогону — перевіряти xcresult і нагадувати.
 4. `docs` записує рішення, TODO, «Стан» README і нотатку у vault.
@@ -38,6 +40,7 @@ https://developer.apple.com/help/app-store-connect/test-a-beta-version/testfligh
 **Команди:**
 ```sh
 SP=<scratchpad>; xcodebuild -scheme Kalyta -destination 'platform=iOS Simulator,name=iPhone 17' -derivedDataPath $SP/dd build
+xcrun simctl boot "iPhone 17"; xcrun simctl install "iPhone 17" $SP/dd/Build/Products/Debug-iphonesimulator/Kalyta.app
 xcrun simctl launch --console-pty "iPhone 17" org.merzlov.kalyta --selfcheck -AppleLocale uk_UA   # → SELFCHECK OK
 perl -e 'alarm 900; exec @ARGV' xcodebuild test -scheme Kalyta -destination 'platform=iOS Simulator,name=iPhone 17' \
   -test-timeouts-enabled YES -default-test-execution-time-allowance 90          # 42 тести, 2 пропущено навмисно

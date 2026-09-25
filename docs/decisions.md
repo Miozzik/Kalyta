@@ -537,5 +537,5 @@ Documentation read before each decision (from the gate reports):
 ## 2026-09-25 — Stage 11 gate B STOP finding 1: `client-info` called twice (logged late)
 
 - **Bug:** `MonobankView.verify` called `client-info`, then the first sync called it again within 60 s → HTTP 429 → empty jar list → 31 days of jar top-ups imported as «Перекази».
-- **Fix** (`c5d6e75`, merged in `df71b3c`): `MonobankSync.connect` makes the only `client-info` call and passes the jar titles to the first run.
+- **Fix** (in `df71b3c`): `MonobankSync.connect` makes the only `client-info` call and passes the jar titles to the first run.
 - **Proof:** `runMonobankConnectCheck` (`Kalyta/MonobankCheck.swift`) asserts one `client-info` call and that the first sync imports no jar top-up.

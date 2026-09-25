@@ -32,7 +32,7 @@ You may use the internet: prefer the documented, standard solution over inventin
 3. Names follow the Swift API Design Guidelines.
 4. `swift format lint -r Kalyta` is clean; files stay under 500 lines.
 5. Every new piece of non-trivial logic gets an assertion in `runSelfCheck()`
-   (`Kalyta/KalytaApp.swift`), and the change must show the assertion FAILS when
+   (`Kalyta/SelfCheck.swift`), and the change must show the assertion FAILS when
    the logic is deliberately broken (mutation proof).
 6. Every string is translated to Ukrainian: `scripts/check-translations.py` passes.
 7. No new third-party dependencies without a proven need.
