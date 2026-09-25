@@ -62,6 +62,8 @@ func runSelfCheck() {
     runStatisticsCheck()
     runSubscriptionCheck()
     runReceiptCheck()
+    runQuickAddCheck()
+    runMonobankCheck()
 
     // The Shortcuts action: an empty or unknown category must record into "Other", never fail.
     assert(Store.category(forKey: nil, in: context).key == "other", "An empty category did not fall back to Other")
@@ -171,14 +173,15 @@ func runUpgradeCheck() {
     let context = Store.container.mainContext
     try! Store.ensureCategories(in: context)
     let stored = try! context.fetch(FetchDescriptor<Expense>())
-    // Builds before income seeded no income sample, so only the spending samples are expected.
-    let expected = demoSamples.filter { $0.category != .income }
+    // The previous release (V4) seeds income too; no entry came from a bank before V5.
+    let expected = demoSamples
     assert(stored.count == expected.count, "Upgrade changed the number of expenses: \(stored.count)")
-    assert(stored.allSatisfy { !$0.isIncome }, "Upgrade turned existing expenses into income")
+    assert(stored.allSatisfy { $0.bankID == nil }, "Upgrade gave existing entries a bank id")
     for sample in expected {
         let matches = stored.filter { $0.note == sample.note }
         assert(matches.count == 1, "Sample \(sample.note) found \(matches.count) times")
         assert(matches[0].amount == sample.amount, "Sample \(sample.note) changed amount: \(matches[0].amount)")
+        assert(matches[0].isIncome == (sample.category == .income), "Sample \(sample.note) changed kind")
         assert(
             matches[0].assignedCategory?.key == sample.category.rawValue,
             "Sample \(sample.note) is in \(matches[0].assignedCategory?.key ?? "nil"), expected \(sample.category.rawValue)"
@@ -262,6 +265,15 @@ func runImportCheck() {
     // Amounts are capped: two rows of 1e308 would sum to infinity, and one traps the duplicate key.
     let huge = csv + "2026-09-23T12:18:00+03:00,10000000.01,UAH,food,Їжа,,fork.knife,orange\r\n"
     assert(plan(huge, "Huge amount").invalidLines == [5], "An amount above the maximum was accepted")
+
+    // Formula injection: text a spreadsheet would run gets a leading ' on export, removed on import.
+    let formulas = ["=1+1", "+380", "-5", "@SUM(A1)", "\tx", "\nx", "＝1", "'=x", "'90s"].map {
+        ExpenseRecord(date: tricky.date, amount: 1, categoryKey: "food", categoryName: $0, note: $0)
+    }
+    let formulaCSV = ExpenseCSV.document(for: formulas, timeZone: kyiv)
+    assert(formulaCSV.contains(",'=1+1,'=1+1,") && !formulaCSV.contains(",=1+1"), "A formula was exported as is")
+    assert(plan(formulaCSV, "Formulas").toInsert == formulas, "Formula-like text did not survive a round trip")
+    assert(formulas.allSatisfy { ExpenseCSV.neutralized($0.note).first == "'" }, "A formula start was not neutralized")
 
     // Income survives a round trip; a file from before income existed imports as spending.
     let salary = ExpenseRecord(

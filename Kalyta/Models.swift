@@ -8,7 +8,8 @@ import SwiftUI
 /// must never change. Each built-in also exists as an ``ExpenseCategory`` record
 /// whose key is the raw value.
 enum Category: String, Codable, CaseIterable, Identifiable {
-    case food, transport, home, health, fun, other, income
+    // New built-ins go at the end: a store's sort order for a built-in is its index here.
+    case food, transport, home, health, fun, other, income, transfers
 
     var id: String { rawValue }
 
@@ -22,6 +23,7 @@ enum Category: String, Codable, CaseIterable, Identifiable {
         case .fun: String(localized: "Entertainment")
         case .other: String(localized: "Other")
         case .income: String(localized: "Income")
+        case .transfers: String(localized: "Transfers")
         }
     }
 
@@ -35,6 +37,7 @@ enum Category: String, Codable, CaseIterable, Identifiable {
         case .fun: "gamecontroller.fill"
         case .other: "ellipsis.circle.fill"
         case .income: "banknote.fill"
+        case .transfers: "arrow.left.arrow.right"
         }
     }
 
@@ -48,6 +51,7 @@ enum Category: String, Codable, CaseIterable, Identifiable {
         case .fun: .green
         case .other: .gray
         case .income: .green
+        case .transfers: .teal
         }
     }
 }
@@ -147,10 +151,10 @@ enum Store {
     /// Creates a container on the current schema, migrating older stores.
     ///
     /// - Parameter url: The store file, or `nil` for the app's default location.
-    /// - Returns: A container whose stores use ``SchemaV4``.
+    /// - Returns: A container whose stores use ``SchemaV5``.
     /// - Throws: An error if the store cannot be opened or migrated.
     static func makeContainer(url: URL? = nil) throws -> ModelContainer {
-        let schema = Schema(versionedSchema: SchemaV4.self)
+        let schema = Schema(versionedSchema: SchemaV5.self)
         let configuration =
             url.map { ModelConfiguration(schema: schema, url: $0) } ?? ModelConfiguration(schema: schema)
         return try ModelContainer(for: schema, migrationPlan: KalytaMigrationPlan.self, configurations: configuration)
@@ -195,6 +199,38 @@ enum Store {
         key.flatMap { category(withKey: $0, in: context) } ?? category(withKey: Category.other.rawValue, in: context)!
     }
 
+    /// How far apart two records of one purchase may be, such as a card payment and its receipt.
+    static let purchaseMatchWindow: TimeInterval = 30 * 60
+
+    /// Returns the recorded expense that is most likely the same purchase.
+    ///
+    /// The Wallet "Transaction" automation records a card payment the moment it happens, so
+    /// the same amount within ``purchaseMatchWindow`` is the same purchase; the closest one wins.
+    ///
+    /// - Parameters:
+    ///   - amount: The purchase amount in hryvnias.
+    ///   - date: When the purchase happened.
+    ///   - unlinkedOnly: Whether to skip entries a bank sync already linked to a transaction,
+    ///     so two bank payments never merge into one entry.
+    ///   - context: The context to search.
+    /// - Returns: The matching expense, or `nil` if this is a new purchase.
+    static func matchingExpense(
+        amount: Double, date: Date, unlinkedOnly: Bool = false, in context: ModelContext
+    ) -> Expense? {
+        let start = date.addingTimeInterval(-purchaseMatchWindow)
+        let end = date.addingTimeInterval(purchaseMatchWindow)
+        // Amounts are doubles, so they are compared within half a kopiyka, never with `==`.
+        let low = amount - 0.005
+        let high = amount + 0.005
+        let candidates = try? context.fetch(
+            FetchDescriptor<Expense>(
+                predicate: #Predicate {
+                    !$0.isIncome && $0.date >= start && $0.date <= end && $0.amount > low && $0.amount < high
+                }))
+        return candidates?.filter { !unlinkedOnly || $0.bankID == nil }
+            .min { abs($0.date.timeIntervalSince(date)) < abs($1.date.timeIntervalSince(date)) }
+    }
+
     /// Returns the category record with a key, such as "other".
     ///
     /// - Parameters:
@@ -234,3 +270,8 @@ let maximumAmount: Double = 10_000_000
 func isValidAmount(_ amount: Double) -> Bool {
     amount.isFinite && amount > 0 && amount <= maximumAmount
 }
+
+/// The longest note an automatic source may store, in characters.
+///
+/// A note is a merchant name, but an automation or a bank can pass any text.
+let maximumNoteLength = 1_000

@@ -84,9 +84,9 @@ enum ExpenseCSV {
                 record.date.formatted(dateFormat),
                 record.amount.formatted(amountFormat),
                 hryvniaCurrencyCode,
-                record.categoryKey,
-                record.categoryName,
-                record.note,
+                neutralized(record.categoryKey),
+                neutralized(record.categoryName),
+                neutralized(record.note),
                 record.categorySymbol,
                 record.categoryColorName,
                 record.isIncome ? incomeKind : expenseKind,
@@ -95,6 +95,31 @@ enum ExpenseCSV {
             .joined(separator: ",")
         }
         return ([header] + rows).map { $0 + recordTerminator }.joined()
+    }
+
+    /// The first characters that make a spreadsheet read a cell as a formula (CSV injection).
+    static let formulaStarts: Set<Character> = ["=", "+", "-", "@", "\t", "\r", "\n", "\r\n", "＝", "＋", "－", "＠"]
+
+    /// Returns typed text that a spreadsheet opens as text, never as a formula.
+    ///
+    /// A leading formula character gets a `'` in front (OWASP's advice for CSV injection).
+    /// A leading `'` gets one too, so ``restored(_:)`` removes exactly the one added here.
+    ///
+    /// - Parameter value: A note, category name or key.
+    /// - Returns: The value, prefixed with `'` if needed.
+    static func neutralized(_ value: String) -> String {
+        guard let first = value.first, formulaStarts.contains(first) || first == "'" else { return value }
+        return "'" + value
+    }
+
+    /// Undoes ``neutralized(_:)`` when importing.
+    ///
+    /// - Parameter value: A field as read from the file.
+    /// - Returns: The value without the `'` that export added.
+    static func restored(_ value: String) -> String {
+        guard value.first == "'", let second = value.dropFirst().first, formulaStarts.contains(second) || second == "'"
+        else { return value }
+        return String(value.dropFirst())
     }
 
     /// Returns a value as a CSV field, quoted when RFC 4180 requires it.

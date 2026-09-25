@@ -183,7 +183,7 @@ enum ExpenseImport {
             guard
                 let dateText = value("date"), let date = try? Date(dateText, strategy: .iso8601),
                 let amountText = value("amount"), let amount = Double(amountText), isValidAmount(amount),
-                let key = value("category"), !key.isEmpty
+                let key = value("category").map(ExpenseCSV.restored), !key.isEmpty
             else {
                 if value("date").map({ $0.contains(".") && !$0.contains("T") }) == true { sawSpreadsheetDate = true }
                 invalidLines.append(row.line)
@@ -196,8 +196,9 @@ enum ExpenseImport {
                 continue
             }
             let record = ExpenseRecord(
-                date: date, amount: amount, categoryKey: key, categoryName: value("category_name") ?? key,
-                note: value("note") ?? "",
+                date: date, amount: amount, categoryKey: key,
+                categoryName: value("category_name").map(ExpenseCSV.restored) ?? key,
+                note: value("note").map(ExpenseCSV.restored) ?? "",
                 categorySymbol: value("category_symbol") ?? Category.other.icon,
                 categoryColorName: value("category_color") ?? CategoryColor.gray.rawValue,
                 isIncome: kind == ExpenseCSV.incomeKind)

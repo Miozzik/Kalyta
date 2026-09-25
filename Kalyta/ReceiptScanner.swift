@@ -55,28 +55,12 @@ struct FiscalReceipt: Equatable {
         self.date = min(date, now)
     }
 
-    /// How far apart a receipt and an already recorded expense may be to count as one purchase.
-    static let matchWindow: TimeInterval = 30 * 60
-
     /// Returns the recorded expense this receipt most likely belongs to.
-    ///
-    /// The Wallet "Transaction" automation records a card payment the moment it happens, so
-    /// the same amount within ``matchWindow`` is the same purchase; the closest one wins.
     ///
     /// - Parameter context: The context to search.
     /// - Returns: The matching expense, or `nil` if the receipt is a new purchase.
     func matchingExpense(in context: ModelContext) -> Expense? {
-        let start = date.addingTimeInterval(-Self.matchWindow)
-        let end = date.addingTimeInterval(Self.matchWindow)
-        // Amounts are doubles, so they are compared within half a kopiyka, never with `==`.
-        let low = amount - 0.005
-        let high = amount + 0.005
-        let candidates = try? context.fetch(
-            FetchDescriptor<Expense>(
-                predicate: #Predicate {
-                    !$0.isIncome && $0.date >= start && $0.date <= end && $0.amount > low && $0.amount < high
-                }))
-        return candidates?.min { abs($0.date.timeIntervalSince(date)) < abs($1.date.timeIntervalSince(date)) }
+        Store.matchingExpense(amount: amount, date: date, in: context)
     }
 }
 

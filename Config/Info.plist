@@ -5,5 +5,14 @@
 	<!-- Merged with the generated Info.plist. The value comes from Config/Kalyta.xcconfig. -->
 	<key>KalytaIconBaseURL</key>
 	<string>$(ICON_BASE_URL)</string>
+	<!-- The opportunistic monobank refresh; the identifier matches MonobankSync.refreshTaskID. -->
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>$(PRODUCT_BUNDLE_IDENTIFIER).monobank</string>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+	</array>
 </dict>
 </plist>

@@ -41,10 +41,13 @@ struct KalytaApp: App {
                         await SubscriptionReminders.reschedule(from: Store.container.mainContext)
                         // An icon lookup that got no answer (offline) is retried on every return.
                         await SubscriptionIcons.retryUnsettled(in: Store.container.mainContext)
+                        MonobankSync.removeOrphanedToken()
+                        await MonobankSync.runIfLinked()
                     }
                 }
             }
         }
         .modelContainer(Store.container)
+        .backgroundTask(.appRefresh(MonobankSync.refreshTaskID)) { await MonobankSync.runIfLinked() }
     }
 }

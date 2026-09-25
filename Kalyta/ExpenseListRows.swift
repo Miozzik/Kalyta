@@ -52,9 +52,17 @@ struct ExpenseRow: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(expense.note.isEmpty ? expense.categoryTitle : expense.note)
-                Text(expense.date, format: .dateTime.hour().minute())
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                HStack(spacing: 4) {
+                    Text(expense.date, format: .dateTime.hour().minute())
+                    if expense.bankID != nil {
+                        Image(systemName: "building.columns")
+                            .font(.caption2)
+                            .imageScale(.small)
+                            .accessibilityLabel("from monobank")
+                    }
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
             }
 
             Spacer()

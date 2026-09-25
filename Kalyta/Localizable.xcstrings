@@ -199,12 +199,6 @@
         "uk": {
           "variations": {
             "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Не вдалося прочитати %1$lld рядок: %2$@%3$@."
-                }
-              },
               "few": {
                 "stringUnit": {
                   "state": "translated",
@@ -215,6 +209,12 @@
                 "stringUnit": {
                   "state": "translated",
                   "value": "Не вдалося прочитати %1$lld рядків: %2$@%3$@."
+                }
+              },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Не вдалося прочитати %1$lld рядок: %2$@%3$@."
                 }
               },
               "other": {
@@ -403,6 +403,16 @@
         }
       }
     },
+    "Bank": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Банк"
+          }
+        }
+      }
+    },
     "Biggest Expenses": {
       "localizations": {
         "uk": {
@@ -463,12 +473,42 @@
         }
       }
     },
+    "Checking…": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перевіряю…"
+          }
+        }
+      }
+    },
     "Colour": {
       "localizations": {
         "uk": {
           "stringUnit": {
             "state": "translated",
             "value": "Колір"
+          }
+        }
+      }
+    },
+    "Connected": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Підключено"
+          }
+        }
+      }
+    },
+    "Couldn't update. Will try again later.": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не вдалося оновити. Спробую пізніше."
           }
         }
       }
@@ -519,6 +559,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Видалити підписку"
+          }
+        }
+      }
+    },
+    "Disconnect": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Відключити"
+          }
+        }
+      }
+    },
+    "Disconnect monobank?": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Відключити monobank?"
           }
         }
       }
@@ -788,6 +848,16 @@
         }
       }
     },
+    "Manage tokens at api.monobank.ua": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Керувати токенами на api.monobank.ua"
+          }
+        }
+      }
+    },
     "Matches the entry recorded at %@": {
       "localizations": {
         "uk": {
@@ -854,6 +924,16 @@
         }
       }
     },
+    "Needs attention": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Потребує уваги"
+          }
+        }
+      }
+    },
     "New": {
       "localizations": {
         "uk": {
@@ -890,6 +970,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Нова підписка"
+          }
+        }
+      }
+    },
+    "No connection. Will update when online.": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Немає зв’язку. Оновлю, щойно з’явиться."
           }
         }
       }
@@ -964,12 +1054,32 @@
         }
       }
     },
+    "Off": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вимкнено"
+          }
+        }
+      }
+    },
     "Open Settings": {
       "localizations": {
         "uk": {
           "stringUnit": {
             "state": "translated",
             "value": "Відкрити Параметри"
+          }
+        }
+      }
+    },
+    "Open api.monobank.ua": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Відкрити api.monobank.ua"
           }
         }
       }
@@ -1054,12 +1164,32 @@
         }
       }
     },
+    "Recorded expenses stay. To revoke the token itself, open api.monobank.ua.": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Записані витрати лишаться. Щоб скасувати сам токен, відкрий api.monobank.ua."
+          }
+        }
+      }
+    },
     "Records an expense in Kalyta without opening the app.": {
       "localizations": {
         "uk": {
           "stringUnit": {
             "state": "translated",
             "value": "Записує витрату в Kalyta без відкриття застосунку."
+          }
+        }
+      }
+    },
+    "Records your monobank card payments by itself. The token only reads; it can't move money.": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сама записує платежі з картки monobank. Токен дає лише читання — переказати гроші з ним неможливо."
           }
         }
       }
@@ -1195,6 +1325,26 @@
         }
       }
     },
+    "Tap the QR code, confirm in monobank, copy the token and come back.": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Натисни на QR-код, підтверди в monobank, скопіюй токен і повернись."
+          }
+        }
+      }
+    },
+    "The amount is too large.": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сума завелика."
+          }
+        }
+      }
+    },
     "The amount must be greater than zero.": {
       "localizations": {
         "uk": {
@@ -1235,6 +1385,16 @@
         }
       }
     },
+    "This doesn't look like a monobank token.": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Це не схоже на токен monobank."
+          }
+        }
+      }
+    },
     "This file was re-saved by Excel. Import the original Kalyta export.": {
       "localizations": {
         "uk": {
@@ -1265,12 +1425,32 @@
         }
       }
     },
+    "Token": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Токен"
+          }
+        }
+      }
+    },
     "Tomorrow: %@": {
       "localizations": {
         "uk": {
           "stringUnit": {
             "state": "translated",
             "value": "Завтра: %@"
+          }
+        }
+      }
+    },
+    "Transfers": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перекази"
           }
         }
       }
@@ -1291,6 +1471,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Відмінити"
+          }
+        }
+      }
+    },
+    "Updated %@": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Оновлено %@"
           }
         }
       }
@@ -1325,6 +1515,16 @@
         }
       }
     },
+    "Your main monobank account isn't in hryvnias, so Kalyta can't record from it.": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Основний рахунок monobank не в гривнях, тож Kalyta не може з нього записувати."
+          }
+        }
+      }
+    },
     "earned %@ · left %@": {
       "localizations": {
         "en": {
@@ -1337,6 +1537,46 @@
           "stringUnit": {
             "state": "translated",
             "value": "зароблено %1$@ · лишилось %2$@"
+          }
+        }
+      }
+    },
+    "from monobank": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "з monobank"
+          }
+        }
+      }
+    },
+    "monobank asked to wait. Retrying in a minute.": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "monobank просить зачекати. Спробую ще раз за хвилину."
+          }
+        }
+      }
+    },
+    "monobank didn't accept this token. Copy it again.": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "monobank не прийняв цей токен. Скопіюй його ще раз."
+          }
+        }
+      }
+    },
+    "monobank no longer accepts the token. Disconnect and connect again.": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "monobank більше не приймає токен. Відключи й підключи знову."
           }
         }
       }

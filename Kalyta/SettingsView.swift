@@ -20,6 +20,9 @@ struct SettingsView: View {
                 } label: {
                     Label("Categories", systemImage: "square.grid.2x2")
                 }
+                Section("Bank") {
+                    MonobankSettingsRow()
+                }
                 Section {
                     Button {
                         isPickingFile = true
