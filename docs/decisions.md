@@ -443,3 +443,16 @@ Branch `stage-14-today-total` (`2254e0f`). Corrects the stage 14 gate A entry an
 ## 2026-09-25 — Widget gallery on a freshly erased simulator (tester; being confirmed)
 
 The widget gallery does not list a newly installed app's widgets until the simulator reboots. Gate B setup for widget stages: install, reboot the simulator, then run.
+
+## 2026-09-25 — Stage 12: security final re-review and widget spec
+
+**Security final re-review: OK.**
+- The scan link must match the URL exactly.
+- No `CFBundleURLTypes`: the app registers no URL scheme.
+- The widget extension has no entitlements.
+- A scan request that arrives while a sheet is open is dropped.
+- Info: stage 14 needs an extension privacy manifest with reason `1C8F.1`.
+
+**Designer's widget spec:** symbol `qrcode.viewfinder`, label «Сканувати чек», teal. The Home Screen small widget sits on `SummaryGradient`. No logo. Widget description: «Швидке сканування чека.»
+
+**Confirmed (tester, `w3base`):** the widget gallery on a freshly erased simulator lists a new app's widgets only after a reboot. This settles the earlier "being confirmed" entry.
