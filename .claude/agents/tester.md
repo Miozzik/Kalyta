@@ -27,7 +27,8 @@ Read `README.md` («Стиль коду»), `TODO.md` and the latest gate entrie
   `curl -s https://developer.apple.com/tutorials/data/documentation/<path>.json`).
 
 ## Simulator traps
-- Mutation copies set `PRODUCT_BUNDLE_IDENTIFIER = org.merzlov.kalyta.mutation` in the COPY's `Config/Kalyta.xcconfig`
+- Mutation copies set `PRODUCT_BUNDLE_IDENTIFIER = org.merzlov.kalyta.mutation` AND `PRODUCT_NAME = KalytaMutation`
+  in the COPY's `Config/Kalyta.xcconfig` (XCTest matches crashes by process name too)
   (not on the xcodebuild command line: that also overrides the UI-test runner's id and every launch crashes).
   Reason: XCTest fails any UI run when a crash report for the app's bundle id appears from any simulator on the host.
 - Only one full UI suite runs at a time on this Mac (ask the team lead for the slot); shut your simulator down when idle.
