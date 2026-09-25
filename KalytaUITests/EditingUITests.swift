@@ -32,8 +32,10 @@ final class EditingUITests: KalytaUITestCase {
 
         row(sampleNote).tap()
         XCTAssertTrue(app.navigationBars["Edit Expense"].waitForExistence(timeout: 3))
-        app.buttons["Food"].tap()
         pickDayInPreviousMonth(lastDay.formatted(Date.FormatStyle(locale: testLocale).month(.wide).day()))
+        // Picked after the date, so no tap that closes the calendar can land on the grid and change it.
+        app.buttons["Food"].tap()
+        XCTAssertTrue(app.buttons["Food"].isSelected, "Food is not selected before Save")
         app.buttons["Save"].tap()
 
         XCTAssertEqual(
@@ -111,7 +113,9 @@ final class EditingUITests: KalytaUITestCase {
         let dayButton = app.buttons.containing(NSPredicate(format: "label CONTAINS %@", day)).firstMatch
         XCTAssertTrue(dayButton.waitForExistence(timeout: 3), "No button for \(day)")
         dayButton.tap()
-        app.buttons["PopoverDismissRegion"].firstMatch.tap()
+        // The title does nothing when tapped; a tap on "PopoverDismissRegion" could reach a category below.
+        app.navigationBars["Edit Expense"].staticTexts["Edit Expense"].tap()
+        XCTAssertTrue(previousMonth.waitForNonExistence(timeout: 3), "The calendar did not close")
     }
 
     /// The locale the tests run the app in, so formatted dates and amounts are predictable.

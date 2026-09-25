@@ -9,7 +9,8 @@ import SwiftUI
 /// - `--measure-import` times planning and inserting 10,000 imported rows, then exits.
 /// - `--check-upgrade` verifies that sample data written by an older release survived
 ///   the upgrade to this one, then exits.
-/// - `-scanPayload <text>` (debug builds) makes Scan Receipt read `<text>` instead of the camera.
+/// - `-scanPayload <text>` (debug builds) makes Scan Receipt read `<text>` instead of the camera;
+///   `"A|B"` gives A on the first tap, B on the second, and so on.
 @main
 struct KalytaApp: App {
     @Environment(\.scenePhase) private var scenePhase

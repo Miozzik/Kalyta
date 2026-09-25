@@ -48,6 +48,64 @@ final class ReceiptUITests: KalytaUITestCase {
         XCTAssertFalse(app.staticTexts["receiptMatch"].exists, "A receipt matched although no expense has its amount")
     }
 
+    /// "Save as New" drops the match and puts back the note and category typed before the scan.
+    func testSaveAsNewRestoresFieldsBeforeMatch() {
+        let receiptTime = Date.now.addingTimeInterval(-5 * 60)
+        startEntryMatchingSeededExpense(payload: receiptPayload(amount: "432.90", at: receiptTime))
+
+        app.buttons["Save as New"].tap()
+        verifyFieldsBeforeMatch()
+    }
+
+    /// Scanning a receipt that matches nothing after one that matched puts back the fields from before the match.
+    func testRescanWithoutMatchRestoresFieldsBeforeMatch() {
+        let receiptTime = Date.now.addingTimeInterval(-5 * 60)
+        let matching = receiptPayload(amount: "432.90", at: receiptTime)
+        let unmatched = receiptPayload(amount: "1.00", at: receiptTime)
+        startEntryMatchingSeededExpense(payload: matching + "|" + unmatched)
+
+        app.buttons["Scan Receipt"].tap()
+        verifyFieldsBeforeMatch()
+    }
+
+    /// Records 432.90 ₴ "АТБ" in Food, then starts a new entry "Кава" in Entertainment
+    /// and scans a receipt that matches the recorded one.
+    ///
+    /// - Parameter payload: The `-scanPayload` value; its first part must match the recorded expense.
+    private func startEntryMatchingSeededExpense(payload: String) {
+        app.buttons["Add"].tap()
+        let amount = app.textFields["amountField"]
+        XCTAssertTrue(amount.waitForExistence(timeout: 3))
+        type("432.90", into: amount)
+        app.buttons["Food"].tap()
+        let seededNote = app.textFields["Note"]
+        seededNote.tap()
+        type("АТБ", into: seededNote)
+        app.buttons["Save"].tap()
+
+        relaunch(with: ["-scanPayload", payload])
+        app.buttons["Add"].tap()
+        let note = app.textFields["Note"]
+        XCTAssertTrue(note.waitForExistence(timeout: 3))
+        note.tap()
+        type("Кава", into: note)
+        app.buttons["Entertainment"].tap()
+        app.buttons["Scan Receipt"].tap()
+
+        XCTAssertTrue(app.staticTexts["receiptMatch"].waitForExistence(timeout: 3), "The receipt did not match АТБ")
+        XCTAssertEqual(note.value as? String, "АТБ", "The match did not bring the recorded note")
+        XCTAssertTrue(app.buttons["Food"].isSelected, "The match did not bring the recorded category")
+    }
+
+    /// Checks that the entry is back to "Кава" in Entertainment, with no match shown.
+    private func verifyFieldsBeforeMatch() {
+        XCTAssertTrue(
+            app.staticTexts["receiptMatch"].waitForNonExistence(timeout: 3), "The match is still shown")
+        XCTAssertEqual(app.textFields["Note"].value as? String, "Кава", "The note typed before the scan was lost")
+        XCTAssertTrue(app.buttons["Entertainment"].isSelected, "The category picked before the scan was lost")
+        XCTAssertFalse(app.buttons["Food"].isSelected, "The matched category is still selected")
+    }
+
     /// Returns the link a fiscal receipt's QR code holds, with the time printed in Kyiv time.
     ///
     /// - Parameters:

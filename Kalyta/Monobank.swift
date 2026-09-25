@@ -52,7 +52,7 @@ enum Monobank {
     /// - Parameter url: Where the redirect leads.
     /// - Returns: `true` if the redirect stays on ``baseURL``'s host.
     static func allowsRedirect(to url: URL?) -> Bool {
-        url?.scheme == "https" && url?.host == baseURL.host
+        SameHostRedirects.allows(url, sameHostAs: baseURL)
     }
 
     /// Decodes and checks one statement page, refusing the whole page if any item is off.
@@ -202,7 +202,7 @@ protocol MonobankTransport: Sendable {
 /// The real transport: an ephemeral session, so no statement is ever cached on disk.
 struct MonobankHTTP: MonobankTransport {
     private static let session = URLSession(
-        configuration: .ephemeral, delegate: RedirectGuard(), delegateQueue: nil)
+        configuration: .ephemeral, delegate: SameHostRedirects(to: Monobank.baseURL), delegateQueue: nil)
 
     func get(_ path: String, token: String) async throws -> (status: Int, body: Data) {
         var request = URLRequest(url: Monobank.baseURL.appending(path: path))
@@ -225,14 +225,32 @@ struct MonobankHTTP: MonobankTransport {
         }
     }
 
-    /// Refuses redirects that leave the API host.
-    private final class RedirectGuard: NSObject, URLSessionTaskDelegate {
-        func urlSession(
-            _ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse,
-            newRequest request: URLRequest
-        ) async -> URLRequest? {
-            Monobank.allowsRedirect(to: request.url) ? request : nil
-        }
+}
+
+/// Refuses redirects that leave one host or HTTPS; shared by the app's network sessions.
+final class SameHostRedirects: NSObject, URLSessionTaskDelegate {
+    private let base: URL
+
+    /// Creates a guard for the host of `base`.
+    ///
+    /// - Parameter base: A URL on the only host redirects may lead to.
+    init(to base: URL) { self.base = base }
+
+    /// Returns whether a redirect stays on `base`'s host over HTTPS.
+    ///
+    /// - Parameters:
+    ///   - url: Where the redirect leads.
+    ///   - base: A URL on the allowed host.
+    /// - Returns: `true` if the redirect may be followed.
+    static func allows(_ url: URL?, sameHostAs base: URL) -> Bool {
+        url?.scheme == "https" && url?.host != nil && url?.host == base.host
+    }
+
+    func urlSession(
+        _ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse,
+        newRequest request: URLRequest
+    ) async -> URLRequest? {
+        Self.allows(request.url, sameHostAs: base) ? request : nil
     }
 }
 

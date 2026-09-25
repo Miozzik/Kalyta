@@ -70,12 +70,15 @@ struct SettingsView: View {
         let isScoped = url.startAccessingSecurityScopedResource()
         defer { if isScoped { url.stopAccessingSecurityScopedResource() } }
         do {
-            let size = try url.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0
-            guard size <= ExpenseImport.maximumFileSize else { throw ImportError.tooLarge }
-            let text = try String(contentsOf: url, encoding: .utf8)
+            let text = try ExpenseImport.readText(from: url)
             let existing = try context.fetch(FetchDescriptor<Expense>()).map(ExpenseRecord.init)
+            let kinds = Dictionary(
+                try context.fetch(FetchDescriptor<ExpenseCategory>()).map { ($0.key, $0.isIncome) },
+                uniquingKeysWith: { first, _ in first })
             // Parsing is pure and can take a while on a large file, so it runs off the main actor.
-            pendingImport = try await Task.detached { try ExpenseImport.plan(csv: text, existing: existing) }.value
+            pendingImport = try await Task.detached {
+                try ExpenseImport.plan(csv: text, existing: existing, categoryKinds: kinds)
+            }.value
         } catch {
             importMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
         }

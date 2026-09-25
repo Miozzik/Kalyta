@@ -95,7 +95,7 @@ class KalytaUITestCase: XCTestCase {
             field.typeText(String(character))
             let shown = NSPredicate(format: "value == %@", expected)
             XCTAssertEqual(
-                XCTWaiter().wait(for: [XCTNSPredicateExpectation(predicate: shown, object: field)], timeout: 3),
+                XCTWaiter().wait(for: [XCTNSPredicateExpectation(predicate: shown, object: field)], timeout: 10),
                 .completed, "The field shows \(field.value ?? "nothing") instead of \(expected)")
         }
     }

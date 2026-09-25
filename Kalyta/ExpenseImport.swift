@@ -123,6 +123,32 @@ enum ExpenseImport {
     ///
     /// About 100 bytes per row, so this allows roughly 100,000 expenses: decades of use.
     static let maximumFileSize = 10_000_000
+    /// The earliest date a row may have; anything older is a broken or crafted file.
+    static let earliestDate = Date(timeIntervalSince1970: 946_684_800)  // 2000-01-01T00:00:00Z
+    /// The longest category key a row may have; built-in keys and UUIDs are far shorter.
+    static let maximumKeyLength = 64
+    /// The longest category name a row may have.
+    static let maximumNameLength = 100
+
+    /// Reads a picked file as UTF-8 text, never more than `limit` bytes.
+    ///
+    /// Reads through a `FileHandle` instead of trusting the file size, which a file
+    /// provider may not report.
+    ///
+    /// - Parameters:
+    ///   - url: The file to read.
+    ///   - limit: The most bytes accepted.
+    /// - Returns: The file's text.
+    /// - Throws: ``ImportError/tooLarge`` past the limit, ``ImportError/notKalytaExport`` if the
+    ///   bytes are not UTF-8, or the error of opening or reading the file.
+    static func readText(from url: URL, limit: Int = maximumFileSize) throws -> String {
+        let handle = try FileHandle(forReadingFrom: url)
+        defer { try? handle.close() }
+        let data = try handle.read(upToCount: limit + 1) ?? Data()
+        guard data.count <= limit else { throw ImportError.tooLarge }
+        guard let text = String(data: data, encoding: .utf8) else { throw ImportError.notKalytaExport }
+        return text
+    }
 
     /// Identifies an expense regardless of precision lost in the export.
     ///
@@ -150,13 +176,21 @@ enum ExpenseImport {
 
     /// Reads a CSV export and works out which rows are new.
     ///
+    /// A row is refused when its date is outside ``earliestDate`` … `now` + 1 day, a text field
+    /// is over its limit, or its kind contradicts the category with the same key.
+    ///
     /// - Parameters:
     ///   - text: The whole file.
     ///   - existing: The expenses already stored.
+    ///   - categoryKinds: Whether each stored custom category is for income, by key; the
+    ///     built-ins are known without it.
+    ///   - now: The current time, for the date bound.
     /// - Returns: The rows to add, the number of duplicates, and the lines that could not be read.
     /// - Throws: ``ImportError`` if the file is not a Kalyta export at all.
     /// - Complexity: O(*n* + *m*), where *n* is the file length and *m* the number of existing expenses.
-    static func plan(csv text: String, existing: [ExpenseRecord]) throws -> ImportPlan {
+    static func plan(
+        csv text: String, existing: [ExpenseRecord], categoryKinds: [String: Bool] = [:], now: Date = .now
+    ) throws -> ImportPlan {
         let rows = CSVParser.rows(in: text)
         guard let header = rows.first else { throw ImportError.notKalytaExport }
         // A spreadsheet in a European region saves with ";" and rewrites dates; say so plainly.
@@ -168,6 +202,10 @@ enum ExpenseImport {
         let index = Dictionary(header.fields.enumerated().map { ($1, $0) }, uniquingKeysWith: { first, _ in first })
 
         var seen = Set(existing.map(DuplicateKey.init))
+        // A category is either for income or for spending; the first row naming a new key decides.
+        var kinds = Dictionary(uniqueKeysWithValues: Category.allCases.map { ($0.rawValue, $0 == .income) })
+            .merging(categoryKinds) { builtIn, _ in builtIn }
+        let dates = earliestDate...now.addingTimeInterval(86_400)
         var toInsert: [ExpenseRecord] = []
         var duplicateCount = 0
         var invalidLines: [Int] = []
@@ -181,9 +219,9 @@ enum ExpenseImport {
                 throw ImportError.unsupportedCurrency(line: row.line)
             }
             guard
-                let dateText = value("date"), let date = try? Date(dateText, strategy: .iso8601),
+                let dateText = value("date"), let date = try? Date(dateText, strategy: .iso8601), dates.contains(date),
                 let amountText = value("amount"), let amount = Double(amountText), isValidAmount(amount),
-                let key = value("category").map(ExpenseCSV.restored), !key.isEmpty
+                let key = value("category").map(ExpenseCSV.restored), !key.isEmpty, key.count <= maximumKeyLength
             else {
                 if value("date").map({ $0.contains(".") && !$0.contains("T") }) == true { sawSpreadsheetDate = true }
                 invalidLines.append(row.line)
@@ -191,17 +229,22 @@ enum ExpenseImport {
             }
             // Files from before income existed have no `kind`; an empty value means spending too.
             let kind = value("kind") ?? ""
-            guard kind.isEmpty || kind == ExpenseCSV.expenseKind || kind == ExpenseCSV.incomeKind else {
+            let isIncome = kind == ExpenseCSV.incomeKind
+            let name = value("category_name").map(ExpenseCSV.restored) ?? key
+            let note = value("note").map(ExpenseCSV.restored) ?? ""
+            guard kind.isEmpty || kind == ExpenseCSV.expenseKind || isIncome,
+                kinds[key, default: isIncome] == isIncome,
+                name.count <= maximumNameLength, note.count <= maximumNoteLength
+            else {
                 invalidLines.append(row.line)
                 continue
             }
+            kinds[key] = isIncome
             let record = ExpenseRecord(
-                date: date, amount: amount, categoryKey: key,
-                categoryName: value("category_name").map(ExpenseCSV.restored) ?? key,
-                note: value("note").map(ExpenseCSV.restored) ?? "",
+                date: date, amount: amount, categoryKey: key, categoryName: name, note: note,
                 categorySymbol: value("category_symbol") ?? Category.other.icon,
                 categoryColorName: value("category_color") ?? CategoryColor.gray.rawValue,
-                isIncome: kind == ExpenseCSV.incomeKind)
+                isIncome: isIncome)
             if seen.insert(DuplicateKey(record)).inserted {
                 toInsert.append(record)
             } else {

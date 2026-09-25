@@ -23,6 +23,8 @@ struct ExpenseEditor: View {
     @State private var matchedDate: Date?
     /// Set by "Save as New" so a repeated scan does not match again.
     @State private var savesAsNew = false
+    /// The category and note a scan's match replaced, put back when the match is dropped.
+    @State private var fieldsBeforeMatch: (category: ExpenseCategory?, note: String)?
     @State private var isScanning = false
     @State private var isNotFiscal = false
     @State private var isCameraDenied = false
@@ -176,6 +178,8 @@ struct ExpenseEditor: View {
         /// A payload given with `-scanPayload <text>`, fed to ``scan(_:)`` instead of the camera,
         /// so UI tests on the simulator (which has no scanner) exercise the same path.
         private var scanPayloadArgument: String? { UserDefaults.standard.string(forKey: "scanPayload") }
+        /// How many times Scan Receipt was tapped; `-scanPayload "A|B"` feeds A, then B, then A again.
+        @State private var scanCount = 0
     #endif
 
     /// The Scan Receipt button, and a way to Settings when camera access is off.
@@ -208,6 +212,7 @@ struct ExpenseEditor: View {
                     expense = nil
                     self.matchedDate = nil
                     savesAsNew = true
+                    restoreFieldsBeforeMatch()
                 }
                 .font(.footnote)
             }
@@ -240,7 +245,10 @@ struct ExpenseEditor: View {
     private func startScan() {
         #if DEBUG
             if let scanPayloadArgument {
-                _ = scan(scanPayloadArgument)
+                let payloads = scanPayloadArgument.split(separator: "|", omittingEmptySubsequences: false).map(
+                    String.init)
+                _ = scan(payloads[scanCount % payloads.count])
+                scanCount += 1
                 return
             }
         #endif
@@ -275,11 +283,22 @@ struct ExpenseEditor: View {
             expense = receipt.matchingExpense(in: context)
             matchedDate = expense?.date
             if let expense {
+                if fieldsBeforeMatch == nil { fieldsBeforeMatch = (category, note) }
                 category = expense.assignedCategory
                 note = expense.note
+            } else {
+                restoreFieldsBeforeMatch()
             }
         }
         return true
+    }
+
+    /// Puts back the category and note the person had before a scan matched an entry.
+    private func restoreFieldsBeforeMatch() {
+        guard let fields = fieldsBeforeMatch else { return }
+        category = fields.category
+        note = fields.note
+        fieldsBeforeMatch = nil
     }
 
     /// Writes the fields to the edited expense, or inserts a new one, and closes the sheet.

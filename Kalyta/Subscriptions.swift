@@ -1,4 +1,5 @@
 import Foundation
+import ImageIO
 import SwiftData
 import UIKit
 import UserNotifications
@@ -127,6 +128,17 @@ enum SubscriptionMath {
 enum SubscriptionIcons {
     /// The largest icon accepted; the repository's PNGs are around 10–40 KB.
     static let maximumIconSize = 512 * 1024
+    /// The largest width or height accepted, in pixels; the repository's PNGs are 512 px.
+    static let maximumIconPixels = 1_024
+
+    /// A session of its own: nothing cached on disk, no redirect off the icon host, and a
+    /// User-Agent that names no device, OS or app version.
+    private static let session: URLSession? = baseURL.map { base in
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.httpAdditionalHeaders = ["User-Agent": "Kalyta"]
+        configuration.timeoutIntervalForRequest = 20
+        return URLSession(configuration: configuration, delegate: SameHostRedirects(to: base), delegateQueue: nil)
+    }
 
     /// The repository's PNG folder, from `ICON_BASE_URL` in `Config/Kalyta.xcconfig`.
     static var baseURL: URL? {
@@ -155,16 +167,30 @@ enum SubscriptionIcons {
     ///   - statusCode: The HTTP status, or `nil` when the request failed before a response.
     ///   - mimeType: The response's MIME type.
     ///   - data: The response body.
-    /// - Returns: ``FetchResult/found(_:)`` only for a valid image within the size cap;
+    /// - Returns: ``FetchResult/found(_:)`` only for a valid image within the byte and pixel caps;
     ///   ``FetchResult/failed`` for no response, 429 or a server error; otherwise
     ///   ``FetchResult/missing``.
     static func classify(statusCode: Int?, mimeType: String?, data: Data?) -> FetchResult {
         guard let statusCode else { return .failed }
         if statusCode == 429 || statusCode >= 500 { return .failed }
         guard statusCode == 200, mimeType?.hasPrefix("image/") == true, let data, data.count <= maximumIconSize,
+            let (width, height) = pixelSize(of: data), max(width, height) <= maximumIconPixels,
             UIImage(data: data) != nil
         else { return .missing }
         return .found(data)
+    }
+
+    /// Reads an image's pixel size from its header, without decoding the pixels.
+    ///
+    /// - Parameter data: The image file.
+    /// - Returns: The width and height, or `nil` if the data is not an image.
+    static func pixelSize(of data: Data) -> (width: Int, height: Int)? {
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil),
+            let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any],
+            let width = properties[kCGImagePropertyPixelWidth] as? Int,
+            let height = properties[kCGImagePropertyPixelHeight] as? Int
+        else { return nil }
+        return (width, height)
     }
 
     /// Looks up the icon for a slug.
@@ -175,7 +201,7 @@ enum SubscriptionIcons {
     /// - Returns: The classified result of the request.
     static func fetchIcon(slug: String) async -> FetchResult {
         guard let url = baseURL?.appending(path: "\(slug).png") else { return .failed }
-        guard let (data, response) = try? await URLSession.shared.data(from: url) else { return .failed }
+        guard let session, let (data, response) = try? await session.data(from: url) else { return .failed }
         let http = response as? HTTPURLResponse
         return classify(statusCode: http?.statusCode, mimeType: http?.mimeType, data: data)
     }
