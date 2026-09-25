@@ -313,6 +313,26 @@
         }
       }
     },
+    "About": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Про застосунок"
+          }
+        }
+      }
+    },
+    "Acknowledgements": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Подяки"
+          }
+        }
+      }
+    },
     "Add": {
       "localizations": {
         "uk": {
@@ -793,6 +813,16 @@
         }
       }
     },
+    "Icons": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Іконки"
+          }
+        }
+      }
+    },
     "Import": {
       "localizations": {
         "uk": {
@@ -888,6 +918,16 @@
     "Kalyta": {
       "shouldTranslate": false
     },
+    "Kalyta is open source under the MIT License.": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kalyta — відкритий код за ліцензією MIT."
+          }
+        }
+      }
+    },
     "Kind": {
       "localizations": {
         "uk": {
@@ -908,12 +948,32 @@
         }
       }
     },
+    "License": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ліцензія"
+          }
+        }
+      }
+    },
     "Line %lld is not in hryvnias. Kalyta only imports hryvnia amounts.": {
       "localizations": {
         "uk": {
           "stringUnit": {
             "state": "translated",
             "value": "Рядок %lld не в гривнях. Kalyta імпортує лише суми в гривнях."
+          }
+        }
+      }
+    },
+    "Logos are trademarks of their respective owners.": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Логотипи є торговельними марками їхніх власників."
           }
         }
       }
@@ -1234,6 +1294,16 @@
         }
       }
     },
+    "Privacy Policy": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Політика приватності"
+          }
+        }
+      }
+    },
     "Purple": {
       "localizations": {
         "uk": {
@@ -1404,6 +1474,16 @@
         }
       }
     },
+    "Service icons come from homarr-labs/dashboard-icons under the Apache License 2.0.": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Іконки сервісів — з homarr-labs/dashboard-icons за ліцензією Apache 2.0."
+          }
+        }
+      }
+    },
     "Service, for example Netflix": {
       "localizations": {
         "uk": {
@@ -1471,6 +1551,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Підписки"
+          }
+        }
+      }
+    },
+    "Support": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Підтримка"
           }
         }
       }

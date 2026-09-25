@@ -35,6 +35,7 @@ struct SettingsView: View {
                         "Restores a Kalyta export. Expenses already here are skipped, so importing the same file twice adds nothing."
                     )
                 }
+                AboutSection()
             }
             .navigationTitle("Settings")
             .fileImporter(isPresented: $isPickingFile, allowedContentTypes: [.commaSeparatedText]) { result in

@@ -217,6 +217,11 @@ Kalyta може сама підтягувати витрати з картки m
 уже записані витрати лишаються. Щоб токен перестав діяти зовсім, відклич його на https://api.monobank.ua/
 (перевірити: у документації API відкликання не описано).
 
+## Ліцензія
+
+MIT — див. [LICENSE](LICENSE). Політика конфіденційності — [docs/privacy.md](docs/privacy.md),
+підтримка — [docs/support.md](docs/support.md).
+
 ## Подяки
 
 Іконки сервісів — [homarr-labs/dashboard-icons](https://github.com/homarr-labs/dashboard-icons)

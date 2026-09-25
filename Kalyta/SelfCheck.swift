@@ -61,6 +61,14 @@ func runSelfCheck() {
     let customLine = ExpenseCSV.document(for: [customRecord]).components(separatedBy: "\r\n")[1]
     assert(customLine.contains(",7F1C,\"Кафе, бари\","), "A custom category name was not quoted: \(customLine)")
 
+    // The Settings links: https pages set in the xcconfig, never missing from a build.
+    for link in [AppLinks.privacyPolicy, AppLinks.support] {
+        assert(
+            link?.scheme == "https" && link?.host?.isEmpty == false,
+            "A Settings link is not an https URL: \(link as Any)")
+    }
+
+    runStoreCheck()
     runMigrationCheck()
     runImportCheck()
     runStatisticsCheck()
@@ -100,6 +108,20 @@ func runSelfCheck() {
     exit(0)  // Without this the app keeps running and holds the launching console open.
 }
 
+/// Deletes every entry, category and subscription, leaving only the built-in categories.
+///
+/// Run it with `xcrun simctl launch <device> org.merzlov.kalyta --empty`; ``seedDemoData()`` starts with it.
+@MainActor
+func resetData() {
+    let context = Store.container.mainContext
+    deleteExpenses(where: #Predicate { _ in true }, in: context)
+    // Reset categories too, so every run starts from the built-ins alone.
+    for category in try! context.fetch(FetchDescriptor<ExpenseCategory>()) { context.delete(category) }
+    for subscription in try! context.fetch(FetchDescriptor<Subscription>()) { context.delete(subscription) }
+    try! context.save()
+    try! Store.ensureCategories(in: context)
+}
+
 /// Replaces all data with the built-in categories and sample expenses from the last week.
 ///
 /// The optional `-demoOffsetDays <n>` argument moves every sample `n` days further
@@ -110,13 +132,8 @@ func runSelfCheck() {
 func seedDemoData() {
     // Launch arguments in "-key value" form are readable through the argument domain of UserDefaults.
     let offsetDays = UserDefaults.standard.integer(forKey: "demoOffsetDays")
+    resetData()
     let context = Store.container.mainContext
-    deleteExpenses(where: #Predicate { _ in true }, in: context)
-    // Reset categories too, so every run starts from the built-ins alone.
-    for category in try! context.fetch(FetchDescriptor<ExpenseCategory>()) { context.delete(category) }
-    for subscription in try! context.fetch(FetchDescriptor<Subscription>()) { context.delete(subscription) }
-    try! context.save()
-    try! Store.ensureCategories(in: context)
 
     for sample in demoSamples {
         let date = Calendar.current.date(byAdding: .day, value: -(sample.daysAgo + offsetDays), to: .now)!
@@ -146,7 +163,7 @@ let demoSamples: [(amount: Double, category: Category, note: String, daysAgo: In
 @MainActor
 func runMigrationCheck() {
     let url = FileManager.default.temporaryDirectory.appending(path: "selfcheck-v1-\(UUID().uuidString).store")
-    defer { try? FileManager.default.removeItem(at: url) }
+    defer { removeStore(at: url) }
     do {
         let schema = Schema(versionedSchema: SchemaV1.self)
         let v1 = try! ModelContainer(for: schema, configurations: ModelConfiguration(schema: schema, url: url))
@@ -325,7 +342,7 @@ func measureImport() {
     }
     let csv = ExpenseCSV.document(for: records)
     let url = FileManager.default.temporaryDirectory.appending(path: "measure-\(UUID().uuidString).store")
-    defer { try? FileManager.default.removeItem(at: url) }
+    defer { removeStore(at: url) }
     let context = ModelContext(try! Store.makeContainer(url: url))
 
     let clock = ContinuousClock()

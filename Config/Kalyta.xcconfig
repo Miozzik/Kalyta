@@ -20,6 +20,10 @@ DEVELOPMENT_TEAM =
 // in xcconfig files, so the scheme separator is written as "/$()/".
 ICON_BASE_URL = https:/$()/cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@cf87d9bbd47792b20893f090ff48763fe874b05d/png
 
+// The privacy policy and support pages linked from Settings (and App Store Connect).
+PRIVACY_POLICY_URL = https:/$()/git.merzlov.org/home/55-kalyta/src/branch/main/docs/privacy.md
+SUPPORT_URL = https:/$()/git.merzlov.org/home/55-kalyta/src/branch/main/docs/support.md
+
 // Shown when the app first asks for the camera to scan a receipt's QR code.
 // Translations live in Kalyta/InfoPlist.xcstrings under the same key.
 INFOPLIST_KEY_NSCameraUsageDescription = Scan the QR code on a receipt to fill in its amount and time. The code is read on your iPhone; nothing is sent.

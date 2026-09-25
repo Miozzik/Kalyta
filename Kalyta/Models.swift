@@ -162,6 +162,8 @@ enum Store {
     static let container: ModelContainer = {
         do {
             let container = try makeContainer()
+            // Before anything reads the store: entries a stage 14 build left in the App Group come back.
+            StoreMerge.mergeGroupStoreIfPresent(into: container)
             // The notification center keeps a block observer registered for the life of the process.
             TodayTotal.observeSaves(of: container)
             return container
@@ -177,8 +179,11 @@ enum Store {
     /// - Throws: An error if the store cannot be opened or migrated.
     static func makeContainer(url: URL? = nil) throws -> ModelContainer {
         let schema = Schema(versionedSchema: SchemaV5.self)
+        // `.none`: the default (`.automatic`) moves the store into the App Group once the app has
+        // one, and an updated iPhone would open an empty store instead of the person's data.
         let configuration =
-            url.map { ModelConfiguration(schema: schema, url: $0) } ?? ModelConfiguration(schema: schema)
+            url.map { ModelConfiguration(schema: schema, url: $0) }
+            ?? ModelConfiguration(schema: schema, groupContainer: .none)
         return try ModelContainer(for: schema, migrationPlan: KalytaMigrationPlan.self, configurations: configuration)
     }
 

@@ -49,6 +49,23 @@ scripts/check-translations.py; swift format lint -r Kalyta KalytaUITests KalytaW
 xcrun xcstringstool sync Kalyta/Localizable.xcstrings --stringsdata <кожен .stringsdata з DerivedData/Kalyta.build>
 ```
 
+## Етап 16 — готовність до App Store
+
+Документи вже є: `LICENSE` (MIT), `docs/privacy.md`, `docs/support.md`, `docs/app-review-notes.md`,
+`docs/review/sample-receipt-qr.png`. Лишилось (переважно рішення й дії користувача):
+
+- [ ] **Платний Apple Developer Program** (99 USD/рік) — без нього ні TestFlight, ні App Store.
+- [ ] **Публічні сторінки політики й підтримки.** App Store Connect вимагає посилання на політику конфіденційності
+      (і в застосунку, і в метаданих — Guideline 5.1.1(i)) та на підтримку. `git.merzlov.org` закритий
+      Cloudflare Access, тож рецензент Apple його не відкриє — потрібна публічна адреса (публічне дзеркало репо
+      або статична сторінка). Заповнити в `docs/support.md` адресу issues і пошту (зараз TODO).
+- [ ] **Знімки екрана 6.9"** (1320 × 2868, симулятор iPhone 17 Pro Max): наявні `docs/screen-*.png` — 1206 × 2622 (6,3"),
+      для App Store не підходять.
+- [ ] **Віковий рейтинг** — анкета в App Store Connect; **категорія** — Finance.
+- [ ] **Опис і ключові слова** українською й англійською; що нового; URL підтримки й політики.
+- [ ] **App Review:** вставити `docs/app-review-notes.md` у Review Notes, додати QR-зразок як вкладення.
+- [ ] **TestFlight:** опис бети, email для відгуків; для зовнішніх тестувальників перша збірка проходить App Review.
+
 ## Зараз — перевірки на справжньому iPhone (користувач)
 
 - [ ] **Назва в Параметрах:** «Торкання ззаду» — тоді прибрати «перевірити на iPhone» в README.

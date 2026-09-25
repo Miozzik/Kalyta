@@ -101,7 +101,7 @@ func runMonobankCheck() {
 @MainActor
 private func runMonobankRecordCheck(now: Date) {
     let url = FileManager.default.temporaryDirectory.appending(path: "selfcheck-mono-\(UUID().uuidString).store")
-    defer { try? FileManager.default.removeItem(at: url) }
+    defer { removeStore(at: url) }
     let context = ModelContext(try! Store.makeContainer(url: url))
     try! Store.ensureCategories(in: context)
     let t = Int(now.timeIntervalSince1970) - 7_200
@@ -156,7 +156,7 @@ private func runMonobankRecordCheck(now: Date) {
 @MainActor
 private func runMonobankRunCheck(now: Date) {
     let url = FileManager.default.temporaryDirectory.appending(path: "selfcheck-mono-run-\(UUID().uuidString).store")
-    defer { try? FileManager.default.removeItem(at: url) }
+    defer { removeStore(at: url) }
     let context = ModelContext(try! Store.makeContainer(url: url))
     let suite = "selfcheck-monobank-\(UUID().uuidString)"
     let defaults = UserDefaults(suiteName: suite)!
@@ -213,7 +213,7 @@ private func runMonobankRunCheck(now: Date) {
             ("offline", .offline, 0),
         ] {
             let store = FileManager.default.temporaryDirectory.appending(path: "fixture-\(UUID().uuidString).store")
-            defer { try? FileManager.default.removeItem(at: store) }
+            defer { removeStore(at: store) }
             let fixtureContext = ModelContext(try! Store.makeContainer(url: store))
             let fixtureDefaults = UserDefaults(suiteName: suite + name)!
             defer { fixtureDefaults.removePersistentDomain(forName: suite + name) }
@@ -264,7 +264,7 @@ private func runMonobankRunCheck(now: Date) {
 private func runMonobankConnectCheck(now: Date) {
     let url = FileManager.default.temporaryDirectory.appending(
         path: "selfcheck-mono-connect-\(UUID().uuidString).store")
-    defer { try? FileManager.default.removeItem(at: url) }
+    defer { removeStore(at: url) }
     let context = ModelContext(try! Store.makeContainer(url: url))
     let suite = "selfcheck-monobank-connect-\(UUID().uuidString)"
     let defaults = UserDefaults(suiteName: suite)!

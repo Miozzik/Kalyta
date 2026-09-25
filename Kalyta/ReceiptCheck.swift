@@ -48,7 +48,7 @@ func runReceiptCheck() {
     }
 
     let url = FileManager.default.temporaryDirectory.appending(path: "selfcheck-receipt-\(UUID().uuidString).store")
-    defer { try? FileManager.default.removeItem(at: url) }
+    defer { removeStore(at: url) }
     let context = ModelContext(try! Store.makeContainer(url: url))
     try! Store.ensureCategories(in: context)
     let food = Store.category(withKey: Category.food.rawValue, in: context)!

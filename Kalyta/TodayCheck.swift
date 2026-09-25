@@ -10,7 +10,7 @@ func runTodayCheck() {
     let now = calendar.date(from: DateComponents(year: 2026, month: 9, day: 23, hour: 12))!
     let dayStart = calendar.startOfDay(for: now)
     let url = FileManager.default.temporaryDirectory.appending(path: "selfcheck-today-\(UUID().uuidString).store")
-    defer { try? FileManager.default.removeItem(at: url) }
+    defer { removeStore(at: url) }
     let context = ModelContext(try! Store.makeContainer(url: url))
     try! Store.ensureCategories(in: context)
     let food = Store.category(withKey: "food", in: context)!

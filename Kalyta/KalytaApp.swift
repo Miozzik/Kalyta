@@ -5,12 +5,14 @@ import UIKit
 
 /// The app entry point.
 ///
-/// Launch arguments for development:
+/// Launch arguments for development, honoured only in debug builds unless noted:
 /// - `--selfcheck` runs ``runSelfCheck()`` and exits.
 /// - `--demo` replaces all expenses with sample data for screenshots.
-/// - `--measure-import` times planning and inserting 10,000 imported rows, then exits.
+/// - `--empty` deletes all entries, categories and subscriptions and seeds nothing, for the empty state.
 /// - `--check-upgrade` verifies that sample data written by an older release survived
 ///   the upgrade to this one, then exits.
+/// - `--measure-import` (also in release builds) times planning and inserting 10,000 imported
+///   rows on a temporary store, then exits; only a release build gives timings worth deciding on.
 /// - `-scanPayload <text>` (debug builds) makes Scan Receipt read `<text>` instead of the camera;
 ///   `"A|B"` gives A on the first tap, B on the second, and so on.
 @main
@@ -18,9 +20,14 @@ struct KalytaApp: App {
     @Environment(\.scenePhase) private var scenePhase
 
     init() {
-        if CommandLine.arguments.contains("--selfcheck") { MainActor.assumeIsolated { runSelfCheck() } }
-        if CommandLine.arguments.contains("--demo") { MainActor.assumeIsolated { seedDemoData() } }
-        if CommandLine.arguments.contains("--check-upgrade") { MainActor.assumeIsolated { runUpgradeCheck() } }
+        #if DEBUG
+            // `--demo` and `--empty` delete every entry, so a release build never honours them.
+            if CommandLine.arguments.contains("--selfcheck") { MainActor.assumeIsolated { runSelfCheck() } }
+            if CommandLine.arguments.contains("--demo") { MainActor.assumeIsolated { seedDemoData() } }
+            if CommandLine.arguments.contains("--empty") { MainActor.assumeIsolated { resetData() } }
+            if CommandLine.arguments.contains("--check-upgrade") { MainActor.assumeIsolated { runUpgradeCheck() } }
+        #endif
+        // Touches only a temporary store.
         if CommandLine.arguments.contains("--measure-import") { MainActor.assumeIsolated { measureImport() } }
     }
 

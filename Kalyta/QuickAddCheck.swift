@@ -9,7 +9,7 @@ import SwiftData
 @MainActor
 func runQuickAddCheck() {
     let url = FileManager.default.temporaryDirectory.appending(path: "selfcheck-quickadd-\(UUID().uuidString).store")
-    defer { try? FileManager.default.removeItem(at: url) }
+    defer { removeStore(at: url) }
     let context = ModelContext(try! Store.makeContainer(url: url))
     try! Store.ensureCategories(in: context)
     let start = Date(timeIntervalSince1970: 1_790_000_000)

@@ -13,6 +13,14 @@
 	<array>
 		<string>$(PRODUCT_BUNDLE_IDENTIFIER).monobank</string>
 	</array>
+	<!-- Only the system's HTTPS and Keychain are used, which are exempt from export documentation. -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<!-- The pages linked from Settings; the values come from Config/Kalyta.xcconfig. -->
+	<key>KalytaPrivacyPolicyURL</key>
+	<string>$(PRIVACY_POLICY_URL)</string>
+	<key>KalytaSupportURL</key>
+	<string>$(SUPPORT_URL)</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
