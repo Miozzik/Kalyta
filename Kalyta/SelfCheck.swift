@@ -33,6 +33,10 @@ func runSelfCheck() {
     assert(formattedHryvnias(42.5).filter(\.isNumber) == "4250", "Kopiykas were dropped: \(formattedHryvnias(42.5))")
     assert(
         formattedHryvnias(100).filter(\.isNumber) == "100", "Whole amounts gained kopiykas: \(formattedHryvnias(100))")
+    // Income: the locale's plus sign, with the same kopiyka rule; spending shows no sign.
+    let income = formattedHryvnias(42.5, showsPlus: true)
+    assert(income.contains("+") && income.filter(\.isNumber) == "4250", "Income lost its plus sign: \(income)")
+    assert(!formattedHryvnias(42.5).contains("+"), "Spending shows a plus sign")
 
     // CSV export: a note that needs quoting, a large amount, and a known moment
     // (2026-09-23 09:18 UTC) written in Kyiv time.

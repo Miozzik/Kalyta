@@ -68,7 +68,7 @@ struct ExpenseRow: View {
             Spacer()
 
             // Income reads as money in: a plus sign and green, so it is never mistaken for spending.
-            Text(verbatim: (expense.isIncome ? "+" : "") + formattedHryvnias(expense.amount))
+            Text(verbatim: formattedHryvnias(expense.amount, showsPlus: expense.isIncome))
                 .foregroundStyle(expense.isIncome ? Color.green : Color.primary)
                 .font(.body.weight(.medium))
                 .monospacedDigit()
