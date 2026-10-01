@@ -2054,22 +2054,6 @@
         }
       }
     },
-    "earned %@ · left %@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "new",
-            "value": "earned %1$@ · left %2$@"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "зароблено %1$@ · лишилось %2$@"
-          }
-        }
-      }
-    },
     "from monobank": {
       "localizations": {
         "uk": {

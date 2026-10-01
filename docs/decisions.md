@@ -569,3 +569,22 @@ Decided by the coordinator while the user was away. Source: monobank API spec, h
 - **Deleting a synced entry (unchanged, reported):** each sync re-fetches from `syncedUntil − 3 days`, so an entry
   deleted within about 3 days of its payment comes back; older ones stay deleted. A fix needs stored tombstones of
   deleted bank ids — not done.
+
+## 2026-10-01 — Expenses tab without income; tombstones for deleted bank entries (PM gate A GO)
+
+- **Expenses tab lists spending only.** `expensesByDay` grouped `periodEntries` (spending + income), so income rows
+  showed on the Expenses tab and the day header added them to spending. It now groups `periodExpenses` (this tab's kind);
+  `periodEntries`, `periodIncome` and the summary card's «зароблено · лишилось» line are removed — income lives on the
+  Income tab. Proof: `IncomeUITests.testIncomeIsNotSpending` (income saved on the Expenses tab is not listed there,
+  is listed on the Income tab); restoring the old grouping turns it red.
+- **Tombstones.** Each sync re-fetches from `syncedUntil − 3 days`, so an entry deleted within that window came back.
+  `MonobankSync.State.deletedIDs` (`[bankID: deletion time]`, optional so older stored states still decode) is written
+  at the single delete path (`ContentView.commitPendingDeletion` → `MonobankSync.rememberDeletion`), only for entries
+  with a `bankID` and only while monobank is connected; undo never commits, so it leaves no tombstone. `record` skips
+  tombstoned ids before matching or inserting. `run` re-reads the list after its requests, so a deletion during a sync
+  is neither recreated nor overwritten, and prunes ids older than 35 days (longer than the 31-day `Monobank.window`).
+  Stored in `UserDefaults.standard` with the rest of the state: not in the App Group, not in CSV. «Відключити» removes
+  the whole state, tombstones included (`MonobankSync.forget(in:)`).
+- **Proof:** `runMonobankDeletionCheck` (`Kalyta/MonobankCheck.swift`): a re-sync does not recreate a tombstoned id,
+  a manual entry leaves no tombstone, an expired id is pruned, `forget` clears the list. Each assertion went red under
+  its mutation. Not covered by a check: the re-read for a deletion while a sync is in flight.

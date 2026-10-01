@@ -18,6 +18,8 @@
   і повернень зберігається назва продавця. Назви банок читаються лише під час синхронізації.
   На телефоні зберігається лише внутрішній ідентифікатор гривневого рахунку з відповіді monobank (не IBAN і не номер
   картки), щоб знати, з якого рахунку читати виписку; «Відключити» його видаляє.
+  Щоб видалений запис із банку не повернувся з наступною синхронізацією, 35 днів зберігається лише його
+  ідентифікатор у банку й час видалення — без суми, продавця, дати й нотатки; у CSV і App Group він не потрапляє.
   Дані monobank обробляє згідно зі своїми правилами — ми до них доступу не маємо.
 
 Більше нічого не надсилається. Сканування чека розбирає QR-код на телефоні, без мережі.
@@ -26,7 +28,7 @@
 **Як видалити дані:**
 - Видали застосунок — зникнуть усі записи. (Токен monobank iOS може лишити в Keychain; наступне встановлення
   його видалить при першому запуску.)
-- Налаштування → Банк → monobank → «Відключити» видаляє токен; відкликати його можна на api.monobank.ua.
+- Налаштування → Банк → monobank → «Відключити» видаляє токен, а також список видалених записів банку; відкликати його можна на api.monobank.ua.
 - Перед видаленням можна зберегти резервну копію: «Поширити» → CSV-файл.
 
 **Контакт:** сторінка підтримки — [support.md](support.md).
@@ -45,7 +47,9 @@ All expenses, income, categories and subscriptions stay on your iPhone (SwiftDat
   move to another iPhone through a backup. The other party's name, IBAN and EDRPOU code, transfer comments and the
   balance are never read. A transfer is recorded as "Transfer", not with the bank's description, which can contain a
   person's name; purchases and refunds keep the merchant name. Jar titles are read during a sync only. The only thing kept on the phone is monobank's internal id of your hryvnia account (not an IBAN or card
-  number), so the app knows which account's statement to read; "Disconnect" deletes it. monobank handles your data
+  number), so the app knows which account's statement to read; "Disconnect" deletes it. So that a bank entry you
+  delete does not come back with the next sync, only its bank id and the time of deletion are kept for 35 days — no
+  amount, merchant, date or note; this list is never exported to CSV or shared with the App Group. monobank handles your data
   under its own terms; we have no access to it.
 
 Nothing else is sent. Receipt scanning parses the QR code on the phone, without any network request.
@@ -54,7 +58,7 @@ Today's total is kept in a shared App Group container so the widget can show it 
 **How to delete your data:**
 - Delete the app to remove every entry. (iOS may keep the monobank token in the Keychain; the next install deletes it
   on first launch.)
-- Settings → Bank → monobank → "Disconnect" deletes the token; you can revoke it at api.monobank.ua.
+- Settings → Bank → monobank → "Disconnect" deletes the token, and also deletes the list of deleted bank entries; you can revoke it at api.monobank.ua.
 - To keep a backup first: Share → CSV file.
 
 **Contact:** see the support page — [support.md](support.md).

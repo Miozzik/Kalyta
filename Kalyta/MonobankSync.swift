@@ -15,6 +15,9 @@ enum MonobankSync {
     static let throttle: TimeInterval = 60
     /// How far back each sync re-fetches, so pending payments are updated when they settle.
     static let holdWindow: TimeInterval = 3 * 86_400
+    /// How long a deleted entry's bank id is kept; longer than ``Monobank/window``, so no
+    /// re-fetch can reach a payment whose id was already forgotten.
+    static let tombstoneLifetime: TimeInterval = 35 * 86_400
     /// The `UserDefaults` key of the "connected" flag, which the Keychain item outlives.
     static let linkedKey = "monobankLinked"
     /// The `UserDefaults` key of the encoded ``State``.
@@ -44,6 +47,9 @@ enum MonobankSync {
         /// Before this time, in Unix seconds, only income and entries already linked are recorded:
         /// the one-time re-fetch for past income must not bring back spending the person deleted.
         var incomeOnlyBefore: Int?
+        /// The bank ids of synced entries the person deleted, with when they were deleted, so a
+        /// re-fetch does not record them again. Only ids and times: nothing about the payment.
+        var deletedIDs: [String: Date]?
     }
 
     /// The current ``State/version``: 2 since income is recorded.
@@ -113,12 +119,14 @@ enum MonobankSync {
     ///   - items: A validated page.
     ///   - jarTitles: The titles of the person's jars, so money moved to and from them is skipped.
     ///   - incomeOnlyBefore: Before this time, in Unix seconds, no new spending is added.
+    ///   - deletedIDs: The bank ids of entries the person deleted, which are skipped.
     ///   - context: The context to write; the built-ins must exist in it.
     /// - Returns: How many entries were added.
     /// - Throws: An error if saving fails.
     @discardableResult
     static func record(
-        _ items: [StatementItem], jarTitles: [String], incomeOnlyBefore: Int? = nil, in context: ModelContext
+        _ items: [StatementItem], jarTitles: [String], incomeOnlyBefore: Int? = nil, deletedIDs: Set<String> = [],
+        in context: ModelContext
     ) throws -> Int {
         let linked = try context.fetch(FetchDescriptor<Expense>(predicate: #Predicate { $0.bankID != nil }))
         var byID = Dictionary(linked.map { ($0.bankID!, $0) }, uniquingKeysWith: { first, _ in first })
@@ -134,7 +142,7 @@ enum MonobankSync {
             return Store.category(forMerchant: item.note, mcc: item.mcc, memory: memory, in: context)
         }
         var added = 0
-        for item in items where item.isRecordable(jarTitles: jarTitles) {
+        for item in items where item.isRecordable(jarTitles: jarTitles) && !deletedIDs.contains(item.id) {
             let amount = Double(item.amount.magnitude) / 100
             guard isValidAmount(amount) else { continue }
             let date = Date(timeIntervalSince1970: TimeInterval(item.time))
@@ -221,10 +229,18 @@ enum MonobankSync {
             let items = try Monobank.statementItems(
                 from: body, from: period.lowerBound, to: period.upperBound, now: Int(now.timeIntervalSince1970))
             try Store.ensureCategories(in: context)
-            try record(items, jarTitles: jarTitles, incomeOnlyBefore: state.incomeOnlyBefore, in: context)
+            // Read again: an entry may have been deleted while the requests were in flight.
+            let deleted = loadState(from: defaults).deletedIDs ?? [:]
+            try record(
+                items, jarTitles: jarTitles, incomeOnlyBefore: state.incomeOnlyBefore, deletedIDs: Set(deleted.keys),
+                in: context)
             state = self.state(after: state, period: period, items: items, now: now)
         } catch {
             state.problem = problem(for: error)
+        }
+        // The stored list, not the one read before the requests, so a deletion meanwhile is kept.
+        state.deletedIDs = loadState(from: defaults).deletedIDs?.filter {
+            now.timeIntervalSince($0.value) < tombstoneLifetime
         }
         save(state, to: defaults)
     }
@@ -297,12 +313,35 @@ enum MonobankSync {
         return MonobankHTTP()
     }
 
-    /// Forgets the token and the sync state; recorded entries stay.
+    /// Remembers that the person deleted a synced entry, so later syncs do not record it again.
+    ///
+    /// Does nothing for an entry the bank did not record, or while monobank is disconnected:
+    /// connecting again starts a fresh list.
+    ///
+    /// - Parameters:
+    ///   - expense: The entry being deleted.
+    ///   - defaults: Where ``State`` is kept.
+    ///   - now: The time of the deletion.
+    static func rememberDeletion(of expense: Expense, defaults: UserDefaults = .standard, now: Date = .now) {
+        guard let bankID = expense.bankID, defaults.bool(forKey: linkedKey) else { return }
+        var state = loadState(from: defaults)
+        state.deletedIDs = (state.deletedIDs ?? [:]).merging([bankID: now]) { _, new in new }
+        save(state, to: defaults)
+    }
+
+    /// Forgets the token, the sync state and the list of deleted entries; recorded entries stay.
     static func disconnect() {
         MonobankToken.delete()
-        UserDefaults.standard.removeObject(forKey: linkedKey)
-        UserDefaults.standard.removeObject(forKey: stateKey)
+        forget(in: .standard)
         BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: refreshTaskID)
+    }
+
+    /// Removes the linked flag and the stored ``State``, deleted entries' ids included.
+    ///
+    /// - Parameter defaults: Where they are kept.
+    static func forget(in defaults: UserDefaults) {
+        defaults.removeObject(forKey: linkedKey)
+        defaults.removeObject(forKey: stateKey)
     }
 
     /// Deletes a token left in the Keychain by an earlier install.

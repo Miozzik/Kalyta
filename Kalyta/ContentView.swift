@@ -84,13 +84,6 @@ struct ContentView: View {
 
     private var isCurrentPeriodSelected: Bool { selectedInterval == intervals.last }
 
-    /// The entries of the selected period for the list: all of them, or only income on the Income tab.
-    ///
-    /// - Complexity: O(*n*), where *n* is the number of entries.
-    private var periodEntries: [Expense] {
-        (showsIncome ? visibleOfKind : visibleExpenses).filter { selectedInterval.containsExcludingEnd($0.date) }
-    }
-
     /// The spending, or the income on the Income tab, of the selected period.
     ///
     /// - Complexity: O(*n*), where *n* is the number of entries.
@@ -99,9 +92,6 @@ struct ContentView: View {
     }
 
     private var periodTotal: Double { periodExpenses.reduce(0) { $0 + $1.amount } }
-
-    /// The income of the selected period.
-    private var periodIncome: Double { periodEntries.filter(\.isIncome).reduce(0) { $0 + $1.amount } }
 
     /// - Complexity: O(*n*), where *n* is the number of expenses.
     private var todayTotal: Double { TodayTotal.spending(of: visibleExpenses) }
@@ -151,7 +141,7 @@ struct ContentView: View {
 
     /// Expenses of the selected period grouped by day, most recent day first.
     private var expensesByDay: [(day: Date, items: [Expense])] {
-        Dictionary(grouping: periodEntries) { Calendar.current.startOfDay(for: $0.date) }
+        Dictionary(grouping: periodExpenses) { Calendar.current.startOfDay(for: $0.date) }
             .map { (day: $0.key, items: $0.value.sorted { $0.date > $1.date }) }
             .sorted { $0.day > $1.day }
     }
@@ -173,8 +163,7 @@ struct ContentView: View {
                     SummaryCard(
                         title: summaryTitle,
                         total: periodTotal,
-                        todayTotal: isCurrentPeriodSelected && !showsIncome ? todayTotal : nil,
-                        income: periodIncome > 0 && !showsIncome ? periodIncome : nil
+                        todayTotal: isCurrentPeriodSelected && !showsIncome ? todayTotal : nil
                     )
 
                     if !totalsByCategory.isEmpty {
@@ -304,6 +293,7 @@ struct ContentView: View {
     /// killed in between would bring back an expense whose undo window had already closed.
     private func commitPendingDeletion() {
         guard let expense = pendingDeletion else { return }
+        MonobankSync.rememberDeletion(of: expense)
         context.delete(expense)
         pendingDeletion = nil
         try? context.save()
@@ -370,8 +360,6 @@ private struct SummaryCard: View {
     let total: Double
     /// Today's total, or `nil` to hide the line when a past period is selected.
     let todayTotal: Double?
-    /// The period's income, or `nil` to show nothing about income when there is none.
-    let income: Double?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -384,16 +372,6 @@ private struct SummaryCard: View {
                 .font(.system(size: 40, weight: .bold, design: .rounded))
                 .foregroundStyle(.white)
                 .contentTransition(.numericText())
-            if let income {
-                // What is left can be negative: spending more than came in.
-                Label(
-                    "earned \(formattedHryvnias(income)) · left \(formattedHryvnias(income - total))",
-                    systemImage: "arrow.down.circle"
-                )
-                .font(.footnote)
-                .foregroundStyle(.white.opacity(0.85))
-                .accessibilityIdentifier("summaryIncome")
-            }
             if let todayTotal {
                 Label("today \(formattedHryvnias(todayTotal))", systemImage: "clock")
                     .font(.footnote)

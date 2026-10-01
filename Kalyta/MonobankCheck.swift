@@ -115,6 +115,7 @@ func runMonobankCheck() {
     runMonobankRecordCheck(now: now)
     runMonobankRunCheck(now: now)
     runMonobankConnectCheck(now: now)
+    runMonobankDeletionCheck(now: now)
 }
 
 /// Verifies how statement items become entries: filters, dedupe, merge and categories.
@@ -412,6 +413,51 @@ private func runMonobankConnectCheck(now: Date) {
     assert(infoCalls == 1 && transport.requests.count == 2, "Connecting asked client-info \(infoCalls) times")
     assert(transport.requests.last?.hasPrefix("/personal/statement/uah/") == true, "Connecting synced another account")
     assert(try! context.fetchCount(FetchDescriptor<Expense>()) == 0, "The first sync lost the jar list")
+}
+
+/// Verifies that a deleted bank entry stays deleted: re-syncs skip its id until the id expires.
+@MainActor
+private func runMonobankDeletionCheck(now: Date) {
+    let url = FileManager.default.temporaryDirectory.appending(path: "selfcheck-mono-del-\(UUID().uuidString).store")
+    defer { removeStore(at: url) }
+    let context = ModelContext(try! Store.makeContainer(url: url))
+    let suite = "selfcheck-monobank-del-\(UUID().uuidString)"
+    let defaults = UserDefaults(suiteName: suite)!
+    defer { defaults.removePersistentDomain(forName: suite) }
+    defaults.set(true, forKey: MonobankSync.linkedKey)
+    let info = Data(#"{"accounts":[{"id":"uah","currencyCode":980}]}"#.utf8)
+    let page = try! JSONSerialization.data(withJSONObject: [
+        ["id": "d1", "time": Int(now.timeIntervalSince1970) - 60, "description": "Novus", "mcc": 5411, "amount": -900]
+    ])
+    let transport = FakeTransport(answers: [])
+    func sync(at date: Date) -> Expense? {
+        transport.answers = [.success((200, info)), .success((200, page))]
+        wait {
+            await MonobankSync.run(
+                token: "token", transport: transport, context: context, defaults: defaults, now: date)
+        }
+        return try! context.fetch(FetchDescriptor<Expense>()).first { $0.bankID == "d1" }
+    }
+    let synced = sync(at: now)!
+    MonobankSync.rememberDeletion(of: synced, defaults: defaults, now: now)
+    context.delete(synced)
+    try! context.save()
+    let manual = Expense(amount: 5, category: Store.category(withKey: "fun", in: context)!, note: "Кава")
+    MonobankSync.rememberDeletion(of: manual, defaults: defaults, now: now)
+    assert(sync(at: now + 60) == nil, "A re-sync recreated a deleted bank entry")
+    let kept = MonobankSync.loadState(from: defaults).deletedIDs
+    assert(kept.map(Array.init)?.map(\.key) == ["d1"], "Wrong deleted ids: \(String(describing: kept))")
+    transport.answers = []
+    wait {
+        await MonobankSync.run(
+            token: "token", transport: transport, context: context, defaults: defaults,
+            now: now + MonobankSync.tombstoneLifetime)
+    }
+    assert(MonobankSync.loadState(from: defaults).deletedIDs?.isEmpty == true, "An expired deleted id was kept")
+    let other = Expense(amount: 9, category: manual.assignedCategory!, note: "Novus", bankID: "d2")
+    MonobankSync.rememberDeletion(of: other, defaults: defaults, now: now)
+    MonobankSync.forget(in: defaults)
+    assert(MonobankSync.loadState(from: defaults).deletedIDs == nil, "Disconnecting kept the deleted ids")
 }
 
 /// Answers requests with canned responses and records what was asked.
