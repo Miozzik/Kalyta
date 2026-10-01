@@ -539,3 +539,33 @@ Documentation read before each decision (from the gate reports):
 - **Bug:** `MonobankView.verify` called `client-info`, then the first sync called it again within 60 s → HTTP 429 → empty jar list → 31 days of jar top-ups imported as «Перекази».
 - **Fix** (in `df71b3c`): `MonobankSync.connect` makes the only `client-info` call and passes the jar titles to the first run.
 - **Proof:** `runMonobankConnectCheck` (`Kalyta/MonobankCheck.swift`) asserts one `client-info` call and that the first sync imports no jar top-up.
+
+## 2026-10-01 — monobank: incoming money recorded as income (coordinator decision — revisit with the user)
+
+Decided by the coordinator while the user was away. Source: monobank API spec, https://api.monobank.ua/docs/index.html
+(`StatementItem`: `amount` signed, `counterName`/`counterIban`/`counterEdrpou`/`comment`/`invoiceId`/`receiptId`/`balance`).
+- **Credit → income.** Any `amount > 0` becomes an income entry in the built-in income category (CSV import refuses
+  income in a spending category). Zero amounts stay skipped.
+- **Own jar withdrawal → skipped**, like a top-up: the credit names one of the person's jar titles (client-info) and
+  contains «банк». Observed pattern «Часткове зняття банки «назва»» comes from open-source clients — a convention, not
+  documented. «банк» is required so a jar titled like a person does not hide money that person sends.
+- **Refund** («Скасування.» prefix, convention, not documented) → separate income entry, note = merchant text without
+  the prefix; not netted against the purchase.
+- **Transfers (MCC 4829), both ways** → note is the localized label «Переказ» / "Transfer", never the bank's text (it
+  can name a person). Transfers skip the merchant memory: its key would be the same label for every person.
+  Already stored transfers whose note still equals the bank's text are relabelled when the sync sees them again
+  (the one-time 31-day re-fetch below); older ones and notes the person edited are left alone.
+- **Never decoded:** counterName, counterIban, counterEdrpou, comment, invoiceId, receiptId, balance — `StatementItem`
+  decodes only id, time, description, mcc, hold, amount; pinned by a self-check.
+- **Sign change on the same id** → amount (positive), `isIncome` and category updated together; amounts pass
+  `isValidAmount`.
+- **Existing connections:** `MonobankSync.State.version` (2). A stored state without it re-fetches the whole 31-day
+  window once; before the old re-fetch point (`syncedUntil − 3 days`, `incomeOnlyBefore`) only income and already
+  linked entries are recorded, so spending the person deleted does not come back. Upsert by `bankID` prevents duplicates.
+  Known gap: a first sync still paging when the app updates keeps its first pages without income.
+- **Dedupe:** bank income matches only income (`Store.matchingExpense(isIncome:)`), never spending. Matching manually
+  entered income (same amount ±30 min, not linked) is on: a hand-entered income at the moment money arrives is the same
+  money; two different incomes of the exact amount within 30 min are rare, and the cost is one merged entry.
+- **Deleting a synced entry (unchanged, reported):** each sync re-fetches from `syncedUntil − 3 days`, so an entry
+  deleted within about 3 days of its payment comes back; older ones stay deleted. A fix needs stored tombstones of
+  deleted bank ids — not done.

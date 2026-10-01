@@ -1454,12 +1454,12 @@
         }
       }
     },
-    "Recorded expenses stay. To revoke the token itself, open api.monobank.ua.": {
+    "Recorded expenses and income stay. To revoke the token itself, open api.monobank.ua.": {
       "localizations": {
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Записані витрати лишаться. Щоб скасувати сам токен, відкрий api.monobank.ua."
+            "value": "Записані витрати й доходи лишаться. Щоб скасувати сам токен, відкрий api.monobank.ua."
           }
         }
       }
@@ -1474,12 +1474,12 @@
         }
       }
     },
-    "Records your monobank card payments by itself. The token only reads; it can't move money.": {
+    "Records your monobank card payments and incoming money by itself. The token only reads; it can't move money.": {
       "localizations": {
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Сама записує платежі з картки monobank. Токен дає лише читання — переказати гроші з ним неможливо."
+            "value": "Сама записує платежі з картки monobank і надходження на неї. Токен дає лише читання — переказати гроші з ним неможливо."
           }
         }
       }
@@ -1861,6 +1861,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Завтра: %@"
+          }
+        }
+      }
+    },
+    "Transfer": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Переказ"
           }
         }
       }

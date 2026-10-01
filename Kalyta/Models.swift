@@ -239,10 +239,11 @@ enum Store {
     ///   - date: When the purchase happened.
     ///   - unlinkedOnly: Whether to skip entries a bank sync already linked to a transaction,
     ///     so two bank payments never merge into one entry.
+    ///   - isIncome: Whether to look for income instead of spending; the two never match.
     ///   - context: The context to search.
     /// - Returns: The matching expense, or `nil` if this is a new purchase.
     static func matchingExpense(
-        amount: Double, date: Date, unlinkedOnly: Bool = false, in context: ModelContext
+        amount: Double, date: Date, unlinkedOnly: Bool = false, isIncome: Bool = false, in context: ModelContext
     ) -> Expense? {
         let start = date.addingTimeInterval(-purchaseMatchWindow)
         let end = date.addingTimeInterval(purchaseMatchWindow)
@@ -252,7 +253,7 @@ enum Store {
         let candidates = try? context.fetch(
             FetchDescriptor<Expense>(
                 predicate: #Predicate {
-                    !$0.isIncome && $0.date >= start && $0.date <= end && $0.amount > low && $0.amount < high
+                    $0.isIncome == isIncome && $0.date >= start && $0.date <= end && $0.amount > low && $0.amount < high
                 }))
         return candidates?.filter { !unlinkedOnly || $0.bankID == nil }
             .min { abs($0.date.timeIntervalSince(date)) < abs($1.date.timeIntervalSince(date)) }

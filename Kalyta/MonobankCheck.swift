@@ -35,6 +35,13 @@ func runMonobankCheck() {
     var abroad = item("a1", -4_150, currency: 840)
     abroad["operationAmount"] = -100
     assert(page([abroad])?.first?.amount == -4_150, "A purchase abroad refused the page or lost its hryvnia amount")
+    // Fields that can name or identify the other party are never decoded, so nothing can store them.
+    var hidden = item("a1", 1_000, mcc: Monobank.transferMCC, description: "Від: Олена К.")
+    for key in ["counterName", "counterIban", "counterEdrpou", "comment", "invoiceId", "receiptId"] {
+        hidden[key] = "x"
+    }
+    let decoded = page([hidden])?.first.map { Mirror(reflecting: $0).children.compactMap(\.label) }
+    assert(decoded == ["id", "time", "description", "mcc", "hold", "amount"], "Extra fields decoded: \(decoded ?? [])")
     // The account: hryvnias only, the black card first, then other cards, then FOP; ties keep the API order.
     func account(_ accounts: [[String: Any]]) -> String?? {
         // Not `try?`: it would flatten "no account" and "refused" into one `nil`.
@@ -124,6 +131,17 @@ private func runMonobankRecordCheck(now: Date) {
     // The Wallet automation already recorded this payment 10 minutes before the bank's time.
     let applePay = Expense(amount: 432.90, category: fun, note: "АТБ", date: at(t - 600))
     context.insert(applePay)
+    // Spending and income of one amount near the bank's time: income must merge only with income.
+    context.insert(Expense(amount: 77, category: fun, note: "Кава", date: at(t)))
+    let income = Store.category(withKey: "income", in: context)!
+    let manualSalary = Expense(amount: 1_000, category: income, note: "Зарплата", date: at(t - 300), isIncome: true)
+    context.insert(manualSalary)
+    // A transfer synced before transfers were labelled, and one whose note the person edited.
+    let transfers = Store.category(withKey: "transfers", in: context)!
+    context.insert(Expense(amount: 5, category: transfers, note: "Петро П.", date: at(t), bankID: "o1"))
+    context.insert(Expense(amount: 6, category: transfers, note: "Оренда", date: at(t), bankID: "o2"))
+    // A transfer recategorized by hand must not steer every later transfer: they share one note.
+    context.insert(Expense(amount: 9, category: fun, note: String(localized: "Transfer"), date: at(t - 3_600)))
     try! context.save()
 
     let page = [
@@ -137,13 +155,39 @@ private func runMonobankRecordCheck(now: Date) {
         StatementItem.sample("z1", time: t, amount: 0, description: "Перевірка картки"),
         // A second purchase of the same amount at the same time: its own entry, not merged into a1's.
         StatementItem.sample("g1", time: t, amount: -43_290, description: "ATB-MARKET"),
+        StatementItem.sample(
+            "w1", time: t, amount: 30_000, mcc: Monobank.transferMCC, description: "Часткове зняття банки «Море»"),
+        // Names the jar but is no withdrawal from it: money from a person is income.
+        StatementItem.sample("w2", time: t, amount: 15_000, mcc: Monobank.transferMCC, description: "Від: Морена"),
+        StatementItem.sample("r1", time: t, amount: 43_290, description: "Скасування. ATB-MARKET"),
+        StatementItem.sample("i1", time: t, amount: 20_000, mcc: Monobank.transferMCC, description: "Від: Олена К."),
+        StatementItem.sample("k1", time: t, amount: 7_700, description: "Кешбек"),
+        StatementItem.sample(
+            "s1", time: t, amount: 100_000, mcc: Monobank.transferMCC, description: "ТОВ Роботодавець"),
+        StatementItem.sample("o1", time: t, amount: -500, mcc: Monobank.transferMCC, description: "Петро П."),
+        StatementItem.sample("o2", time: t, amount: -600, mcc: Monobank.transferMCC, description: "Петро П."),
     ]
     let added = try! MonobankSync.record(page, jarTitles: ["море"], in: context)
     let entries = try! context.fetch(FetchDescriptor<Expense>())
-    func entry(_ id: String) -> Expense? { entries.first { $0.bankID == id } }
+    func entry(_ id: String) -> Expense? { try! context.fetch(FetchDescriptor<Expense>()).first { $0.bankID == id } }
+    let label = String(localized: "Transfer")
     assert(entry("a1") === applePay, "The bank payment did not merge with the Apple Pay entry")
     assert(entry("g1") != nil && entry("g1") !== applePay, "Two bank payments merged into one entry")
-    assert(entry("e1") == nil, "Income was recorded as spending")
+    assert(
+        entry("e1").map { $0.isIncome && $0.amount == 5_000 && $0.assignedCategory?.key == "income" } == true,
+        "A salary was not recorded as income")
+    assert(entry("w1") == nil, "A withdrawal from the person's own jar was recorded as income")
+    assert(entry("w2")?.isIncome == true, "Money from a person was hidden as a jar withdrawal")
+    assert(
+        entry("r1").map { $0.isIncome && $0.note == "ATB-MARKET" && $0.amount == 432.9 } == true,
+        "A refund is not separate income under the merchant's name")
+    assert(entry("k1").map { $0.isIncome && $0.note == "Кешбек" } == true, "Income merged with spending of its amount")
+    assert(entry("s1") === manualSalary, "Bank income did not merge with the same income entered by hand")
+    assert(
+        entry("f1")?.note == label && entry("i1").map { $0.isIncome && $0.note == label } == true,
+        "A transfer stored the bank's text instead of the label")
+    assert(!entries.contains { $0.note.contains("Олена") }, "A person's name was stored")
+    assert(entry("o1")?.note == label && entry("o2")?.note == "Оренда", "Old transfer notes were not relabelled safely")
     assert(entry("f1")?.assignedCategory?.key == "transfers", "A transfer to a person is not in Transfers")
     assert(entry("j1") == nil, "A top-up of the person's own jar was recorded as spending")
     assert(entry("z1") == nil, "A zero amount was recorded")
@@ -151,7 +195,7 @@ private func runMonobankRecordCheck(now: Date) {
     assert(entry("c1")?.assignedCategory?.key == "fun", "The MCC beat the person's own category")
     assert(entry("d1")?.assignedCategory?.key == "other", "An unknown MCC did not fall back to Other")
     assert(entry("b1")?.amount == 100 && entry("b1")?.note == "Novus", "A new entry has wrong fields")
-    assert(added == 5, "Expected 5 new entries, got \(added)")
+    assert(added == 10, "Expected 10 new entries, got \(added)")
 
     assert(try! MonobankSync.record(page, jarTitles: ["море"], in: context) == 0, "The same page recorded twice")
     // Without the jar list the same top-up is an ordinary transfer: nothing is guessed from the text.
@@ -163,6 +207,24 @@ private func runMonobankRecordCheck(now: Date) {
     let settled = StatementItem.sample("b1", time: t + 60, amount: -9_500, description: "Novus")
     assert(try! MonobankSync.record([settled], jarTitles: [], in: context) == 0, "A settled hold was added anew")
     assert(entry("b1")?.amount == 95 && entry("b1")?.date == at(t + 60), "A settled hold was not updated")
+    // The same id may come back with the other sign: the entry moves between spending and income.
+    for (amount, isIncome, key, hryvnias) in [(9_500, true, "income", 95.0), (-9_000, false, "food", 90)] {
+        let flipped = StatementItem.sample("b1", time: t + 60, amount: amount, description: "Novus")
+        assert(try! MonobankSync.record([flipped], jarTitles: [], in: context) == 0, "A sign change added an entry")
+        assert(
+            entry("b1").map { $0.isIncome == isIncome && $0.amount == hryvnias && $0.assignedCategory?.key == key }
+                == true,
+            "A sign change left the entry inconsistent")
+    }
+    // Before the one-time income re-fetch point, spending missing from the entries was deleted and stays so.
+    let past = [
+        StatementItem.sample("x1", time: t - 1, amount: -100), StatementItem.sample("x2", time: t - 1, amount: 100),
+    ]
+    assert(
+        try! MonobankSync.record(past, jarTitles: [], incomeOnlyBefore: t, in: context) == 1, "Re-fetch added spending")
+    assert(entry("x2")?.isIncome == true, "The re-fetch did not add past income")
+    let huge = StatementItem.sample("h1", time: t, amount: 2_000_000_000)
+    assert(try! MonobankSync.record([huge], jarTitles: [], in: context) == 0, "An amount over the maximum was stored")
 }
 
 /// Verifies one whole run through a fake transport: request, recording, state and errors.
@@ -227,9 +289,9 @@ private func runMonobankRunCheck(now: Date) {
         assert(after.syncedUntil == seconds, "A failed run moved the synced period")
     }
     #if DEBUG
-        // The UI-test fixture must pass the same validation: 3 of its 5 items are spending to record.
+        // The UI-test fixture must pass the same validation: 4 of its 5 items are entries to record.
         for (name, problem, count) in [
-            ("ok", nil, 3), ("rejected", MonobankSync.Problem.rejected, 0), ("notHryvnia", .notHryvnia, 0),
+            ("ok", nil, 4), ("rejected", MonobankSync.Problem.rejected, 0), ("notHryvnia", .notHryvnia, 0),
             ("offline", .offline, 0),
         ] {
             let store = FileManager.default.temporaryDirectory.appending(path: "fixture-\(UUID().uuidString).store")
@@ -289,10 +351,34 @@ private func runMonobankRunCheck(now: Date) {
     run(at: MonobankSync.loadState(from: defaults).lastAttempt! + 60)
     assert(MonobankSync.loadState(from: defaults).problem == .rateLimited, "A 429 without an account was misreported")
     assert(transport.requests.count == 1, "A statement was fetched with no account known")
-    // A state stored before accounts were kept still loads, so a connected token keeps working.
-    defaults.set(Data(#"{"syncedUntil":\#(seconds)}"#.utf8), forKey: MonobankSync.stateKey)
+    // A state from before income was recorded still loads, and re-fetches the whole window once.
+    defaults.set(Data(#"{"syncedUntil":\#(seconds),"account":"uah"}"#.utf8), forKey: MonobankSync.stateKey)
     let legacy = MonobankSync.loadState(from: defaults)
-    assert(legacy.syncedUntil == seconds && legacy.account == nil, "An older stored state was lost")
+    assert(
+        legacy.syncedUntil == nil && legacy.account == "uah" && legacy.incomeOnlyBefore == seconds - 3 * 86_400,
+        "An older stored state was lost or not set to re-fetch income")
+    let later = seconds + 600
+    let backfill = try! JSONSerialization.data(withJSONObject: [
+        ["id": "r1", "time": seconds - 60, "description": "Novus", "mcc": 5411, "amount": -1_250],
+        ["id": "old", "time": seconds - 5 * 86_400, "description": "Deleted", "mcc": 5411, "amount": -700],
+        ["id": "pay", "time": seconds - 5 * 86_400, "description": "Зарплата", "mcc": 1234, "amount": 500_000],
+    ])
+    transport.answers = [.success((429, Data())), .success((200, backfill))]
+    transport.requests = []
+    let before = try! context.fetchCount(FetchDescriptor<Expense>())
+    run(at: Date(timeIntervalSince1970: TimeInterval(later)))
+    let fetched = transport.requests.last?.hasPrefix(
+        Monobank.statementPath(account: "uah", from: later - Int(Monobank.window), to: later))
+    let added = try! context.fetch(FetchDescriptor<Expense>()).filter { ["r1", "old", "pay"].contains($0.bankID) }
+    assert(
+        fetched == true && (try! context.fetchCount(FetchDescriptor<Expense>())) == before + 1, "Backfill went wrong")
+    assert(added.compactMap(\.bankID).sorted() == ["pay", "r1"], "The backfill added the wrong entries")
+    let after = MonobankSync.loadState(from: defaults)
+    assert(
+        after.version == MonobankSync.stateVersion && after.syncedUntil == later
+            && MonobankSync.period(for: after, now: Date(timeIntervalSince1970: TimeInterval(later + 60)))?.lowerBound
+                == later - 3 * 86_400,
+        "The income re-fetch did not run exactly once")
 }
 
 /// Verifies connecting: one `client-info` call serves both the token check and the first sync.

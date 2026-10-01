@@ -3,7 +3,8 @@ import Foundation
 import SwiftData
 import UIKit
 
-/// Records monobank card payments as expenses, once the person has connected a token.
+/// Records monobank card payments as expenses and money received as income, once the person
+/// has connected a token.
 ///
 /// Runs when the app becomes active and in an opportunistic background refresh, at most
 /// once per ``throttle``. Each run fetches one statement page: the whole allowed window
@@ -38,7 +39,15 @@ enum MonobankSync {
         /// The opaque id of the synced hryvnia account, from the last readable `client-info`;
         /// kept so a sync can go on when `client-info` is rate-limited. Not an IBAN or card number.
         var account: String?
+        /// The state format; `nil` in states stored before income was recorded.
+        var version: Int?
+        /// Before this time, in Unix seconds, only income and entries already linked are recorded:
+        /// the one-time re-fetch for past income must not bring back spending the person deleted.
+        var incomeOnlyBefore: Int?
     }
+
+    /// The current ``State/version``: 2 since income is recorded.
+    static let stateVersion = 2
 
     /// Why the last attempt did not update the entries.
     enum Problem: String, Codable {
@@ -97,36 +106,62 @@ enum MonobankSync {
         return next
     }
 
-    /// Records the spending of a page: updates entries it already has, merges with an
-    /// entry the Wallet automation recorded, and adds the rest.
+    /// Records a page: updates entries it already has, merges with an entry the Wallet
+    /// automation or the person recorded, and adds the rest as spending or income.
     ///
     /// - Parameters:
     ///   - items: A validated page.
-    ///   - jarTitles: The titles of the person's jars, so top-ups of them are skipped.
+    ///   - jarTitles: The titles of the person's jars, so money moved to and from them is skipped.
+    ///   - incomeOnlyBefore: Before this time, in Unix seconds, no new spending is added.
     ///   - context: The context to write; the built-ins must exist in it.
     /// - Returns: How many entries were added.
     /// - Throws: An error if saving fails.
     @discardableResult
-    static func record(_ items: [StatementItem], jarTitles: [String], in context: ModelContext) throws -> Int {
+    static func record(
+        _ items: [StatementItem], jarTitles: [String], incomeOnlyBefore: Int? = nil, in context: ModelContext
+    ) throws -> Int {
         let linked = try context.fetch(FetchDescriptor<Expense>(predicate: #Predicate { $0.bankID != nil }))
         var byID = Dictionary(linked.map { ($0.bankID!, $0) }, uniquingKeysWith: { first, _ in first })
         var memory: MerchantMemory?
+        func category(for item: StatementItem) -> ExpenseCategory {
+            // Income always goes into the income category; transfers skip the merchant memory,
+            // whose key would be the same label for every person.
+            if item.isIncome { return Store.category(forKey: Category.income.rawValue, in: context) }
+            if item.mcc == Monobank.transferMCC {
+                return Store.category(forKey: Category.transfers.rawValue, in: context)
+            }
+            memory = memory ?? MerchantMemory(context: context)
+            return Store.category(forMerchant: item.note, mcc: item.mcc, memory: memory, in: context)
+        }
         var added = 0
         for item in items where item.isRecordable(jarTitles: jarTitles) {
-            let amount = Double(-item.amount) / 100
+            let amount = Double(item.amount.magnitude) / 100
+            guard isValidAmount(amount) else { continue }
             let date = Date(timeIntervalSince1970: TimeInterval(item.time))
             if let existing = byID[item.id] {
-                // A pending payment settles with its final amount under the same id.
+                // A pending payment settles with its final amount under the same id, even with the other sign.
+                if existing.isIncome != item.isIncome {
+                    let moved = category(for: item)
+                    existing.isIncome = item.isIncome
+                    existing.assignedCategory = moved
+                    existing.legacyCategory = Category(rawValue: moved.key) ?? .other
+                }
                 existing.amount = amount
                 existing.date = date
-            } else if let match = Store.matchingExpense(amount: amount, date: date, unlinkedOnly: true, in: context) {
+                // A transfer recorded before transfers were labelled kept the bank's text, which can name a person.
+                if item.mcc == Monobank.transferMCC, existing.note == item.description { existing.note = item.note }
+            } else if !item.isIncome, item.time < incomeOnlyBefore ?? .min {
+                // Synced before; a payment missing from the entries now was deleted by the person.
+                continue
+            } else if let match = Store.matchingExpense(
+                amount: amount, date: date, unlinkedOnly: true, isIncome: item.isIncome, in: context)
+            {
                 match.bankID = item.id
                 byID[item.id] = match
             } else {
-                memory = memory ?? MerchantMemory(context: context)
-                let category = Store.category(forMerchant: item.description, mcc: item.mcc, memory: memory, in: context)
                 let expense = Expense(
-                    amount: amount, category: category, note: item.description, date: date, bankID: item.id)
+                    amount: amount, category: category(for: item), note: item.note, date: date,
+                    isIncome: item.isIncome, bankID: item.id)
                 context.insert(expense)
                 byID[item.id] = expense
                 added += 1
@@ -186,7 +221,7 @@ enum MonobankSync {
             let items = try Monobank.statementItems(
                 from: body, from: period.lowerBound, to: period.upperBound, now: Int(now.timeIntervalSince1970))
             try Store.ensureCategories(in: context)
-            try record(items, jarTitles: jarTitles, in: context)
+            try record(items, jarTitles: jarTitles, incomeOnlyBefore: state.incomeOnlyBefore, in: context)
             state = self.state(after: state, period: period, items: items, now: now)
         } catch {
             state.problem = problem(for: error)
@@ -281,12 +316,25 @@ enum MonobankSync {
         if !UserDefaults.standard.bool(forKey: linkedKey) { MonobankToken.delete() }
     }
 
-    /// Reads the stored state.
+    /// Reads the stored state, upgraded to ``stateVersion``.
+    ///
+    /// A state from before income was recorded starts the whole window over once, so past income
+    /// appears; spending older than its last re-fetch was synced then and is not added again.
     ///
     /// - Parameter defaults: Where the state is kept.
     /// - Returns: The state, or an empty one.
     static func loadState(from defaults: UserDefaults) -> State {
-        defaults.data(forKey: stateKey).flatMap { try? JSONDecoder().decode(State.self, from: $0) } ?? State()
+        var state =
+            defaults.data(forKey: stateKey).flatMap { try? JSONDecoder().decode(State.self, from: $0) } ?? State()
+        // ponytail: a first sync still paging when the app updated keeps its first pages without income.
+        if state.version == nil, let synced = state.syncedUntil {
+            state.incomeOnlyBefore = synced - Int(holdWindow)
+            state.syncedUntil = nil
+            state.pageCursor = nil
+            state.pagingStart = nil
+        }
+        state.version = stateVersion
+        return state
     }
 
     private static func save(_ state: State, to defaults: UserDefaults) {

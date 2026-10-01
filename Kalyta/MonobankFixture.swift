@@ -4,7 +4,7 @@
     /// Canned monobank answers for UI tests and design reviews, chosen with `-monobankFixture <name>`.
     ///
     /// Names: `ok` (a jar, a grocery payment, a pending taxi ride, a transfer to a person, a jar
-    /// top-up and a salary, on a hryvnia card listed after a default dollar account), `rejected` (401),
+    /// top-up and a salary recorded as income, on a hryvnia card listed after a default dollar account), `rejected` (401),
     /// `rateLimited` (429), `offline`, and `notHryvnia` (dollar and euro accounts only).
     /// Any token of the right shape connects. Debug builds only; nothing here reaches the network.
     struct MonobankFixture: MonobankTransport {

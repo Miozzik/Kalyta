@@ -27,7 +27,9 @@ struct MonobankView: View {
     private var notConnected: some View {
         Group {
             Section {
-                Text("Records your monobank card payments by itself. The token only reads; it can't move money.")
+                Text(
+                    "Records your monobank card payments and incoming money by itself. The token only reads; it can't move money."
+                )
                 Button("Open api.monobank.ua") { openURL(Monobank.baseURL) }
                     .buttonStyle(.bordered)
             } footer: {
@@ -79,7 +81,7 @@ struct MonobankView: View {
                     isLinked = false
                 }
             } message: {
-                Text("Recorded expenses stay. To revoke the token itself, open api.monobank.ua.")
+                Text("Recorded expenses and income stay. To revoke the token itself, open api.monobank.ua.")
             }
         }
     }

@@ -13,7 +13,9 @@
   підписки й твою IP-адресу. Запит підписано просто «Kalyta», без моделі пристрою й версії iOS.
 - **monobank — лише якщо ти сам його ввімкнеш.** Застосунок напряму, без нашого сервера, запитує твою виписку
   в api.monobank.ua твоїм особистим токеном. Токен лежить у Keychain лише на цьому iPhone і не переноситься на інший
-  iPhone з бекапу. Імена, IBAN і номери карток не зберігаються; назви банок читаються лише під час синхронізації.
+  iPhone з бекапу. Ім’я, IBAN і ЄДРПОУ іншої сторони, коментар до переказу й баланс застосунок не читає взагалі.
+  Переказ записується з підписом «Переказ», а не з описом банку, бо там може бути ім’я людини; у покупок
+  і повернень зберігається назва продавця. Назви банок читаються лише під час синхронізації.
   На телефоні зберігається лише внутрішній ідентифікатор гривневого рахунку з відповіді monobank (не IBAN і не номер
   картки), щоб знати, з якого рахунку читати виписку; «Відключити» його видаляє.
   Дані monobank обробляє згідно зі своїми правилами — ми до них доступу не маємо.
@@ -40,8 +42,9 @@ All expenses, income, categories and subscriptions stay on your iPhone (SwiftDat
   IP address. The request's User-Agent is just "Kalyta", with no device model or iOS version.
 - **monobank — only if you turn it on.** The app requests your statement directly from api.monobank.ua with your own
   personal token, with no server of ours in between. The token is kept in the Keychain on this iPhone only and does not
-  move to another iPhone through a backup. Names, IBANs and card numbers are not stored; jar titles are read during a
-  sync only. The only thing kept on the phone is monobank's internal id of your hryvnia account (not an IBAN or card
+  move to another iPhone through a backup. The other party's name, IBAN and EDRPOU code, transfer comments and the
+  balance are never read. A transfer is recorded as "Transfer", not with the bank's description, which can contain a
+  person's name; purchases and refunds keep the merchant name. Jar titles are read during a sync only. The only thing kept on the phone is monobank's internal id of your hryvnia account (not an IBAN or card
   number), so the app knows which account's statement to read; "Disconnect" deletes it. monobank handles your data
   under its own terms; we have no access to it.
 

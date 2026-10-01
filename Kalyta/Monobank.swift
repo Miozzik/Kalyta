@@ -73,7 +73,7 @@ enum Monobank {
         // No per-item currency check: the account is in hryvnias, and `amount` is in the account
         // currency even for a purchase abroad (`operationAmount` is the purchase currency).
         return try items.map { item in
-            // Positive amounts are income and zero ones are not spending; both are skipped later.
+            // Positive amounts are income; zero ones are skipped later.
             guard (-1_000_000_000...1_000_000_000).contains(item.amount),
                 (1...64).contains(item.id.count), item.id.allSatisfy(\.isStatementIDCharacter),
                 (from...to).contains(item.time), item.time <= now + 300,
@@ -147,6 +147,9 @@ enum Monobank {
 }
 
 /// One transaction of a monobank statement, with only the fields the app uses.
+///
+/// The counterparty's name, IBAN and EDRPOU, the transfer comment, invoice and receipt ids
+/// and the balance are never decoded, so they cannot be stored by mistake.
 struct StatementItem: Decodable, Equatable {
     /// The transaction id, stable across a pending and a settled hold.
     let id: String
@@ -158,7 +161,7 @@ struct StatementItem: Decodable, Equatable {
     let mcc: Int
     /// Whether the amount is still pending; `false` when the API leaves it out.
     let hold: Bool
-    /// The amount in the account currency, in kopiykas; negative for spending.
+    /// The amount in the account currency, in kopiykas; negative for spending, positive for income.
     let amount: Int
 
     private enum CodingKeys: String, CodingKey {
@@ -176,19 +179,35 @@ struct StatementItem: Decodable, Equatable {
         amount = try container.decode(Int.self, forKey: .amount)
     }
 
-    /// Returns whether the item is spending to record.
+    /// Whether the item is money received: a salary, a refund or a transfer in.
+    var isIncome: Bool { amount > 0 }
+
+    /// The note to store: a fixed label for a transfer, since the bank's description of one can
+    /// name a person; the merchant alone for a refund; the description otherwise.
+    var note: String {
+        if mcc == Monobank.transferMCC { return String(localized: "Transfer") }
+        // monobank prefixes a refund with «Скасування.» (seen in statements, not documented).
+        if isIncome, description.hasPrefix("Скасування.") {
+            return description.dropFirst("Скасування.".count).trimmingCharacters(in: .whitespaces)
+        }
+        return description
+    }
+
+    /// Returns whether the item is an entry to record.
     ///
-    /// Income and zero amounts are skipped, and so is a transfer whose description names one
-    /// of the person's own jars: that money is still theirs. Other transfers are spending.
+    /// Zero amounts are skipped, and so is money moved to or from one of the person's own
+    /// jars: it is still theirs. Other transfers are recorded, out as spending and in as income.
     ///
     /// - Parameter jarTitles: The titles of the person's jars, from `client-info`.
-    /// - Returns: `true` if the item should become an expense.
+    /// - Returns: `true` if the item should become an entry.
     func isRecordable(jarTitles: [String]) -> Bool {
-        guard amount < 0 else { return false }
-        guard mcc == Monobank.transferMCC else { return true }
+        guard amount != 0 else { return false }
         let place = Statistics.placeKey(description)
         // Known side effect: a jar titled like a person ("Олена") also hides transfers to that person.
-        return !jarTitles.map(Statistics.placeKey).contains { !$0.isEmpty && place.contains($0) }
+        let namesJar = jarTitles.map(Statistics.placeKey).contains { !$0.isEmpty && place.contains($0) }
+        // A withdrawal reads «Часткове зняття банки «Море»» (seen in statements, not documented); requiring
+        // "банк" keeps a jar titled like a person from hiding money that person sends.
+        return !namesJar || (amount < 0 ? mcc != Monobank.transferMCC : !place.contains("банк"))
     }
 }
 
