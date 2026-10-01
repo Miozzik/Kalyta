@@ -175,10 +175,10 @@ enum Store {
     /// Creates a container on the current schema, migrating older stores.
     ///
     /// - Parameter url: The store file, or `nil` for the app's default location.
-    /// - Returns: A container whose stores use ``SchemaV5``.
+    /// - Returns: A container whose stores use ``SchemaV6``.
     /// - Throws: An error if the store cannot be opened or migrated.
     static func makeContainer(url: URL? = nil) throws -> ModelContainer {
-        let schema = Schema(versionedSchema: SchemaV5.self)
+        let schema = Schema(versionedSchema: SchemaV6.self)
         // `.none`: the default (`.automatic`) moves the store into the App Group once the app has
         // one, and an updated iPhone would open an empty store instead of the person's data.
         let configuration =

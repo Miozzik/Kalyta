@@ -42,6 +42,9 @@ struct ExpenseEditor: View {
     @State private var isIncome: Bool
     @State private var note: String
     @State private var date: Date
+    /// The amount field's currency and its rate to hryvnias.
+    @State private var conversion: Conversion
+    @AppStorage(CurrencyChoices.recentKey) private var recentCurrencies = ""
     @FocusState private var isAmountFocused: Bool
 
     /// Creates the sheet for a new expense, or for editing `expense`.
@@ -59,14 +62,16 @@ struct ExpenseEditor: View {
         isNew = expense == nil
         self.onDelete = onDelete
         self.startsScanning = startsScanning
-        _amount = State(initialValue: expense?.amount)
+        // A foreign entry is edited in its own currency; `amount` holds its hryvnias.
+        _amount = State(initialValue: expense.map { $0.originalAmount ?? $0.amount })
+        _conversion = State(initialValue: Conversion(expense))
         _category = State(initialValue: expense?.assignedCategory)
         _isIncome = State(initialValue: expense?.isIncome ?? isIncome)
         _note = State(initialValue: expense?.note ?? "")
         _date = State(initialValue: expense?.date ?? .now)
     }
 
-    private var canSave: Bool { amount.map(isValidAmount) == true && category != nil }
+    private var canSave: Bool { conversion.hryvnias(for: amount) != nil && category != nil }
 
     /// The categories offered in the grid: visible ones, plus the current one even if hidden,
     /// so editing an old expense never silently changes its category.
@@ -95,11 +100,13 @@ struct ExpenseEditor: View {
                             .multilineTextAlignment(.trailing)
                             .fixedSize()
                             .accessibilityIdentifier("amountField")
-                        Text(verbatim: "₴").foregroundStyle(.secondary)
+                        CurrencyMenu(code: $conversion.code)
                     }
                     .font(.system(size: 52, weight: .bold, design: .rounded))
                     .frame(maxWidth: .infinity)
                     .padding(.top, 20)
+
+                    if conversion.isForeign { HryvniaPreview(conversion: $conversion, amount: amount, date: date) }
 
                     if canScan && !isIncome { scanControls }
 
@@ -162,6 +169,12 @@ struct ExpenseEditor: View {
                     isAmountFocused = expense == nil
                 }
             }
+            // Hryvnias ask nothing: ``CurrencyRates/quote(for:on:isIncome:)`` returns at once for them.
+            .task(id: RateRequest(code: conversion.code, day: Currency.nbuDay(of: date), isIncome: isIncome)) {
+                await loadRates()
+            }
+            .onChange(of: conversion.code) { conversion.dropRate() }
+            .onChange(of: Currency.nbuDay(of: date)) { conversion.dropRate() }
             .fullScreenCover(isPresented: $isScanning) { scanner }
             .sheet(isPresented: $isCreatingCategory) {
                 CategoryEditor(isIncome: isIncome) { created in category = created }
@@ -279,6 +292,8 @@ struct ExpenseEditor: View {
         // The keyboard would cover the note and date the scan filled in.
         isAmountFocused = false
         isIncome = false
+        // A fiscal receipt is always in hryvnias.
+        conversion = Conversion()
         amount = receipt.amount
         date = receipt.date
         // Matched again on every scan, so scanning a different receipt drops a match that no longer fits.
@@ -309,19 +324,37 @@ struct ExpenseEditor: View {
     /// Saves at once instead of waiting for autosave, which runs later: an app killed
     /// right after Save would otherwise lose the expense.
     private func save() {
-        guard let amount, isValidAmount(amount), let category else { return }
-        if let expense {
-            expense.amount = amount
-            expense.assignedCategory = category
-            expense.legacyCategory = Category(rawValue: category.key) ?? .other
-            expense.note = note
-            expense.date = date
-            expense.isIncome = isIncome
-        } else {
-            context.insert(Expense(amount: amount, category: category, note: note, date: date, isIncome: isIncome))
-        }
+        guard let amount, let hryvnias = conversion.hryvnias(for: amount), let category else { return }
+        let entry = expense ?? Expense(amount: hryvnias, category: category, note: note, date: date, isIncome: isIncome)
+        if expense == nil { context.insert(entry) }
+        entry.amount = hryvnias
+        entry.assignedCategory = category
+        entry.legacyCategory = Category(rawValue: category.key) ?? .other
+        entry.note = note
+        entry.date = date
+        entry.isIncome = isIncome
+        let isForeign = conversion.isForeign
+        entry.originalAmount = isForeign ? amount : nil
+        entry.currencyCode = isForeign ? conversion.code : nil
+        entry.rate = isForeign ? conversion.rate : nil
+        entry.isRateEstimated = isForeign && conversion.isEstimated
+        recentCurrencies = CurrencyChoices.remembering(conversion.code, in: recentCurrencies)
         try? context.save()
         dismiss()
+    }
+}
+
+extension ExpenseEditor {
+    /// Reads the rates for the entry's currency and date; offline, falls back to this launch's
+    /// or the last stored rate of the currency, marked as estimated.
+    fileprivate func loadRates() async {
+        conversion.isLoading = conversion.isForeign
+        let rates = CurrencyRates.shared
+        let quote = await rates.quote(for: conversion.code, on: date, isIncome: isIncome)
+        guard !Task.isCancelled else { return }
+        let code = conversion.code
+        let fallback = conversion.isForeign ? rates.lastKnownRate(code) ?? Store.lastStoredRate(code, in: context) : nil
+        conversion.apply(quote, fallback: fallback)
     }
 }
 

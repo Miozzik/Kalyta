@@ -354,14 +354,14 @@ enum SchemaV5: VersionedSchema {
     }
 }
 
-typealias Expense = SchemaV5.Expense
-typealias ExpenseCategory = SchemaV5.ExpenseCategory
+typealias Expense = SchemaV6.Expense
+typealias ExpenseCategory = SchemaV6.ExpenseCategory
 typealias Subscription = SchemaV3.Subscription
 
 /// How stores move between schema versions.
 enum KalytaMigrationPlan: SchemaMigrationPlan {
     static var schemas: [any VersionedSchema.Type] {
-        [SchemaV1.self, SchemaV2.self, SchemaV3.self, SchemaV4.self, SchemaV5.self]
+        [SchemaV1.self, SchemaV2.self, SchemaV3.self, SchemaV4.self, SchemaV5.self, SchemaV6.self]
     }
     static var stages: [MigrationStage] {
         [
@@ -369,6 +369,7 @@ enum KalytaMigrationPlan: SchemaMigrationPlan {
             .lightweight(fromVersion: SchemaV2.self, toVersion: SchemaV3.self),
             .lightweight(fromVersion: SchemaV3.self, toVersion: SchemaV4.self),
             .lightweight(fromVersion: SchemaV4.self, toVersion: SchemaV5.self),
+            .lightweight(fromVersion: SchemaV5.self, toVersion: SchemaV6.self),
         ]
     }
 }

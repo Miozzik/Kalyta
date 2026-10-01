@@ -4,6 +4,16 @@
     "%@": {
       "shouldTranslate": false
     },
+    "%@ · check": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · перевірити"
+          }
+        }
+      }
+    },
     "%@: %@ on %@": {
       "localizations": {
         "en": {
@@ -593,6 +603,16 @@
         }
       }
     },
+    "Currency": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Валюта"
+          }
+        }
+      }
+    },
     "Cyan": {
       "localizations": {
         "uk": {
@@ -709,6 +729,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Розваги"
+          }
+        }
+      }
+    },
+    "Estimated rate %@ · check": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Орієнтовний курс %@ · перевірити"
           }
         }
       }
@@ -935,6 +965,16 @@
         }
       }
     },
+    "In hryvnias": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "У гривнях"
+          }
+        }
+      }
+    },
     "In the shortcut, tap ⓘ, then Privacy, and turn on Allow Running When Locked.": {
       "localizations": {
         "uk": {
@@ -1152,6 +1192,32 @@
         }
       }
     },
+    "NBU %@ on %@ · change": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "NBU %1$@ on %2$@ · change"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "НБУ %1$@ на %2$@ · змінити"
+          }
+        }
+      }
+    },
+    "NBU today: %@": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "НБУ сьогодні: %@"
+          }
+        }
+      }
+    },
     "Name": {
       "localizations": {
         "uk": {
@@ -1258,6 +1324,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Надходжень ще немає"
+          }
+        }
+      }
+    },
+    "No rate without a network — enter it": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Немає курсу без мережі — введіть його"
           }
         }
       }
@@ -1382,6 +1458,16 @@
         }
       }
     },
+    "Other…": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Інша…"
+          }
+        }
+      }
+    },
     "Per month": {
       "localizations": {
         "uk": {
@@ -1458,6 +1544,32 @@
           "stringUnit": {
             "state": "translated",
             "value": "Діапазон"
+          }
+        }
+      }
+    },
+    "Rate": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Курс"
+          }
+        }
+      }
+    },
+    "Rate %@ on %@ · change": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Rate %1$@ on %2$@ · change"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Курс %1$@ на %2$@ · змінити"
           }
         }
       }
@@ -1804,6 +1916,16 @@
         }
       }
     },
+    "The NBU has no rate for this currency — enter it": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "НБУ не дає курсу цієї валюти — введіть його"
+          }
+        }
+      }
+    },
     "The amount is too large.": {
       "localizations": {
         "uk": {
@@ -2054,6 +2176,16 @@
         }
       }
     },
+    "Your rate %@ · change": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ваш курс %@ · змінити"
+          }
+        }
+      }
+    },
     "from monobank": {
       "localizations": {
         "uk": {
@@ -2090,6 +2222,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "monobank більше не приймає токен. Відключи й підключи знову."
+          }
+        }
+      }
+    },
+    "monobank today buys at %@": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "monobank сьогодні купує по %@"
+          }
+        }
+      }
+    },
+    "monobank today sells at %@": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "monobank сьогодні продає по %@"
+          }
+        }
+      }
+    },
+    "monobank today: %@": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "monobank сьогодні: %@"
           }
         }
       }

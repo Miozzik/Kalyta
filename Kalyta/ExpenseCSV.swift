@@ -22,6 +22,14 @@ struct ExpenseRecord: Sendable, Equatable {
     var categoryColorName: String = CategoryColor.gray.rawValue
     /// Whether the entry is income rather than spending.
     var isIncome: Bool = false
+    /// The amount in ``currencyCode`` as entered, or `nil` for a hryvnia entry.
+    var originalAmount: Double?
+    /// The ISO 4217 code of ``originalAmount``; `nil` means hryvnias.
+    var currencyCode: String?
+    /// Hryvnias per unit of ``currencyCode`` that ``amount`` was converted at.
+    var rate: Double?
+    /// Whether ``rate`` was a stand-in waiting for the NBU rate.
+    var isRateEstimated: Bool = false
 }
 
 extension ExpenseRecord {
@@ -37,7 +45,11 @@ extension ExpenseRecord {
             note: expense.note,
             categorySymbol: expense.categoryIcon,
             categoryColorName: expense.assignedCategory?.colorName ?? expense.legacyCategory.defaultColor.rawValue,
-            isIncome: expense.isIncome
+            isIncome: expense.isIncome,
+            originalAmount: expense.originalAmount,
+            currencyCode: expense.currencyCode,
+            rate: expense.rate,
+            isRateEstimated: expense.isRateEstimated
         )
     }
 }
@@ -50,6 +62,7 @@ enum ExpenseCSV {
     /// The header names, in the order the columns are written. Append only.
     static let columns = [
         "date", "amount", "currency", "category", "category_name", "note", "category_symbol", "category_color", "kind",
+        "original_amount", "original_currency", "rate", "rate_estimated",
     ]
 
     /// The `kind` value of an income row; spending is ``expenseKind``, and older files have no `kind`.
@@ -60,6 +73,9 @@ enum ExpenseCSV {
     /// The columns every export since the first has had; an import requires them, in order.
     static let requiredColumns = Array(columns.prefix(6))
 
+    /// The `rate_estimated` values of a foreign row; a hryvnia row leaves it empty.
+    static let estimatedValues = ["true": true, "false": false]
+
     /// RFC 4180 ends every record, including the header, with CRLF.
     private static let recordTerminator = "\r\n"
 
@@ -68,6 +84,12 @@ enum ExpenseCSV {
         .locale(Locale(identifier: "en_US_POSIX"))
         .grouping(.never)
         .precision(.fractionLength(0...2))
+
+    /// Formats foreign amounts and rates with a dot and up to six decimals, enough for any NBU rate.
+    private static let preciseFormat = FloatingPointFormatStyle<Double>.number
+        .locale(Locale(identifier: "en_US_POSIX"))
+        .grouping(.never)
+        .precision(.fractionLength(0...6))
 
     /// Returns the whole CSV document for the given expenses.
     ///
@@ -90,6 +112,10 @@ enum ExpenseCSV {
                 record.categorySymbol,
                 record.categoryColorName,
                 record.isIncome ? incomeKind : expenseKind,
+                record.originalAmount?.formatted(preciseFormat) ?? "",
+                record.currencyCode ?? "",
+                record.rate?.formatted(preciseFormat) ?? "",
+                record.currencyCode == nil ? "" : String(record.isRateEstimated),
             ]
             .map(field)
             .joined(separator: ",")

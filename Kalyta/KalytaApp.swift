@@ -13,6 +13,7 @@ import UIKit
 ///   the upgrade to this one, then exits.
 /// - `--measure-import` (also in release builds) times planning and inserting 10,000 imported
 ///   rows on a temporary store, then exits; only a release build gives timings worth deciding on.
+/// - `-rateFixture <name>` (debug builds) answers rate requests from ``RateFixture`` instead of the network.
 /// - `-scanPayload <text>` (debug builds) makes Scan Receipt read `<text>` instead of the camera;
 ///   `"A|B"` gives A on the first tap, B on the second, and so on.
 @main
@@ -58,6 +59,8 @@ struct KalytaApp: App {
                         if let defaults = TodayTotal.sharedDefaults {
                             TodayTotal.publish(from: Store.container.mainContext, to: defaults)
                         }
+                        // Entries saved offline get the NBU rate for their date; asks nothing if there are none.
+                        await CurrencyRates.shared.refreshEstimated(in: Store.container.mainContext)
                         MonobankSync.removeOrphanedToken()
                         await MonobankSync.runIfLinked()
                     }

@@ -588,3 +588,40 @@ Decided by the coordinator while the user was away. Source: monobank API spec, h
 - **Proof:** `runMonobankDeletionCheck` (`Kalyta/MonobankCheck.swift`): a re-sync does not recreate a tombstoned id,
   a manual entry leaves no tombstone, an expired id is pruned, `forget` clears the list. Each assertion went red under
   its mutation. Not covered by a check: the re-read for a deletion while a sync is in flight.
+
+## 2026-10-01 — Currencies, stage 1: manual entries (PM gate A ruling; client, designer, tester, security agreed)
+
+Sources: NBU open data API, https://bank.gov.ua/ua/open-data/api-dev (`statdirectory/exchange?date=YYYYMMDD&json`);
+monobank open API, https://api.monobank.ua/docs/ (`GET /bank/currency`, no token, cached ≥ 5 min); Apple:
+`Locale.commonISOCurrencyCodes`, `Locale.localizedString(forCurrencyCode:)`, `NSDecimalNumber.RoundingMode.plain`.
+Research: vault «Валюти — дослідження 2026-10-01».
+- **Model.** `amount` stays the hryvnia value; every total, the widget, statistics and matching read it, unchanged.
+  `SchemaV6` (lightweight from V5) adds `originalAmount: Double?`, `currencyCode: String?` (nil = UAH),
+  `rate: Double?` (UAH per unit; stored, because the rounded hryvnias do not give it back: 3 × 44.9729 = 134.9187 →
+  134.92 → 44.9733) and `isRateEstimated: Bool = false`. `StoreMerge` copies all four.
+- **Conversion** in `Decimal`, half-up to kopiykas, then `isValidAmount` on the hryvnia value; the original must be
+  finite and > 0.
+- **Rates.** NBU: the whole-day list for the entry's calendar date in Europe/Kyiv, so only a date leaves the phone;
+  weekends answer with the last rate; a future date gives `[]` → no rate (never 1 or 0). Strict decoding (`cc`, `r030`,
+  `rate`, `exchangedate`), body ≤ 64 KB; cached in memory per Kyiv day, no cache file. monobank `/bank/currency` for
+  today's buy/sell, through a token-less `RatesHTTP` (never `MonobankHTTP`, which always sends `X-Token`), cached
+  5 min, 429 → no request for ≥ 60 s; the pair is found by the NBU `r030`, no hard-coded table; a pair may have only
+  `rateCross`. No request at all while the store has no foreign entry and the editor is in hryvnias.
+- **Editor.** The fixed «₴» becomes a currency menu: UAH, USD, EUR until three recent currencies exist, then the
+  recent ones, then «Інша…» with the full searchable list. The rate is one line («НБУ 44,97 · змінити») that opens a
+  field in place. «У гривнях» sits under the amount: recorded value, NBU today, monobank today (buy for income, sell
+  for spending).
+- **Offline.** Save stays enabled while any rate is known (this launch's cache, else the last stored rate of that
+  currency); such an entry is `isRateEstimated` and shows «перевірити»; on the next active launch online it gets the
+  NBU rate for its date, hryvnias recomputed, flag cleared. With no rate at all the editor asks for one.
+- **List row:** original amount first («+100 $»), «≈ 4 497 ₴» below.
+- **CSV:** `currency` stays `UAH` (the currency of `amount`); appended `original_amount`, `original_currency`, `rate`,
+  `rate_estimated`; import validates them; rows whose `currency` is not UAH are still refused; `DuplicateKey` gains
+  the currency (old exports: nil). Nine-column files still import.
+- **Not in stage 1:** the Add Expense App Intent is unchanged (what Wallet passes for a foreign payment is unverified
+  until the device test).
+- **Stage 2 plan (monobank foreign-currency cards):** the real rate of a bank entry is |amount| / |operationAmount|
+  from the statement. Dedupe of a manual foreign entry against the bank's: same currency and original amount (±0.005)
+  within ``Store/purchaseMatchWindow``, not by the hryvnia value, because the bank converts on the processing date,
+  not the purchase date; the bank's hryvnias and rate then replace the estimate. The sync state grows from one
+  account to several.

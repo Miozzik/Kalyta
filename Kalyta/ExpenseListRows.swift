@@ -67,12 +67,35 @@ struct ExpenseRow: View {
 
             Spacer()
 
-            // Income reads as money in: a plus sign and green, so it is never mistaken for spending.
-            Text(verbatim: formattedHryvnias(expense.amount, showsPlus: expense.isIncome))
-                .foregroundStyle(expense.isIncome ? Color.green : Color.primary)
-                .font(.body.weight(.medium))
-                .monospacedDigit()
+            VStack(alignment: .trailing, spacing: 2) {
+                // Income reads as money in: a plus sign and green, so it is never mistaken for spending.
+                Text(verbatim: primaryAmount)
+                    .foregroundStyle(expense.isIncome ? Color.green : Color.primary)
+                    .font(.body.weight(.medium))
+                // A foreign entry: what it counts as in every total.
+                if expense.currencyCode != nil {
+                    let hryvnias = "≈ " + formattedHryvnias(expense.amount.rounded())
+                    Group {
+                        if expense.isRateEstimated {
+                            Text("\(hryvnias) · check")
+                        } else {
+                            Text(verbatim: hryvnias)
+                        }
+                    }
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                }
+            }
+            .monospacedDigit()
         }
         .padding(.vertical, 2)
+    }
+
+    /// The amount as entered: in its own currency for a foreign entry, else in hryvnias.
+    private var primaryAmount: String {
+        guard let code = expense.currencyCode, let original = expense.originalAmount else {
+            return formattedHryvnias(expense.amount, showsPlus: expense.isIncome)
+        }
+        return formattedAmount(original, currencyCode: code, showsPlus: expense.isIncome)
     }
 }

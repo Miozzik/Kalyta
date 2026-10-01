@@ -47,7 +47,8 @@ func runSelfCheck() {
     let csv = ExpenseCSV.document(for: [record], timeZone: TimeZone(identifier: "Europe/Kyiv")!)
     let csvLines = csv.components(separatedBy: "\r\n")
     assert(
-        csvLines.first == "date,amount,currency,category,category_name,note,category_symbol,category_color,kind",
+        csvLines.first == "date,amount,currency,category,category_name,note,category_symbol,category_color,kind,"
+            + "original_amount,original_currency,rate,rate_estimated",
         "CSV header changed: \(csvLines[0])")
     assert(csv.hasSuffix("\r\n") && csvLines.count == 3, "CSV records must end in CRLF")
     assert(csvLines[1].hasPrefix("2026-09-23T12:18:00+03:00,"), "CSV date not in local time: \(csvLines[1])")
@@ -79,6 +80,7 @@ func runSelfCheck() {
     runHardeningCheck()
     runTodayCheck()
     runAutopayCheck()
+    runCurrencyCheck()
 
     // The Shortcuts action: an empty or unknown category must record into "Other", never fail.
     assert(Store.category(forKey: nil, in: context).key == "other", "An empty category did not fall back to Other")
@@ -201,6 +203,11 @@ func runUpgradeCheck() {
     let expected = demoSamples
     assert(stored.count == expected.count, "Upgrade changed the number of expenses: \(stored.count)")
     assert(stored.allSatisfy { $0.bankID == nil }, "Upgrade gave existing entries a bank id")
+    assert(
+        stored.allSatisfy {
+            $0.currencyCode == nil && $0.originalAmount == nil && $0.rate == nil && !$0.isRateEstimated
+        },
+        "Upgrade gave existing entries a currency")
     for sample in expected {
         let matches = stored.filter { $0.note == sample.note }
         assert(matches.count == 1, "Sample \(sample.note) found \(matches.count) times")

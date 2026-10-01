@@ -57,7 +57,7 @@ enum StoreMerge {
     /// - Throws: An error if either store cannot be opened, read or saved.
     @discardableResult
     static func merge(from url: URL, into target: ModelContext) throws -> Result {
-        let schema = Schema(versionedSchema: SchemaV5.self)
+        let schema = Schema(versionedSchema: SchemaV6.self)
         let source = ModelContext(
             try ModelContainer(
                 for: schema, migrationPlan: KalytaMigrationPlan.self,
@@ -88,10 +88,14 @@ enum StoreMerge {
             if let id = expense.bankID, bankIDs.contains(id) { continue }
             guard seen.insert(ExpenseImport.DuplicateKey(ExpenseRecord(expense))).inserted else { continue }
             let key = expense.assignedCategory?.key ?? expense.legacyCategory.rawValue
-            target.insert(
-                Expense(
-                    amount: expense.amount, category: categories[key] ?? Store.category(forKey: nil, in: target),
-                    note: expense.note, date: expense.date, isIncome: expense.isIncome, bankID: expense.bankID))
+            let copy = Expense(
+                amount: expense.amount, category: categories[key] ?? Store.category(forKey: nil, in: target),
+                note: expense.note, date: expense.date, isIncome: expense.isIncome, bankID: expense.bankID)
+            copy.originalAmount = expense.originalAmount
+            copy.currencyCode = expense.currencyCode
+            copy.rate = expense.rate
+            copy.isRateEstimated = expense.isRateEstimated
+            target.insert(copy)
             if let id = expense.bankID { bankIDs.insert(id) }
             result.expenses += 1
         }

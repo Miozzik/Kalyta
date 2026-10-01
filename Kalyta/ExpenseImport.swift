@@ -161,6 +161,8 @@ enum ExpenseImport {
         let note: String
         /// Part of the key, so an income and an expense alike in every other way stay apart.
         let isIncome: Bool
+        /// The entry's foreign currency, `nil` for hryvnias (and every row of older exports).
+        let currencyCode: String?
 
         /// Creates the key of a record.
         ///
@@ -171,6 +173,7 @@ enum ExpenseImport {
             categoryKey = record.categoryKey
             note = record.note
             isIncome = record.isIncome
+            currencyCode = record.currencyCode
         }
     }
 
@@ -239,12 +242,27 @@ enum ExpenseImport {
                 invalidLines.append(row.line)
                 continue
             }
+            // Files from before currencies have no `original_currency`; a hryvnia row leaves it empty.
+            let code = value("original_currency") ?? ""
+            var foreign: (amount: Double, rate: Double, isEstimated: Bool)?
+            if !code.isEmpty {
+                guard Currency.isCurrencyCode(code), code != hryvniaCurrencyCode,
+                    let original = value("original_amount").flatMap(Double.init), isValidAmount(original),
+                    let rate = value("rate").flatMap(Double.init), Currency.rateBounds.contains(rate),
+                    let isEstimated = ExpenseCSV.estimatedValues[value("rate_estimated") ?? ""]
+                else {
+                    invalidLines.append(row.line)
+                    continue
+                }
+                foreign = (original, rate, isEstimated)
+            }
             kinds[key] = isIncome
             let record = ExpenseRecord(
                 date: date, amount: amount, categoryKey: key, categoryName: name, note: note,
                 categorySymbol: value("category_symbol") ?? Category.other.icon,
                 categoryColorName: value("category_color") ?? CategoryColor.gray.rawValue,
-                isIncome: isIncome)
+                isIncome: isIncome, originalAmount: foreign?.amount, currencyCode: foreign == nil ? nil : code,
+                rate: foreign?.rate, isRateEstimated: foreign?.isEstimated ?? false)
             if seen.insert(DuplicateKey(record)).inserted {
                 toInsert.append(record)
             } else {
@@ -294,10 +312,14 @@ enum ExpenseImport {
             }
             // Always set the link: the launch relink would otherwise move a custom-category
             // row to its legacy built-in value.
-            context.insert(
-                Expense(
-                    amount: record.amount, category: category, note: record.note, date: record.date,
-                    isIncome: record.isIncome))
+            let entry = Expense(
+                amount: record.amount, category: category, note: record.note, date: record.date,
+                isIncome: record.isIncome)
+            entry.originalAmount = record.originalAmount
+            entry.currencyCode = record.currencyCode
+            entry.rate = record.rate
+            entry.isRateEstimated = record.isRateEstimated
+            context.insert(entry)
         }
         try context.save()
         return createdCount
