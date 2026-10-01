@@ -14,6 +14,8 @@
 - **monobank — лише якщо ти сам його ввімкнеш.** Застосунок напряму, без нашого сервера, запитує твою виписку
   в api.monobank.ua твоїм особистим токеном. Токен лежить у Keychain лише на цьому iPhone і не переноситься на інший
   iPhone з бекапу. Імена, IBAN і номери карток не зберігаються; назви банок читаються лише під час синхронізації.
+  На телефоні зберігається лише внутрішній ідентифікатор гривневого рахунку з відповіді monobank (не IBAN і не номер
+  картки), щоб знати, з якого рахунку читати виписку; «Відключити» його видаляє.
   Дані monobank обробляє згідно зі своїми правилами — ми до них доступу не маємо.
 
 Більше нічого не надсилається. Сканування чека розбирає QR-код на телефоні, без мережі.
@@ -39,7 +41,9 @@ All expenses, income, categories and subscriptions stay on your iPhone (SwiftDat
 - **monobank — only if you turn it on.** The app requests your statement directly from api.monobank.ua with your own
   personal token, with no server of ours in between. The token is kept in the Keychain on this iPhone only and does not
   move to another iPhone through a backup. Names, IBANs and card numbers are not stored; jar titles are read during a
-  sync only. monobank handles your data under its own terms; we have no access to it.
+  sync only. The only thing kept on the phone is monobank's internal id of your hryvnia account (not an IBAN or card
+  number), so the app knows which account's statement to read; "Disconnect" deletes it. monobank handles your data
+  under its own terms; we have no access to it.
 
 Nothing else is sent. Receipt scanning parses the QR code on the phone, without any network request.
 Today's total is kept in a shared App Group container so the widget can show it — also on the phone only.
