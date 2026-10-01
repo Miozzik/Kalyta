@@ -36,6 +36,8 @@ struct KalytaApp: App {
             TabView {
                 ContentView()
                     .tabItem { Label("Expenses", systemImage: "list.bullet.rectangle") }
+                ContentView(showsIncome: true)
+                    .tabItem { Label(ContentView.incomeTitle, systemImage: "arrow.down.circle") }
                 StatisticsView()
                     .tabItem { Label("Statistics", systemImage: "chart.bar") }
                 SubscriptionsView()

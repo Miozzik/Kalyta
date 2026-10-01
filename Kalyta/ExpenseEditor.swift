@@ -50,14 +50,18 @@ struct ExpenseEditor: View {
     ///   - expense: The expense to edit, or `nil` to enter a new one.
     ///   - onDelete: Called with the edited expense when the person taps Delete.
     ///   - startsScanning: Whether to open the receipt scanner at once, as a shortcut or widget asks.
-    init(expense: Expense? = nil, onDelete: ((Expense) -> Void)? = nil, startsScanning: Bool = false) {
+    ///   - isIncome: Whether a new entry starts as income; an edited one keeps its own kind.
+    init(
+        expense: Expense? = nil, onDelete: ((Expense) -> Void)? = nil, startsScanning: Bool = false,
+        isIncome: Bool = false
+    ) {
         _expense = State(initialValue: expense)
         isNew = expense == nil
         self.onDelete = onDelete
         self.startsScanning = startsScanning
         _amount = State(initialValue: expense?.amount)
         _category = State(initialValue: expense?.assignedCategory)
-        _isIncome = State(initialValue: expense?.isIncome ?? false)
+        _isIncome = State(initialValue: expense?.isIncome ?? isIncome)
         _note = State(initialValue: expense?.note ?? "")
         _date = State(initialValue: expense?.date ?? .now)
     }

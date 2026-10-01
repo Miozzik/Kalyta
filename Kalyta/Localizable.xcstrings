@@ -955,6 +955,24 @@
         }
       }
     },
+    "Income tab": {
+      "comment": "Tab that lists all money that came in.",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Income"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Надходження"
+          }
+        }
+      }
+    },
     "Indigo": {
       "localizations": {
         "uk": {
@@ -1094,6 +1112,16 @@
         }
       }
     },
+    "Money in from monobank shows here, or tap + to record income": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Тут з’являться надходження з monobank; щоб записати дохід вручну, натисни «+»"
+          }
+        }
+      }
+    },
     "Month": {
       "localizations": {
         "uk": {
@@ -1210,6 +1238,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "У цьому діапазоні витрат немає"
+          }
+        }
+      }
+    },
+    "No income in this period": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "За цей період надходжень немає"
+          }
+        }
+      }
+    },
+    "No income yet": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Надходжень ще немає"
           }
         }
       }
@@ -1410,6 +1458,37 @@
           "stringUnit": {
             "state": "translated",
             "value": "Діапазон"
+          }
+        }
+      }
+    },
+    "Received in %@": {
+      "comment": "Income tab card title for a past period; the argument is a month name or a week range such as 15–21 Sep.",
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Надійшло за %@"
+          }
+        }
+      }
+    },
+    "Received this month": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Надійшло цього місяця"
+          }
+        }
+      }
+    },
+    "Received this week": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Надійшло цього тижня"
           }
         }
       }

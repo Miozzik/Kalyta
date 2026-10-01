@@ -20,7 +20,20 @@ struct PeriodBar: Identifiable {
 }
 
 /// The main screen: period selector, summary, category breakdown, and expenses by day.
+///
+/// The Income tab is the same screen with ``showsIncome`` set, so both tabs share the period
+/// selector, the day list, the editor and the undoable deletion.
 struct ContentView: View {
+    /// The localized title of the Income tab and its navigation bar.
+    ///
+    /// Its own key, because the editor's "Income" means the kind of one entry.
+    static var incomeTitle: String {
+        String(localized: "Income tab", defaultValue: "Income", comment: "Tab that lists all money that came in.")
+    }
+
+    /// Whether the screen totals and lists income instead of spending.
+    var showsIncome = false
+
     /// How long a deletion can be undone before it is committed.
     ///
     /// A design constant rather than a user setting: long enough to read the banner
@@ -54,13 +67,13 @@ struct ContentView: View {
         expenses.filter { $0 !== pendingDeletion }
     }
 
-    /// The visible entries that are spending, not income.
+    /// The visible entries of the kind this screen totals: spending, or income on the Income tab.
     ///
-    /// The one place income is left out: every total, bar and chart reads this.
+    /// The one place the other kind is left out: every total, bar and chart reads this.
     ///
     /// - Complexity: O(*n*).
-    private var visibleSpending: [Expense] {
-        visibleExpenses.filter { !$0.isIncome }
+    private var visibleOfKind: [Expense] {
+        visibleExpenses.filter { $0.isIncome == showsIncome }
     }
 
     private var intervals: [DateInterval] { period.intervals() }
@@ -71,18 +84,18 @@ struct ContentView: View {
 
     private var isCurrentPeriodSelected: Bool { selectedInterval == intervals.last }
 
-    /// Every visible entry of the selected period, income included, for the list.
+    /// The entries of the selected period for the list: all of them, or only income on the Income tab.
     ///
     /// - Complexity: O(*n*), where *n* is the number of entries.
     private var periodEntries: [Expense] {
-        visibleExpenses.filter { selectedInterval.containsExcludingEnd($0.date) }
+        (showsIncome ? visibleOfKind : visibleExpenses).filter { selectedInterval.containsExcludingEnd($0.date) }
     }
 
-    /// The spending of the selected period.
+    /// The spending, or the income on the Income tab, of the selected period.
     ///
     /// - Complexity: O(*n*), where *n* is the number of entries.
     private var periodExpenses: [Expense] {
-        visibleSpending.filter { selectedInterval.containsExcludingEnd($0.date) }
+        visibleOfKind.filter { selectedInterval.containsExcludingEnd($0.date) }
     }
 
     private var periodTotal: Double { periodExpenses.reduce(0) { $0 + $1.amount } }
@@ -98,13 +111,24 @@ struct ContentView: View {
         intervals.map { interval in
             PeriodBar(
                 interval: interval,
-                total: visibleSpending.filter { interval.containsExcludingEnd($0.date) }.reduce(0) { $0 + $1.amount },
+                total: visibleOfKind.filter { interval.containsExcludingEnd($0.date) }.reduce(0) { $0 + $1.amount },
                 label: period.shortLabel(for: interval)
             )
         }
     }
 
     private var summaryTitle: String {
+        if showsIncome {
+            if isCurrentPeriodSelected {
+                return period == .week
+                    ? String(localized: "Received this week") : String(localized: "Received this month")
+            }
+            return String(
+                localized: "Received in \(period.title(for: selectedInterval))",
+                comment:
+                    "Income tab card title for a past period; the argument is a month name or a week range such as 15–21 Sep."
+            )
+        }
         if isCurrentPeriodSelected {
             return period == .week ? String(localized: "Spent this week") : String(localized: "Spent this month")
         }
@@ -149,12 +173,27 @@ struct ContentView: View {
                     SummaryCard(
                         title: summaryTitle,
                         total: periodTotal,
-                        todayTotal: isCurrentPeriodSelected ? todayTotal : nil,
-                        income: periodIncome > 0 ? periodIncome : nil
+                        todayTotal: isCurrentPeriodSelected && !showsIncome ? todayTotal : nil,
+                        income: periodIncome > 0 && !showsIncome ? periodIncome : nil
                     )
 
                     if !totalsByCategory.isEmpty {
-                        CategoryBreakdown(rows: totalsByCategory, total: periodTotal)
+                        // A ring of one income category says nothing the card does not.
+                        if !showsIncome || totalsByCategory.count > 1 {
+                            CategoryBreakdown(rows: totalsByCategory, total: periodTotal)
+                        }
+                    } else if showsIncome {
+                        if visibleOfKind.isEmpty {
+                            ContentUnavailableView(
+                                "No income yet",
+                                systemImage: "arrow.down.circle",
+                                description: Text("Money in from monobank shows here, or tap + to record income")
+                            )
+                        } else {
+                            Text("No income in this period")
+                                .foregroundStyle(.secondary)
+                                .padding(.vertical, 24)
+                        }
                     } else if visibleExpenses.isEmpty {
                         // Below the card, not an overlay: an overlay centres on the whole list and covers the card.
                         ContentUnavailableView(
@@ -221,15 +260,18 @@ struct ContentView: View {
                 if scenePhase != .active { commitPendingDeletion() }
             }
             .onDisappear { commitPendingDeletion() }
-            .navigationTitle("Kalyta")
+            .navigationTitle(showsIncome ? Self.incomeTitle : "Kalyta")
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    // One snapshot feeds both the file and the title, so the count shown is what is exported.
-                    let export = ExpenseExport(records: visibleExpenses.map(ExpenseRecord.init), createdAt: .now)
-                    ShareLink(
-                        item: export, preview: SharePreview(String(localized: "\(export.records.count) entries"))
-                    ) {
-                        Label("Export", systemImage: "square.and.arrow.up")
+                // The full export sits on the Expenses tab; one copy is enough.
+                if !showsIncome {
+                    ToolbarItem(placement: .topBarLeading) {
+                        // One snapshot feeds both the file and the title, so the count shown is what is exported.
+                        let export = ExpenseExport(records: visibleExpenses.map(ExpenseRecord.init), createdAt: .now)
+                        ShareLink(
+                            item: export, preview: SharePreview(String(localized: "\(export.records.count) entries"))
+                        ) {
+                            Label("Export", systemImage: "square.and.arrow.up")
+                        }
                     }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
@@ -237,7 +279,7 @@ struct ContentView: View {
                         .buttonStyle(.borderedProminent)
                 }
             }
-            .sheet(isPresented: $isAddingExpense) { ExpenseEditor() }
+            .sheet(isPresented: $isAddingExpense) { ExpenseEditor(isIncome: showsIncome) }
             .sheet(item: $editingExpense) { expense in
                 ExpenseEditor(expense: expense, onDelete: delete)
             }

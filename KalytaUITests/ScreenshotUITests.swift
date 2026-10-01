@@ -14,7 +14,7 @@ final class ScreenshotUITests: KalytaUITestCase {
 
     func testCaptureStatistics() throws {
         try XCTSkipUnless(ProcessInfo.processInfo.environment["KALYTA_SCREENSHOTS"] == "1", "Set KALYTA_SCREENSHOTS=1")
-        app.tabBars.buttons.element(boundBy: 1).tap()
+        app.tabBars.buttons.element(boundBy: 2).tap()
         capture("statistics")
         for (index, name) in ["months", "categories", "places", "biggest"].enumerated() {
             app.cells.element(boundBy: index + 1).tap()
