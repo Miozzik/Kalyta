@@ -31,13 +31,26 @@ func runMonobankCheck() {
     sparse.removeValue(forKey: "description")
     assert(page([sparse])?.first.map { $0.description == "" && !$0.hold } == true, "Optional fields were required")
     assert(page([item("a1", 0)])?.count == 1, "A zero amount refused the whole page")
-    do {
-        _ = try Monobank.statementItems(
-            from: json([item("a1", -100, currency: 840)]), from: start, to: nowSeconds, now: nowSeconds)
-        assertionFailure("A dollar account was accepted")
-    } catch {
-        assert(error as? MonobankError == .notHryvnia, "A dollar account was not reported as such: \(error)")
+    // A purchase in dollars on the hryvnia card: `amount` is in hryvnias, `operationAmount` in dollars.
+    var abroad = item("a1", -4_150, currency: 840)
+    abroad["operationAmount"] = -100
+    assert(page([abroad])?.first?.amount == -4_150, "A purchase abroad refused the page or lost its hryvnia amount")
+    // The account: hryvnias only, the black card first, then other cards, then FOP; ties keep the API order.
+    func account(_ accounts: [[String: Any]]) -> String?? {
+        // Not `try?`: it would flatten "no account" and "refused" into one `nil`.
+        let body = try! JSONSerialization.data(withJSONObject: ["accounts": accounts])
+        guard case .success(let id) = Result(catching: { try Monobank.hryvniaAccount(from: body) }) else { return nil }
+        return .some(id)
     }
+    let usd: [String: Any] = ["id": "usd", "currencyCode": 840, "type": "black"]
+    let fop: [String: Any] = ["id": "fop", "currencyCode": 980, "type": "fop"]
+    let white: [String: Any] = ["id": "white", "currencyCode": 980, "type": "white"]
+    let black: [String: Any] = ["id": "black", "currencyCode": 980, "type": "black"]
+    assert(account([usd, fop, white, black]) == "black", "The hryvnia black card was not chosen over the default")
+    assert(account([usd, fop, white, ["id": "iron", "currencyCode": 980]]) == "white", "A card lost to FOP or order")
+    assert(account([usd, fop]) == "fop", "A FOP hryvnia account was ignored when it is the only one")
+    assert(account([usd]) == .some(nil), "No hryvnia account must be reported, not guessed")
+    assert(account([["id": "a/b", "currencyCode": 980]]) == nil, "An account id unsafe in a path was accepted")
     var bad = item("a1", -100)
     bad.removeValue(forKey: "amount")
     for (name, items) in [
@@ -162,9 +175,6 @@ private func runMonobankRunCheck(now: Date) {
     let defaults = UserDefaults(suiteName: suite)!
     defer { defaults.removePersistentDomain(forName: suite) }
     let seconds = Int(now.timeIntervalSince1970)
-    let dollarPage = try! JSONSerialization.data(withJSONObject: [
-        ["id": "u1", "time": seconds - 60, "mcc": 5411, "amount": -100, "currencyCode": 840]
-    ])
     let body = try! JSONSerialization.data(withJSONObject: [
         [
             "id": "r1", "time": seconds - 60, "description": "Novus", "mcc": 5411, "hold": false,
@@ -175,8 +185,15 @@ private func runMonobankRunCheck(now: Date) {
             "id": "r2", "time": seconds - 90, "description": "На банку «Море»", "mcc": 4829, "amount": -9_000,
             "currencyCode": 980,
         ],
+        // A purchase abroad as the API may send it, with the purchase currency in the item.
+        [
+            "id": "r3", "time": seconds - 120, "description": "Amazon", "mcc": 5942, "amount": -4_150,
+            "operationAmount": -100, "currencyCode": 840,
+        ],
     ])
-    let info = FakeTransport.Answer.success((200, Data(#"{"name":"A","jars":[{"title":"Море"}]}"#.utf8)))
+    // The default (first) account is in dollars; the hryvnia card comes later.
+    let accounts = #""accounts":[{"id":"usd","currencyCode":840,"type":"black"},{"id":"uah","currencyCode":980}]"#
+    let info = FakeTransport.Answer.success((200, Data(#"{"name":"A",\#(accounts),"jars":[{"title":"Море"}]}"#.utf8)))
     let transport = FakeTransport(answers: [info, .success((200, body))])
     func run(at date: Date) {
         wait {
@@ -185,19 +202,22 @@ private func runMonobankRunCheck(now: Date) {
         }
     }
     run(at: now)
-    let path = Monobank.statementPath(from: seconds - Int(Monobank.window), to: seconds)
+    let path = Monobank.statementPath(account: "uah", from: seconds - Int(Monobank.window), to: seconds)
     let expected = [Monobank.clientInfoPath + " token", path + " token"]
     assert(transport.requests == expected, "Wrong requests: \(transport.requests)")
-    assert(try! context.fetchCount(FetchDescriptor<Expense>()) == 1, "The run did not record the payment")
+    let recorded = try! context.fetch(FetchDescriptor<Expense>())
+    assert(recorded.count == 2, "The run did not record the payments: \(recorded.count)")
+    assert(recorded.first { $0.bankID == "r3" }?.amount == 41.5, "A purchase abroad was not recorded in hryvnias")
     let state = MonobankSync.loadState(from: defaults)
     assert(state.syncedUntil == seconds && state.lastSuccess == now && state.problem == nil, "State not advanced")
+    assert(state.account == "uah", "The hryvnia account was not kept for runs without client-info")
     run(at: now + 30)
     assert(transport.requests.count == 2, "A second run inside 60 s sent a request")
 
     for (answer, problem) in [
         (FakeTransport.Answer.success((429, Data())), MonobankSync.Problem.rateLimited),
         (.success((401, Data())), .rejected), (.failure(.offline), .offline),
-        (.success((200, Data("{}".utf8))), .failed), (.success((200, dollarPage)), .notHryvnia),
+        (.success((200, Data("{}".utf8))), .failed),
     ] {
         transport.answers = [info, answer]
         let before = MonobankSync.loadState(from: defaults)
@@ -257,6 +277,22 @@ private func runMonobankRunCheck(now: Date) {
         assert(after == before + 1, "Client-info \(name) stopped the sync or kept the jar rule")
         assert(MonobankSync.loadState(from: defaults).problem == nil, "Client-info \(name) was reported as a problem")
     }
+    // No hryvnia account: its own message, and no statement is asked for.
+    transport.answers = [.success((200, Data(#"{"accounts":[{"id":"usd","currencyCode":840}]}"#.utf8)))]
+    transport.requests = []
+    run(at: MonobankSync.loadState(from: defaults).lastAttempt! + 60)
+    assert(MonobankSync.loadState(from: defaults).problem == .notHryvnia, "No hryvnia account was not reported")
+    assert(transport.requests.count == 1, "A statement was fetched without a hryvnia account")
+    // With no account known, a failed client-info stops the run before the statement.
+    transport.answers = [.success((429, Data()))]
+    transport.requests = []
+    run(at: MonobankSync.loadState(from: defaults).lastAttempt! + 60)
+    assert(MonobankSync.loadState(from: defaults).problem == .rateLimited, "A 429 without an account was misreported")
+    assert(transport.requests.count == 1, "A statement was fetched with no account known")
+    // A state stored before accounts were kept still loads, so a connected token keeps working.
+    defaults.set(Data(#"{"syncedUntil":\#(seconds)}"#.utf8), forKey: MonobankSync.stateKey)
+    let legacy = MonobankSync.loadState(from: defaults)
+    assert(legacy.syncedUntil == seconds && legacy.account == nil, "An older stored state was lost")
 }
 
 /// Verifies connecting: one `client-info` call serves both the token check and the first sync.
@@ -270,7 +306,7 @@ private func runMonobankConnectCheck(now: Date) {
     let defaults = UserDefaults(suiteName: suite)!
     defer { defaults.removePersistentDomain(forName: suite) }
     let seconds = Int(now.timeIntervalSince1970)
-    let info = Data(#"{"name":"A","jars":[{"title":"Море"}]}"#.utf8)
+    let info = Data(#"{"name":"A","accounts":[{"id":"uah","currencyCode":980}],"jars":[{"title":"Море"}]}"#.utf8)
     let topUp = try! JSONSerialization.data(withJSONObject: [
         [
             "id": "c1", "time": seconds - 60, "description": "На банку «Море»", "mcc": 4829, "amount": -500,
@@ -288,6 +324,7 @@ private func runMonobankConnectCheck(now: Date) {
         status == 200 && defaults.bool(forKey: MonobankSync.linkedKey),
         "Connecting failed: \(String(describing: status))")
     assert(infoCalls == 1 && transport.requests.count == 2, "Connecting asked client-info \(infoCalls) times")
+    assert(transport.requests.last?.hasPrefix("/personal/statement/uah/") == true, "Connecting synced another account")
     assert(try! context.fetchCount(FetchDescriptor<Expense>()) == 0, "The first sync lost the jar list")
 }
 
@@ -310,13 +347,12 @@ private final class FakeTransport: MonobankTransport, @unchecked Sendable {
 }
 
 extension StatementItem {
-    /// An item for checks, spending in hryvnias by default.
+    /// An item for checks, spending by default.
     fileprivate static func sample(
         _ id: String, time: Int, amount: Int = -100, mcc: Int = 5411, hold: Bool = false, description: String = "Shop"
     ) -> StatementItem {
         let object: [String: Any] = [
             "id": id, "time": time, "description": description, "mcc": mcc, "hold": hold, "amount": amount,
-            "currencyCode": 980,
         ]
         return try! JSONDecoder().decode(StatementItem.self, from: JSONSerialization.data(withJSONObject: object))
     }

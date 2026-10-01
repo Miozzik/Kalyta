@@ -35,6 +35,9 @@ enum MonobankSync {
         var lastSuccess: Date?
         /// The outcome of the last attempt, for the status line.
         var problem: Problem?
+        /// The opaque id of the synced hryvnia account, from the last readable `client-info`;
+        /// kept so a sync can go on when `client-info` is rate-limited. Not an IBAN or card number.
+        var account: String?
     }
 
     /// Why the last attempt did not update the entries.
@@ -45,7 +48,7 @@ enum MonobankSync {
         case offline
         /// HTTP 401 or 403: the token is no longer accepted.
         case rejected
-        /// The default account is in another currency, so nothing can be recorded.
+        /// The person has no hryvnia account, so nothing can be recorded.
         case notHryvnia
         /// Anything else, including a response that failed validation.
         case failed
@@ -140,13 +143,13 @@ enum MonobankSync {
     ///   - transport: How requests are sent.
     ///   - context: The context to write.
     ///   - defaults: Where ``State`` is kept.
-    ///   - knownJarTitles: Jar titles already read from `client-info`, so the run does not call it
-    ///     again; `nil` to read them now.
+    ///   - knownClientInfo: A `client-info` body already fetched, so the run does not call it
+    ///     again; `nil` to fetch it now.
     ///   - now: The current time.
     @MainActor
     static func run(
         token: String, transport: MonobankTransport, context: ModelContext, defaults: UserDefaults,
-        knownJarTitles: [String]? = nil, now: Date = .now
+        knownClientInfo: Data? = nil, now: Date = .now
     ) async {
         var state = loadState(from: defaults)
         guard let period = period(for: state, now: now) else { return }
@@ -154,16 +157,31 @@ enum MonobankSync {
         state.lastAttempt = now
         save(state, to: defaults)
         do {
-            // The jar titles tell own top-ups from transfers to others; they live only in this local.
-            // Without them (429, offline, a malformed answer) every transfer is imported and the
-            // sync goes on; only a rejected token stops it, since the statement would fail the same way.
-            var jarTitles = knownJarTitles ?? []
-            if knownJarTitles == nil, let info = try? await transport.get(Monobank.clientInfoPath, token: token) {
-                if info.status == 401 || info.status == 403 { throw MonobankError.status(info.status) }
-                if info.status == 200 { jarTitles = (try? Monobank.jarTitles(from: info.body)) ?? [] }
+            // client-info names the hryvnia account and the jars, whose titles tell own top-ups from
+            // transfers to others; the titles live only in this local. Without it (429, offline, a
+            // malformed answer) every transfer is imported and the stored account is synced; only a
+            // rejected token stops the run, since the statement would fail the same way.
+            var info = knownClientInfo
+            var infoError = MonobankError.invalidResponse
+            if info == nil {
+                do {
+                    let answer = try await transport.get(Monobank.clientInfoPath, token: token)
+                    if answer.status == 200 { info = answer.body } else { infoError = .status(answer.status) }
+                } catch let error as MonobankError {
+                    infoError = error
+                }
+                if infoError == .status(401) || infoError == .status(403) { throw infoError }
             }
+            let jarTitles = info.flatMap { try? Monobank.jarTitles(from: $0) } ?? []
+            if let info, case .success(let found) = Result(catching: { try Monobank.hryvniaAccount(from: info) }) {
+                state.account = found
+                guard found != nil else { throw MonobankError.notHryvnia }
+            }
+            // An account closed since it was stored fails this statement; the next readable
+            // client-info replaces it.
+            guard let account = state.account else { throw infoError }
             let (status, body) = try await transport.get(
-                Monobank.statementPath(from: period.lowerBound, to: period.upperBound), token: token)
+                Monobank.statementPath(account: account, from: period.lowerBound, to: period.upperBound), token: token)
             guard status == 200 else { throw MonobankError.status(status) }
             let items = try Monobank.statementItems(
                 from: body, from: period.lowerBound, to: period.upperBound, now: Int(now.timeIntervalSince1970))
@@ -207,7 +225,7 @@ enum MonobankSync {
 
     /// Verifies a token with one `client-info` call and, if accepted, stores it and runs the first sync.
     ///
-    /// The first sync reuses this call's jar titles. `client-info` allows one call per 60 s, so
+    /// The first sync reuses this call's account and jar titles. `client-info` allows one call per 60 s, so
     /// asking again would get 429, and a month of jar top-ups would be imported as transfers
     /// for good, since later syncs go back only 3 days.
     ///
@@ -229,11 +247,9 @@ enum MonobankSync {
         guard status == 200 else { return status }
         guard saveToken(token) else { throw MonobankError.status(status) }
         defaults.set(true, forKey: linkedKey)
-        // The titles live only in this call and the run it starts.
-        let jarTitles = (try? Monobank.jarTitles(from: body)) ?? []
+        // The body lives only in this call and the run it starts.
         await run(
-            token: token, transport: transport, context: context, defaults: defaults, knownJarTitles: jarTitles,
-            now: now)
+            token: token, transport: transport, context: context, defaults: defaults, knownClientInfo: body, now: now)
         return status
     }
 

@@ -1,0 +1,23 @@
+{
+  "images" : [
+    {
+      "filename" : "share-en.jpg",
+      "idiom" : "universal",
+      "locale" : "en",
+      "scale" : "3x"
+    },
+    {
+      "filename" : "share-uk.jpg",
+      "idiom" : "universal",
+      "locale" : "uk",
+      "scale" : "3x"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  },
+  "properties" : {
+    "localizable" : true
+  }
+}

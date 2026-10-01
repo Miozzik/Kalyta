@@ -92,7 +92,7 @@ struct MonobankView: View {
         case .offline: Text("No connection. Will update when online.")
         case .rejected:
             Text("monobank no longer accepts the token. Disconnect and connect again.").foregroundStyle(.orange)
-        case .notHryvnia: Text("Your main monobank account isn't in hryvnias, so Kalyta can't record from it.")
+        case .notHryvnia: Text("You have no hryvnia account in monobank, so Kalyta has nothing to record.")
         case .failed: Text("Couldn't update. Will try again later.")
         case nil:
             if let date = state?.lastSuccess { Text("Updated \(date, format: .relative(presentation: .named))") }

@@ -115,8 +115,9 @@ CSV за RFC 4180 і захист від формул, межі імпорту, 
 в сумах експорту. Перевірка перезапускна — сама чистить за собою.
 Інші аргументи запуску — `--check-upgrade`, `--measure-import`, `-scanPayload` — описані в `Kalyta/KalytaApp.swift`.
 
-UI-тести (XCTest, 42 тести; 2 пропускаються навмисно: знімки екрана — лише з `KALYTA_SCREENSHOTS=1`,
-оновлення шорткату — лише через `scripts/check-shortcut-upgrade.sh`):
+UI-тести (XCTest, 44 тести; 3 пропускаються навмисно: знімки екрана — лише з `KALYTA_SCREENSHOTS=1`,
+оновлення шорткату — лише через `scripts/check-shortcut-upgrade.sh`, знімки посібника — лише через
+`scripts/autopay-screenshots.sh`):
 
 ```sh
 perl -e 'alarm 900; exec @ARGV' xcodebuild test -scheme Kalyta -destination 'platform=iOS Simulator,name=iPhone 17' \
@@ -135,6 +136,9 @@ perl -e 'alarm 900; exec @ARGV' xcodebuild test -scheme Kalyta -destination 'pla
   раннер UI-тестів, і кожен запуск падає.
 - Перед релізом, що змінює параметри дії **Додати витрату**: `scripts/check-shortcut-upgrade.sh` (збережений шорткат
   мусить пережити оновлення).
+- Знімки Команд у посібнику «Автозапис оплат» (англійська й українська, у `Kalyta/Assets.xcassets/Autopay*`):
+  `scripts/autopay-screenshots.sh` — стирає й перемикає мову симулятора «iPhone 17 Autopay», тож не спільний «iPhone 17».
+  Тригер **Транзакція** (крок 2) на симуляторі недоступний — цей знімок лише з iPhone.
 
 ## Переклад
 

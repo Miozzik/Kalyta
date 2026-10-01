@@ -3,8 +3,8 @@ import Security
 
 /// The monobank personal API: https://api.monobank.ua/docs/ (spec v250818).
 ///
-/// Only two read-only calls are used: `client-info` once to verify a token, and the
-/// statement of the default account. Nothing from the responses is logged.
+/// Only two read-only calls are used: `client-info`, to verify a token and find the hryvnia
+/// card account, and that account's statement. Nothing from the responses is logged.
 enum Monobank {
     /// The only host the app talks to; redirects elsewhere are refused.
     static let baseURL = URL(string: "https://api.monobank.ua")!
@@ -15,6 +15,7 @@ enum Monobank {
     /// The largest response body accepted, in bytes.
     static let maximumBodySize = 1_000_000
     /// The ISO 4217 numeric code of the hryvnia; the synced account must be in it.
+    /// The default account ("0") may be in another currency, so the account is chosen explicitly.
     static let hryvniaNumericCode = 980
     /// The merchant category code of money transfers, recorded under "Transfers".
     static let transferMCC = 4829
@@ -33,15 +34,15 @@ enum Monobank {
         token.wholeMatch(of: /[A-Za-z0-9_-]{20,128}/) != nil
     }
 
-    /// The statement path for the default account, from `from` to `to` in Unix seconds.
+    /// The statement path for an account, from `from` to `to` in Unix seconds.
     ///
     /// - Parameters:
+    ///   - account: An account id from ``hryvniaAccount(from:)``.
     ///   - from: The start, inclusive.
     ///   - to: The end, inclusive.
     /// - Returns: A path relative to ``baseURL``.
-    static func statementPath(from: Int, to: Int) -> String {
-        // "0" is the default account, so no account id ever has to be read or kept.
-        "/personal/statement/0/\(from)/\(to)"
+    static func statementPath(account: String, from: Int, to: Int) -> String {
+        "/personal/statement/\(account)/\(from)/\(to)"
     }
 
     /// The path that verifies a token.
@@ -63,15 +64,14 @@ enum Monobank {
     ///   - to: The end of the requested period, in Unix seconds.
     ///   - now: The current time, in Unix seconds.
     /// - Returns: The items, with descriptions cleaned.
-    /// - Throws: ``MonobankError/notHryvnia`` for an account in another currency, or
-    ///   ``MonobankError/invalidResponse`` if the page is malformed or out of bounds.
+    /// - Throws: ``MonobankError/invalidResponse`` if the page is malformed or out of bounds.
     static func statementItems(from data: Data, from: Int, to: Int, now: Int) throws -> [StatementItem] {
         guard data.count <= maximumBodySize,
             let items = try? JSONDecoder().decode([StatementItem].self, from: data),
             items.count <= pageLimit
         else { throw MonobankError.invalidResponse }
-        // The account's currency, not a bad item: it has its own message, since no retry helps.
-        guard items.allSatisfy({ $0.currencyCode == hryvniaNumericCode }) else { throw MonobankError.notHryvnia }
+        // No per-item currency check: the account is in hryvnias, and `amount` is in the account
+        // currency even for a purchase abroad (`operationAmount` is the purchase currency).
         return try items.map { item in
             // Positive amounts are income and zero ones are not spending; both are skipped later.
             guard (-1_000_000_000...1_000_000_000).contains(item.amount),
@@ -108,6 +108,35 @@ enum Monobank {
         }
     }
 
+    /// Picks the account to sync from `client-info`: a hryvnia account, the black card first,
+    /// then any other card, then a FOP account; the API's order breaks ties.
+    ///
+    /// - Parameter data: The response body.
+    /// - Returns: The account id, or `nil` if the person has no hryvnia account.
+    /// - Throws: ``MonobankError/invalidResponse`` if the body is malformed or too large, or the
+    ///   chosen id is not a plain token that is safe in a path.
+    static func hryvniaAccount(from data: Data) throws -> String? {
+        struct ClientInfo: Decodable {
+            struct Account: Decodable {
+                let id: String
+                let currencyCode: Int
+                let type: String?
+            }
+            let accounts: [Account]?
+        }
+        guard data.count <= maximumBodySize, let info = try? JSONDecoder().decode(ClientInfo.self, from: data)
+        else { throw MonobankError.invalidResponse }
+        let rank = { (account: ClientInfo.Account) in account.type == "black" ? 0 : account.type == "fop" ? 2 : 1 }
+        guard
+            let account = (info.accounts ?? []).filter({ $0.currencyCode == hryvniaNumericCode })
+                .min(by: { rank($0) < rank($1) })
+        else { return nil }
+        guard (1...64).contains(account.id.count), account.id.allSatisfy(\.isStatementIDCharacter),
+            !account.id.contains("/")
+        else { throw MonobankError.invalidResponse }
+        return account.id
+    }
+
     /// Returns text without control and invisible formatting characters, cut to a length.
     ///
     /// Formatting characters include the bidirectional overrides that could disguise a merchant name.
@@ -131,11 +160,9 @@ struct StatementItem: Decodable, Equatable {
     let hold: Bool
     /// The amount in the account currency, in kopiykas; negative for spending.
     let amount: Int
-    /// The account currency (ISO 4217 numeric).
-    let currencyCode: Int
 
     private enum CodingKeys: String, CodingKey {
-        case id, time, description, mcc, hold, amount, currencyCode
+        case id, time, description, mcc, hold, amount
     }
 
     init(from decoder: Decoder) throws {
@@ -147,7 +174,6 @@ struct StatementItem: Decodable, Equatable {
         mcc = try container.decode(Int.self, forKey: .mcc)
         hold = try container.decodeIfPresent(Bool.self, forKey: .hold) ?? false
         amount = try container.decode(Int.self, forKey: .amount)
-        currencyCode = try container.decode(Int.self, forKey: .currencyCode)
     }
 
     /// Returns whether the item is spending to record.
@@ -170,7 +196,7 @@ struct StatementItem: Decodable, Equatable {
 enum MonobankError: Error, Equatable {
     /// The response was malformed, too large or out of bounds.
     case invalidResponse
-    /// The default account is not in hryvnias.
+    /// The person has no hryvnia account to sync.
     case notHryvnia
     /// The server answered with another status code.
     case status(Int)

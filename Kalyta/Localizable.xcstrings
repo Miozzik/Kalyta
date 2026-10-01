@@ -1925,12 +1925,12 @@
         }
       }
     },
-    "Your main monobank account isn't in hryvnias, so Kalyta can't record from it.": {
+    "You have no hryvnia account in monobank, so Kalyta has nothing to record.": {
       "localizations": {
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Основний рахунок monobank не в гривнях, тож Kalyta не може з нього записувати."
+            "value": "У monobank немає гривневого рахунку, тож Kalyta нічого не записує."
           }
         }
       }
