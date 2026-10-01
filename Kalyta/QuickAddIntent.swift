@@ -33,6 +33,13 @@ struct QuickAddExpense: AppIntent {
         let note = String((note ?? "").prefix(maximumNoteLength))
         let context = Store.container.mainContext
         try Store.ensureCategories(in: context)
+        // Back Tap passes neither a category nor a merchant, so ask; the Transaction
+        // automation always passes the merchant and stays silent.
+        var category = category
+        if category == nil && note.isEmpty {
+            let choices = try await CategoryQuery().suggestedEntities()
+            category = try await $category.requestDisambiguation(among: choices, dialog: "Which category?")
+        }
         // A category set in the action wins; without one, the merchant decides.
         let record =
             category.map { Store.category(forKey: $0.id, in: context) }

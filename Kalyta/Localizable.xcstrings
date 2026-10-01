@@ -1885,6 +1885,16 @@
         }
       }
     },
+    "Which category?": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Яка категорія?"
+          }
+        }
+      }
+    },
     "Yearly": {
       "localizations": {
         "uk": {
