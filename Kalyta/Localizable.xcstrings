@@ -393,6 +393,16 @@
         }
       }
     },
+    "Allow Running When Locked turned on in the shortcut’s Privacy settings": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Увімкнено «Дозволити запуск під замком» у налаштуваннях «Приватність» команди"
+          }
+        }
+      }
+    },
     "Already recorded for %@.": {
       "localizations": {
         "uk": {
@@ -1761,6 +1771,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Іконку шукаємо в мережі за назвою сервісу, тож сервер іконок дізнається цю назву."
+          }
+        }
+      }
+    },
+    "The share sheet with Shortcuts in the list of apps": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Меню «Поширити» з «Командами» у списку застосунків"
+          }
+        }
+      }
+    },
+    "The shortcut in Shortcuts with the Add Shortcut button": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Команда в «Командах» із кнопкою «Додати команду»"
           }
         }
       }

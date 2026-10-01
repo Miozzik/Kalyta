@@ -47,6 +47,8 @@ struct AutopaySetupView: View {
                     }
                 }
                 Text("Choose Shortcuts in the list, then tap Add Shortcut.")
+                GuideImage(.autopayShare, label: "The share sheet with Shortcuts in the list of apps")
+                GuideImage(.autopayImport, label: "The shortcut in Shortcuts with the Add Shortcut button")
             }
             Section("Step 2") {
                 Button {
@@ -58,10 +60,33 @@ struct AutopaySetupView: View {
             }
             Section("Step 3") {
                 Text("In the shortcut, tap ⓘ, then Privacy, and turn on Allow Running When Locked.")
+                GuideImage(
+                    .autopayLocked, label: "Allow Running When Locked turned on in the shortcut’s Privacy settings")
             }
         }
         .navigationTitle("Automatic Recording")
         .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+/// A screenshot of the Shortcuts screen a step describes.
+///
+/// The images come from `scripts/autopay-screenshots.sh`, one per language in the asset catalog.
+private struct GuideImage: View {
+    let resource: ImageResource
+    let label: LocalizedStringKey
+
+    init(_ resource: ImageResource, label: LocalizedStringKey) {
+        self.resource = resource
+        self.label = label
+    }
+
+    var body: some View {
+        Image(resource)
+            .resizable()
+            .scaledToFit()
+            .clipShape(.rect(cornerRadius: 12))
+            .accessibilityLabel(label)
     }
 }
 

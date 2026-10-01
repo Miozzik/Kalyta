@@ -21,6 +21,11 @@ for LANGUAGE LOCALE in en en_US uk uk_UA; do
     xcrun simctl spawn "$DEVICE" defaults write -g AppleLanguages -array "$LANGUAGE"
     xcrun simctl spawn "$DEVICE" defaults write -g AppleLocale "$LOCALE"
     xcrun simctl shutdown "$DEVICE"  # the language applies from the next boot
+    # The first launch of Shortcuts on an erased simulator is slow enough to time out UI queries.
+    xcrun simctl boot "$DEVICE"
+    xcrun simctl launch "$DEVICE" com.apple.shortcuts >/dev/null
+    sleep 30
+    xcrun simctl terminate "$DEVICE" com.apple.shortcuts
 
     RESULT=$(cd "$REPO" && TEST_RUNNER_KALYTA_GUIDE_LANGUAGE=$LANGUAGE perl -e 'alarm 600; exec @ARGV' xcodebuild test \
         -scheme Kalyta -destination "platform=iOS Simulator,name=$DEVICE" -derivedDataPath "$WORK/dd" \

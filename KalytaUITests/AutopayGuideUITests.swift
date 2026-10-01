@@ -14,11 +14,11 @@ final class AutopayGuideUITests: XCTestCase {
     private static let labels: [String: [String: String]] = [
         "en": [
             "setUp": "Set Up Automatic Recording", "addTheShortcut": "Add the Shortcut",
-            "continue": "Continue", "addShortcut": "Add Shortcut", "privacy": "Privacy",
+            "continue": "Continue", "addShortcut": "Add Shortcut", "info": "info", "privacy": "Privacy",
         ],
         "uk": [
             "setUp": "Налаштувати автозапис оплат", "addTheShortcut": "Додати команду",
-            "continue": "Далі", "addShortcut": "Додати команду", "privacy": "Конфіденційність",
+            "continue": "Далі", "addShortcut": "Додати команду", "info": "інформація", "privacy": "Приватність",
         ],
     ]
     /// The width of a saved image in pixels: sharp at the guide's width on a 3x screen.
@@ -31,7 +31,7 @@ final class AutopayGuideUITests: XCTestCase {
 
         let kalyta = XCUIApplication()
         kalyta.launch()
-        let settings = kalyta.tabBars.buttons["gearshape"]
+        let settings = kalyta.buttons["gearshape"]
         XCTAssertTrue(settings.waitForExistence(timeout: 10))
         settings.tap()
         kalyta.buttons[label["setUp"]!].tap()
@@ -50,7 +50,7 @@ final class AutopayGuideUITests: XCTestCase {
             }
             sleep(2)
             if !captured {
-                save("share", from: app.frame.minY - 130, to: .greatestFiniteMagnitude)
+                save("share", from: app.frame.minY - 112, to: .greatestFiniteMagnitude)
                 captured = true
             }
             if app.isHittable { app.tap() }
@@ -64,13 +64,20 @@ final class AutopayGuideUITests: XCTestCase {
         let whatsNew = shortcuts.buttons[label["continue"]!]
         if whatsNew.exists { whatsNew.tap() }
         sleep(2)
-        save("import", from: add.frame.minY - 400, to: add.frame.maxY + 24)
+        save("import", from: add.frame.minY - 100, to: add.frame.maxY + 24)
         add.tap()
 
         // Step 3: ⓘ → Privacy → Allow Running When Locked. Shortcuts opens the new shortcut
         // in the editor right after the import.
-        let info = shortcuts.buttons["info"]
+        let info = shortcuts.buttons[label["info"]!]
         XCTAssertTrue(info.waitForExistence(timeout: 15), shortcuts.debugDescription)
+        sleep(3)
+        if !info.isHittable {
+            // The editor sometimes opens in Describe a Shortcut, which pushes ⓘ off screen; the
+            // last button of the navigation bar switches to the classic editor.
+            shortcuts.navigationBars.firstMatch.buttons.allElementsBoundByIndex.last?.tap()
+            sleep(2)
+        }
         info.tap()
         let privacy = shortcuts.buttons[label["privacy"]!]
         XCTAssertTrue(privacy.waitForExistence(timeout: 5), shortcuts.debugDescription)
@@ -89,7 +96,8 @@ final class AutopayGuideUITests: XCTestCase {
     ///   - bottom: The band's bottom edge in points.
     private func save(_ name: String, from top: CGFloat, to bottom: CGFloat) {
         let screen = XCUIScreen.main.screenshot().image
-        let band = CGRect(x: 0, y: max(0, top), width: screen.size.width, height: min(bottom, screen.size.height) - max(0, top))
+        let band = CGRect(
+            x: 0, y: max(0, top), width: screen.size.width, height: min(bottom, screen.size.height) - max(0, top))
         let pixels = band.applying(CGAffineTransform(scaleX: screen.scale, y: screen.scale))
         guard let cropped = screen.cgImage?.cropping(to: pixels.integral) else { return XCTFail("Cannot crop \(name)") }
         let size = CGSize(width: imageWidth, height: imageWidth * band.height / band.width)
@@ -98,7 +106,8 @@ final class AutopayGuideUITests: XCTestCase {
         let image = UIGraphicsImageRenderer(size: size, format: format).image { _ in
             UIImage(cgImage: cropped).draw(in: CGRect(origin: .zero, size: size))
         }
-        let attachment = XCTAttachment(data: image.jpegData(compressionQuality: 0.6)!, uniformTypeIdentifier: "public.jpeg")
+        let attachment = XCTAttachment(
+            data: image.jpegData(compressionQuality: 0.6)!, uniformTypeIdentifier: "public.jpeg")
         attachment.name = "autopay-\(name).jpg"
         attachment.lifetime = .keepAlways
         add(attachment)
