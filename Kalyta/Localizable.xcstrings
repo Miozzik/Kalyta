@@ -1268,6 +1268,16 @@
         }
       }
     },
+    "New Income": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Новий дохід"
+          }
+        }
+      }
+    },
     "New Subscription": {
       "localizations": {
         "uk": {

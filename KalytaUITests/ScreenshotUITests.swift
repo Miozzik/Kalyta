@@ -2,23 +2,12 @@ import XCTest
 
 /// Captures the README screenshots into `docs/images/screens/<language>/` at full size.
 ///
-/// Skipped unless `KALYTA_SCREENSHOTS=1` reaches the test runner (`TEST_RUNNER_KALYTA_SCREENSHOTS=1`).
+/// Skipped unless `KALYTA_SCREENSHOTS=1` reaches the test runner; run it through
+/// `scripts/readme-screenshots.sh`, which also sets the language, cleans the status bar and shrinks the images.
 /// The language is the simulator's, since the Home Screen widget follows it rather than the app's
 /// launch arguments; a debug build answers rates from `-rateFixture friday` and scans from `-scanPayload`.
-/// Run it once per language on an iPhone 17 Pro in light mode with a clean status bar, then shrink:
-///
-///     sim=<udid>; for lang in en_US uk_UA; do
-///       xcrun simctl spawn $sim defaults write -g AppleLanguages -array ${lang%_*}
-///       xcrun simctl spawn $sim defaults write -g AppleLocale $lang
-///       xcrun simctl shutdown $sim; xcrun simctl boot $sim; xcrun simctl bootstatus $sim
-///       xcrun simctl status_bar $sim override --time 9:41 --batteryLevel 100 --batteryState charged \
-///         --cellularBars 4 --wifiBars 3
-///       TEST_RUNNER_KALYTA_SCREENSHOTS=1 perl -e 'alarm 900; exec @ARGV' xcodebuild test -scheme Kalyta \
-///         -destination id=$sim -only-testing:KalytaUITests/ScreenshotUITests
-///     done; sips --resampleWidth 600 docs/images/screens/*/*.png
 final class ScreenshotUITests: KalytaUITestCase {
     let isUkrainian = Locale.preferredLanguages.first?.hasPrefix("uk") == true
-    let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
 
     override func setUp() {
         continueAfterFailure = false
@@ -70,9 +59,8 @@ final class ScreenshotUITests: KalytaUITestCase {
         app.buttons["cancelButton"].tap()
 
         XCUIDevice.shared.press(.home)
-        let widget = springboard.icons.matching(NSPredicate(format: "identifier == 'Kalyta' AND value == 'Widget'"))
-            .firstMatch
-        XCTAssertTrue(widget.waitForExistence(timeout: 5), "No widget on the Home Screen: run WidgetUITests once")
+        _ = homeScreenWidget()
+        // The widget's timeline reloads after the app goes to the background.
         sleep(2)
         capture("06-widget")
     }

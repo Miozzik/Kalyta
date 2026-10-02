@@ -158,7 +158,7 @@ struct ExpenseEditor: View {
                 .padding(.horizontal)
             }
             .background(Color(.systemGroupedBackground))
-            .navigationTitle(expense == nil ? "New Expense" : "Edit Expense")
+            .navigationTitle(expense != nil ? "Edit Expense" : isIncome ? "New Income" : "New Expense")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { SheetToolbar(canSave: canSave, onCancel: { dismiss() }, onSave: save) }
             .onAppear {

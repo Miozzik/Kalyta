@@ -10,6 +10,7 @@ class KalytaUITestCase: XCTestCase {
     /// Enough swipes to cross the whole list of sample data in either direction.
     let maxScrolls = 8
     var app: XCUIApplication!
+    let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
 
     override func setUp() {
         continueAfterFailure = false
@@ -117,5 +118,48 @@ class KalytaUITestCase: XCTestCase {
         formatter.timeZone = TimeZone(identifier: "Europe/Kyiv")
         formatter.dateFormat = "'date='yyyyMMdd'&time='HHmm"
         return "https://cabinet.tax.gov.ua/cashregs/check?\(formatter.string(from: date))&sm=\(amount)&fn=4000123456"
+    }
+
+    /// Returns Kalyta's widget on the Home Screen, adding it first if it is not there.
+    func homeScreenWidget() -> XCUIElement {
+        let icons = springboard.icons.matching(identifier: "Kalyta")
+        // The app's own icon shares the name, and the value "Widget" is localized, so the widget is the wide one.
+        func widget() -> XCUIElement? { icons.allElementsBoundByIndex.first { $0.frame.width > 100 } }
+        _ = icons.firstMatch.waitForExistence(timeout: 3)
+        if widget() == nil { addWidget() }
+        for _ in 0..<10 where widget() == nil { sleep(1) }
+        let found = widget()
+        XCTAssertNotNil(found, "The widget is not on the Home Screen")
+        return found ?? icons.firstMatch
+    }
+
+    /// Adds Kalyta's small widget to the Home Screen through the widget gallery.
+    ///
+    /// The gallery's labels are English, so this runs only on a simulator set to English.
+    private func addWidget() {
+        springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.62)).press(forDuration: 2.5)
+        let edit = springboard.buttons["Edit"].firstMatch
+        let addWidgetItem = springboard.buttons["Add Widget"].firstMatch
+        // On a busy simulator the Edit menu sometimes ignores the first tap.
+        for _ in 0..<4 where !addWidgetItem.exists {
+            if edit.waitForExistence(timeout: 5) { edit.tap() }
+            _ = addWidgetItem.waitForExistence(timeout: 5)
+        }
+        addWidgetItem.tap()
+        // A freshly installed app's widgets reach the gallery late; searching lists them sooner.
+        let search = springboard.searchFields["Search Widgets"].firstMatch
+        if search.waitForExistence(timeout: 5) {
+            search.tap()
+            search.typeText("Kalyta")
+        }
+        let kalyta = springboard.cells["Kalyta"].firstMatch
+        XCTAssertTrue(kalyta.waitForExistence(timeout: 30), "The widget gallery does not list Kalyta")
+        kalyta.tap()
+        // The gallery's button label starts with a symbol, so it only ends with the words.
+        let add = springboard.buttons.matching(NSPredicate(format: "label ENDSWITH 'Add Widget'")).firstMatch
+        XCTAssertTrue(add.waitForExistence(timeout: 5), "The gallery offers no Add Widget button")
+        add.tap()
+        let done = springboard.buttons["Done"].firstMatch
+        if done.waitForExistence(timeout: 5) { done.tap() }
     }
 }
