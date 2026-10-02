@@ -12,10 +12,12 @@ Team: `pm` (gates), `client` (user's voice), `tester`, `designer`, and the team 
 writes the code. Their definitions are in `.claude/agents/`.
 
 ## Where things live (one place each, never duplicated)
-- `README.md` — what the app does («Чому це маленький проєкт», «Стан»), how to build, code style,
-  CSV contract, privacy («Що покидає телефон»). Written for a new contributor.
+- `README.md` (English) and `README.uk.md` (Ukrainian mirror) — public product page: what the app does,
+  screenshots, privacy summary, setup on iPhone, build pointer. Keep both in sync.
+- `CONTRIBUTING.md` (English) — build, code style, checks, tests, CSV contract. `SECURITY.md` — reporting.
+- `docs/privacy.md` — the full privacy policy (uk + en); the app links to it on GitHub.
 - `TODO.md` — the only task list, plus the «Точка передачі» handoff block. Done items leave it
-  and become a «Стан» line in README.
+  and, if user-visible, become a Features line in both READMEs.
 - `docs/decisions.md` — every gate A/B, dispute and winner with the argument that won, dated,
   newest at the bottom. Never rewrite history; add a new entry that supersedes an old one.
 - Vault note: `~/claude-projects/vault/50-59 Projects & Tools/55 Kalyta/` — the project note
@@ -25,8 +27,8 @@ writes the code. Their definitions are in `.claude/agents/`.
 
 ## Rules
 - `docs/decisions.md` is written in concise English (agents read it, the user does not; saves tokens).
-  New entries only — old Ukrainian entries stay as they are. README, TODO and the vault note stay
-  Ukrainian. Commit messages, code and agent files are English. Short sentences, no filler.
+  New entries only — old Ukrainian entries stay as they are. TODO and the vault note stay Ukrainian;
+  README.md, CONTRIBUTING.md and SECURITY.md are English, README.uk.md Ukrainian. Commit messages, code and agent files are English. Short sentences, no filler.
 - Verify every claim against the code or a command before writing it (`git log`, `grep`,
   reading the file). If a report and the code disagree, the code wins; say so.
 - When something is missing or unclear — which stage a change belongs to, why an option

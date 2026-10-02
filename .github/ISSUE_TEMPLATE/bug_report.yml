@@ -1,0 +1,45 @@
+name: Bug report
+description: Something in Kalyta does not work as expected.
+labels: [bug]
+body:
+  - type: input
+    id: ios
+    attributes:
+      label: iOS version
+      placeholder: "iOS 26.0"
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Device
+      placeholder: "iPhone 15"
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Kalyta version or commit
+      placeholder: "0.1 (1) or a commit hash"
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open …
+        2. Tap …
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual
+      description: Screenshots help. Please hide amounts, names and tokens you do not want public.
+    validations:
+      required: true

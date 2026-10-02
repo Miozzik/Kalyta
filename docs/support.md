@@ -2,8 +2,8 @@
 
 ## Як отримати допомогу / Getting help
 
-- **Задача або помилка / Issue or bug:** <!-- TODO(user): публічна адреса issues репозиторію; public issues URL --> 
-- **Пошта / Email:** <!-- TODO(user): support email -->
+- **Задача або помилка / Issue or bug:** [github.com/Miozzik/Kalyta/issues](https://github.com/Miozzik/Kalyta/issues)
+- **Вразливість / Security issue:** приватно, див. / privately, see [SECURITY.md](../SECURITY.md)
 
 Опиши, що робив, що очікував і що побачив; версію iOS і застосунку (Параметри → Загальні → Про пристрій).
 Describe what you did, what you expected and what happened; include the iOS and app versions.
@@ -30,7 +30,7 @@ monobank, скопіюй токен (його показують лише раз
 На iOS 18 є ще кнопка «Сканувати чек» у Пункті керування.
 
 **Як не втратити дані?**
-Усе лежить лише на телефоні. Роби резервну копію: «Поширити» на головному екрані → CSV. Відновлення — Налаштування →
+Усе лежить лише на телефоні. Роби резервну копію: «Експорт» на вкладці «Витрати» → CSV. Відновлення — Налаштування →
 «Імпорт із CSV».
 
 ## FAQ (English)
@@ -43,4 +43,4 @@ monobank, скопіюй токен (його показують лише раз
   the token and paste it in Kalyta. "Disconnect" in the same place removes it. The token is read-only.
 - **Widget:** long-press the Home or Lock Screen → Edit → Add Widget → Kalyta. On iOS 18 there is also a Control Center
   button.
-- **Backup:** Share on the main screen → CSV; restore with Settings → "Import from CSV".
+- **Backup:** Export on the Expenses tab → CSV; restore with Settings → "Import from CSV".

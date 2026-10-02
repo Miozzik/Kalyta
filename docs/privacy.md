@@ -34,7 +34,7 @@
 - Видали застосунок — зникнуть усі записи. (Токен monobank iOS може лишити в Keychain; наступне встановлення
   його видалить при першому запуску.)
 - Налаштування → Банк → monobank → «Відключити» видаляє токен, а також список видалених записів банку; відкликати його можна на api.monobank.ua.
-- Перед видаленням можна зберегти резервну копію: «Поширити» → CSV-файл.
+- Перед видаленням можна зберегти резервну копію: «Експорт» → CSV-файл.
 
 **Контакт:** сторінка підтримки — [support.md](support.md).
 
@@ -69,6 +69,6 @@ Today's total is kept in a shared App Group container so the widget can show it 
 - Delete the app to remove every entry. (iOS may keep the monobank token in the Keychain; the next install deletes it
   on first launch.)
 - Settings → Bank → monobank → "Disconnect" deletes the token, and also deletes the list of deleted bank entries; you can revoke it at api.monobank.ua.
-- To keep a backup first: Share → CSV file.
+- To keep a backup first: Export → CSV file.
 
 **Contact:** see the support page — [support.md](support.md).

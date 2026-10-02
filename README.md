@@ -1,260 +1,178 @@
-# Kalyta (open source)
+<div align="center">
 
-**Калита** — старовинний український гаманець-капшук, що носили на поясі.
+<img src="docs/images/icon.png" width="128" alt="Kalyta icon: a money pouch on a belt, teal to indigo gradient" />
 
-Безкоштовний opensource-трекер витрат для iOS. Без підписки, без сервера, без акаунта —
-дані лежать локально у SwiftData на пристрої.
+# Kalyta
 
-**Що покидає телефон:**
-- Назва підписки — коли ти додаєш або перейменовуєш підписку, застосунок запитує її іконку (`netflix.png`)
-  у jsDelivr/GitHub, тож сервер іконок бачить цю назву і твою IP-адресу. Запит підписано просто «Kalyta» —
-  без моделі пристрою й версії iOS. Іконка зберігається на телефоні й повторно не завантажується.
-- Лише якщо ти вмикаєш синхронізацію з monobank: застосунок напряму (без нашого сервера) запитує виписку
-  в api.monobank.ua твоїм особистим токеном. Токен лежить у Keychain лише на цьому iPhone, не переноситься
-  на інший iPhone з бекапу і видаляється кнопкою «Відключити»; відкликати його можна на api.monobank.ua (перевірити).
-  Ім’я, IBAN і ЄДРПОУ іншої сторони, коментар до переказу й баланс застосунок не читає взагалі. Опис банку
-  в переказі може містити ім’я людини, тому переказ (в обидва боки) записується з підписом «Переказ»; у покупок
-  і повернень зберігається назва продавця з виписки. Перекази, записані давніше ніж за 31 день до оновлення
-  з доходами, лишаються з описом банку — його можна виправити вручну.
-  Назви банок читаються лише під час синхронізації і не зберігаються.
-  Зберігається лише внутрішній ідентифікатор гривневого рахунку з відповіді monobank (не IBAN і не номер картки) —
-  щоб знати, з якого рахунку читати виписку; «Відключити» його видаляє.
-  Щоб видалений запис не повернувся з наступною синхронізацією, 35 днів зберігається його ідентифікатор у банку
-  й час видалення — без суми, продавця, дати й нотатки; у CSV і App Group цей список не потрапляє.
-  «Відключити» видаляє й список видалених записів банку.
-- Лише якщо є записи в іноземній валюті (або в аркуші вибрано не гривню): курси. НБУ (bank.gov.ua, через Cloudflare)
-  отримує лише дату запису — список курсів на цей день; monobank — запит `api.monobank.ua/bank/currency` без токена.
-  Сервери бачать IP-адресу, але не суму й не нотатку. Курс зберігається в самому записі, окремого кешу на диску немає.
-  Поки всі записи в гривнях, жодного запиту курсів немає.
+**A free, open-source expense tracker for iPhone that lets iOS do the heavy lifting.**
+No subscription, no account, no server — your money data stays on your phone.
 
-Більше нічого: ні сум, ні витрат, ні категорій, ні відсканованих чеків.
-Сума за сьогодні зберігається у спільному контейнері App Group для віджета й теж не покидає телефон.
+[![Platform: iOS 17+](https://img.shields.io/badge/platform-iOS%2017%2B-000000?logo=apple&logoColor=white)](https://developer.apple.com/ios/)
+[![Built with SwiftUI](https://img.shields.io/badge/built%20with-SwiftUI-0D96F6?logo=swift&logoColor=white)](https://developer.apple.com/swiftui/)
+[![Language: Swift](https://img.shields.io/badge/language-Swift-F05138?logo=swift&logoColor=white)](https://www.swift.org)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-## Чому це маленький проєкт
+**English** · [Українська](README.uk.md)
 
-Фічі, які в платних аналогів продаються як преміум, насправді дає сама iOS:
+</div>
 
-| фіча | як зроблено |
+---
+
+*Kalyta* is an old Ukrainian word for a leather money pouch worn on the belt.
+
+Kalyta for iPhone records spending and income with as little typing as possible: a double tap on the back
+of the phone, an automatic entry after every Apple Pay payment, or a scan of the fiscal QR code on a Ukrainian
+receipt. Features that paid trackers sell as premium come from iOS itself, so the app stays small.
+Everything is stored locally with SwiftData. No subscription, no account, no server.
+
+## Screenshots
+
+<div align="center">
+
+<img src="docs/images/screens/en/01-expenses.png" width="250" alt="Expenses tab: spending grouped by day under a weekly summary card with bars and a category ring" />
+&nbsp;
+<img src="docs/images/screens/en/02-income.png" width="250" alt="Income tab: salary, transfers and refunds by day with the total for the period" />
+&nbsp;
+<img src="docs/images/screens/en/03-currency.png" width="250" alt="Entry sheet with a dollar amount and its value in hryvnias at the NBU rate" />
+
+<img src="docs/images/screens/en/04-statistics.png" width="250" alt="Statistics: monthly spending with the average, categories by month and top places" />
+&nbsp;
+<img src="docs/images/screens/en/05-receipt.png" width="250" alt="A scanned receipt matched to the Apple Pay entry of the same amount" />
+&nbsp;
+<img src="docs/images/screens/en/06-widget.png" width="250" alt="Home Screen widget with the scanner button and today's total" />
+
+<sub><em>Expenses · Income · foreign currency (top) — Statistics · receipt scan · widget (bottom)</em></sub>
+
+</div>
+
+## Features
+
+- 💸 **Expenses and income.** Add, edit and delete entries (swipe or long press, with a 5-second Undo), grouped
+  by day. The Expenses tab shows spending only; the Income tab lists every income entry with the period total.
+- 📊 **Summary and statistics.** A week or month card with bars for the last six periods and a category ring
+  (Swift Charts); monthly averages, categories by month, places and the largest expenses over 6 or 12 months or all time.
+- 🏷️ **Categories.** Rename or hide built-in ones; create your own with a name, icon and colour.
+- 🧾 **Receipt scan.** Reads the fiscal QR code on a Ukrainian receipt for its amount, date and time — on the phone,
+  without network. If Apple Pay already recorded the same amount within 30 minutes, the scan updates that entry.
+- 💱 **Other currencies.** Enter an amount in dollars, euros or any ISO currency; Kalyta stores it in hryvnias at
+  the NBU rate of the entry's date and freezes that rate in the entry. Offline, it uses the last known rate and
+  corrects it later.
+- 🏦 **monobank, if you want it.** With your personal token Kalyta reads your card statement itself — spending and
+  income, no duplicates of Apple Pay entries, no server of ours in between.
+- 🔁 **Subscriptions.** Monthly cost, next charge, a reminder the day before, "Record charge" and an automatic
+  service icon.
+- 📤 **CSV export and import** as your backup, with a preview and no duplicates on re-import.
+- 📱 **Widgets and Control Center.** A one-tap scanner and today's total on the Home and Lock Screen (hidden while the
+  iPhone is locked); a Scan Receipt control on iOS 18.
+- ♿ **Accessible and bilingual.** VoiceOver reads icons, colours and the ring; large text does not break rows;
+  English and Ukrainian, light and dark.
+
+## How it works
+
+| feature | how |
 |---|---|
-| запис витрати подвійним тапом по спинці | Параметри → Доступність → Дотик → Тильний дотик → шорткат із дією **Додати витрату** (наш App Intent) |
-| автозапис оплат карткою | Команди → Автоматизація → тригер **Транзакція** (Wallet/Apple Pay) → та сама дія; категорію Kalyta бере з пам’яті: що ти востаннє поставив цьому продавцю |
-| швидке введення з чека | фіскальний QR на чеку РРО/ПРРО містить суму, дату й час — системний сканер VisionKit читає їх, QR розбирається на телефоні, без мережі. Якщо Apple Pay уже записав ту саму суму в межах 30 хв, чек оновлює цей запис. Позиції чека програмно недоступні (сторінка `cabinet.tax.gov.ua` на reCAPTCHA) |
-| сканер одним тапом | дія **Сканувати чек** (App Shortcut): Siri, Spotlight, кнопка дії, Тильний дотик; віджет на екрані блокування й домашньому; на iOS 18 — кнопка в Пункті керування |
-| витрати з картки monobank | особистий токен monobank (за бажанням): застосунок сам читає виписку, без нашого сервера |
-| сума за сьогодні | віджет WidgetKit на екрані блокування й домашньому; сума прихована, поки iPhone заблоковано |
+| Record an expense with a double tap on the back | Settings → Accessibility → Touch → Back Tap → a shortcut with the **Add Expense** action (Kalyta's App Intent) |
+| Record card payments automatically | Shortcuts → Automation → **Transaction** trigger (Wallet / Apple Pay) → the same action; Kalyta picks the category you last gave that merchant |
+| Quick entry from a receipt | The fiscal QR code on a receipt holds the amount, date and time; the system VisionKit scanner reads it and Kalyta parses it on the phone. Receipt line items are not available to apps (the tax office page is behind reCAPTCHA) |
+| Scanner in one tap | The **Scan Receipt** App Shortcut: Siri, Spotlight, the Action button, Back Tap, a widget; a Control Center button on iOS 18 |
+| Spending from a monobank card | Your personal monobank token (optional); the app reads the statement directly |
+| Today's total | A WidgetKit widget on the Lock and Home Screen; the amount is hidden while the iPhone is locked |
 
-Тобто весь застосунок — це база, кілька екранів, два App Intent (**Додати витрату**, **Сканувати чек**) і віджет.
-Решту робить система.
+So the whole app is a database, a few screens, two App Intents (**Add Expense**, **Scan Receipt**) and a widget.
+The system does the rest.
 
-![головний екран](docs/screen-main.png) ![статистика](docs/screen-statistics.png) ![чек збігся із записом Apple Pay](docs/screen-receipt.png) ![віджет на домашньому екрані](docs/screen-widget.png)
+## Privacy
 
-## Стан
+- No account, no analytics, no ads, no tracking. Entries never leave the phone.
+- Subscription icons come from jsDelivr: that server sees the subscription name and your IP address.
+- monobank is off until you paste a token; the token lives in the Keychain on this iPhone only. Counterparty name,
+  IBAN, transfer comments and balance are never read.
+- Exchange rates are requested only when you have a foreign-currency entry, and only the date is sent.
 
-Усі 15 етапів злиті в `main`. Що вміє застосунок:
+Details, including how to delete your data: [docs/privacy.md](docs/privacy.md).
 
-- **Витрати:** ручне додавання, редагування (дата й час — лише до «зараз»), видалення свайпом або довгим тапом
-  з плашкою «Відмінити» (5 с; під VoiceOver — без таймера); групування по днях, темна тема.
-- **Картка підсумку:** тиждень / місяць зі стовпчиками останніх 6 періодів, кільце по категоріях (Swift Charts).
-- **Категорії:** вбудовані можна перейменувати й приховати; свої — з назвою, іконкою й кольором.
-- **Доходи:** перемикач «Витрата / Дохід» в аркуші; вкладка «Витрати» доходів не показує й не рахує, як і графіки
-  й статистика. Вкладка «Надходження» — усі доходи (з monobank і вручну) по днях із сумою за період.
-- **Статистика:** місяці із середнім, категорії за місяцями, місця, найбільші витрати; діапазон 6 / 12 місяців / увесь час.
-- **Підписки:** вартість на місяць, наступне списання («Сьогодні», «Завтра» або дата), нагадування за день,
-  «Записати списання» в редакторі й свайпом, іконка сервісу автоматично.
-- **CSV:** експорт усіх записів через «Поширити» і відновлення з попереднім переглядом, без дублікатів.
-- **Чек:** сканування фіскального QR в аркуші вводу; збіг із записом Apple Pay оновлює його, «Зберегти як нову» — вихід.
-- **Автоматизація:** дії **Додати витрату** й **Сканувати чек**, пам’ять «продавець → категорія», monobank за бажанням
-  (категорія за продавцем, потім за MCC; без дублів із записом Apple Pay; перекази — у «Перекази», крім поповнень банок).
-- **Віджети:** сканер одним тапом і сума за сьогодні; кнопка в Пункті керування на iOS 18.
-- **Іконка:** калита на поясі, градієнт teal → indigo; світла, темна й тонована з одного джерела Icon Composer.
-- **Доступність і мова:** VoiceOver читає іконки, кольори й кільце; великий текст не ламає рядків;
-  українська й англійська через String Catalog; на iOS 26 кнопки аркушів — ✕/✓.
+## Install
 
-Відкриті задачі — у [TODO.md](TODO.md).
+Kalyta is **not on the App Store yet**. To use it now, build it from source.
 
-## Як зібрати
+### Build from source
 
-```sh
-xcodebuild -scheme Kalyta -destination 'platform=iOS Simulator,name=iPhone 17' build
-```
+1. Install Xcode with the iOS 26 SDK (built and tested with Xcode 27). The app runs on iOS 17 and later.
+2. Clone the repo and open `Kalyta.xcodeproj`:
 
-Або відкрити `Kalyta.xcodeproj` у Xcode і натиснути Run. Потрібен Xcode 27 — на ньому проєкт зібрано й перевірено;
-щонайменше треба iOS 26 SDK (`ButtonRole.confirm`, іконка Icon Composer `.icon`). Застосунок працює з iOS 17 (SwiftData). Схема `Kalyta` збирає
-застосунок і вбудоване розширення віджетів `KalytaWidgets` (`<bundle id>.widgets`).
+   ```sh
+   git clone https://github.com/Miozzik/Kalyta.git
+   open Kalyta/Kalyta.xcodeproj
+   ```
 
-Для запуску на своєму iPhone створи `Config/Local.xcconfig` (git його ігнорує):
+3. For your own iPhone, create `Config/Local.xcconfig` with your Team ID (a free Apple ID works):
 
-```
-DEVELOPMENT_TEAM = <твій Team ID>
-// з безкоштовним Apple ID може знадобитись свій унікальний bundle id:
-// PRODUCT_BUNDLE_IDENTIFIER = com.example.kalyta
-```
+   ```
+   DEVELOPMENT_TEAM = <your Team ID>
+   // A free Apple ID may need a unique bundle id:
+   // PRODUCT_BUNDLE_IDENTIFIER = com.example.kalyta
+   ```
 
-Спільні налаштування збірки — у `Config/Kalyta.xcconfig`, не в `project.pbxproj`.
-Застосунок і віджет ділять App Group `group.<bundle id застосунку>` (`APP_GROUP_ID`), тож свій bundle id
-дає й свою групу; підпис автоматичний. З безкоштовним Apple ID (Personal Team) профіль кожної цілі
-живе 7 днів — потім треба запустити Run ще раз.
+4. Pick your iPhone and press Run.
 
-## Стиль коду
+With a free Apple ID the signing profile lasts 7 days; after that, press Run again. Your data stays.
+Details and the simulator build: [CONTRIBUTING.md](CONTRIBUTING.md).
 
-- Коментарі й документація — англійською, за [Swift API Design Guidelines](https://www.swift.org/documentation/api-design-guidelines/)
-  і [Apple DocC](https://developer.apple.com/documentation/xcode/writing-symbol-documentation-in-your-source-files):
-  `///` для кожного не-`private` символу, секції `- Parameters:`, `- Returns:`, `- Throws:`.
-- Жодного тексту інтерфейсу «намертво» в коді: у коді лише англійський ключ,
-  переклад — у String Catalog `Kalyta/Localizable.xcstrings`. У SwiftUI-views літерали
-  (`Text("Save")`) локалізуються самі; рядок, що повертається як `String`, — тільки через
-  `String(localized:)`, інакше Xcode його не побачить.
-- Налаштування користувача — `@AppStorage` / `UserDefaults`; налаштування збірки — `.xcconfig`.
-- Форматування — вбудований у Xcode `swift-format` з конфігом `.swift-format` (4 пробіли, 120 символів):
+## Set up quick capture on iPhone
 
-```sh
-swift format lint -r Kalyta KalytaUITests KalytaWidgets     # перевірити
-swift format -i -r Kalyta KalytaUITests KalytaWidgets       # виправити
-```
+1. **Back Tap.** Shortcuts → new shortcut → **Add Expense** action, and set its **Category** (otherwise the entry
+   goes to "Other"). Then Settings → Accessibility → Touch → Back Tap → Double Tap → that shortcut.
+2. **Card payments.** Shortcuts → Automation → **Transaction** → **Add Expense**: **Amount** ← Amount,
+   **Note** ← Merchant, leave **Category** empty, turn on Run Immediately. Kalyta reuses the category you last gave
+   that merchant (case and spaces ignored); a new merchant goes to "Other" — fix it once and it is remembered.
+3. **monobank (optional).** Kalyta → Settings → Bank → monobank → "Open api.monobank.ua", tap the QR code, confirm
+   in the monobank app, copy the token (shown only once) and paste it in Kalyta.
 
-## Перевірка
+> Upgrading from a version without custom categories? Open your Add Expense shortcuts and pick the **Category**
+> again: iOS does not carry over a saved value after a parameter changes type.
 
-```sh
-xcodebuild -scheme Kalyta -destination 'platform=iOS Simulator,name=iPhone 17' -derivedDataPath <dd> build
-xcrun simctl boot "iPhone 17"
-xcrun simctl install booted <dd>/Build/Products/Debug-iphonesimulator/Kalyta.app
-xcrun simctl launch --console-pty booted org.merzlov.kalyta --selfcheck -AppleLocale uk_UA   # → SELFCHECK OK
-xcrun simctl launch booted org.merzlov.kalyta --demo                      # наповнити прикладами
-```
+### monobank details
 
-Самоперевірка (`assert` у `Kalyta/*Check.swift` і `SelfCheck.swift`) доводить логіку без UI: суми й періоди,
-CSV за RFC 4180 і захист від формул, межі імпорту, розбір QR, збіг із Apple Pay, monobank на фікстурах,
-пам’ять продавця, суму за сьогодні. Українська локаль — навмисно: вона ловить кому замість крапки
-в сумах експорту. Перевірка перезапускна — сама чистить за собою.
-Інші аргументи запуску — `--check-upgrade`, `--measure-import`, `-scanPayload` — описані в `Kalyta/KalytaApp.swift`.
+- Kalyta reads one hryvnia account: the black card if there is one, otherwise another hryvnia card, the FOP account
+  last. Foreign-currency accounts are not synced; a purchase abroad is recorded in the hryvnias the bank charged.
+- It syncs when you open the app (at most once a minute — the bank's limit) and now and then in the background.
+- Incoming money becomes income: salary, transfers, refunds (as a separate entry). Jar top-ups and withdrawals
+  from your own jars are skipped. Transfers are labelled "Transfer", never with the bank's text.
+- An entry you delete does not come back with the next sync.
+- "Disconnect" in the same place deletes the token and the sync state; recorded entries stay.
 
-UI-тести (XCTest, 44 тести; 3 пропускаються навмисно: знімки екрана — лише з `KALYTA_SCREENSHOTS=1`,
-оновлення шорткату — лише через `scripts/check-shortcut-upgrade.sh`, знімки посібника — лише через
-`scripts/autopay-screenshots.sh`):
+## Backup and CSV
 
-```sh
-perl -e 'alarm 900; exec @ARGV' xcodebuild test -scheme Kalyta -destination 'platform=iOS Simulator,name=iPhone 17' \
-  -test-timeouts-enabled YES -default-test-execution-time-allowance 90
-```
+Your data lives only on the phone, so export is your backup.
 
-- `xcodebuild test` іноді не виходить після завершення тестів — тому сторож часу `alarm`.
-- Тести віджетів: встановити застосунок → перезавантажити симулятор → запускати. На щойно стертому симуляторі
-  галерея віджетів не бачить нового застосунку до перезавантаження.
-- Повний набір — один одночасно і на тихій машині: під навантаженням флейкають вибір документа та інші UI-тести.
-- Кожна нова логіка доводиться мутацією: навмисно зламати на копії → перевірка червона. XCTest пов’язує падіння
-  із застосунком за bundle id і назвою процесу, тож падіння мутації на будь-якому симуляторі валить чужий UI-прогін
-  («Critical process Kalyta crashed»). Тому в **копії**: `PRODUCT_BUNDLE_IDENTIFIER = org.merzlov.kalyta.mutation`
-  у `Config/Kalyta.xcconfig` і `PRODUCT_NAME = KalytaMutation` замість обох `PRODUCT_NAME = "$(TARGET_NAME)";`
-  цілі застосунку в `project.pbxproj`. Ніколи не з командного рядка `xcodebuild`: там це перейменовує й
-  раннер UI-тестів, і кожен запуск падає.
-- Перед релізом, що змінює параметри дії **Додати витрату**: `scripts/check-shortcut-upgrade.sh` (збережений шорткат
-  мусить пережити оновлення).
-- Знімки Команд у посібнику «Автозапис оплат» (англійська й українська, у `Kalyta/Assets.xcassets/Autopay*`):
-  `scripts/autopay-screenshots.sh` — стирає й перемикає мову симулятора «iPhone 17 Autopay», тож не спільний «iPhone 17».
-  Тригер **Транзакція** (крок 2) на симуляторі недоступний — цей знімок лише з iPhone.
+- **Export:** the Export button (top left on the Expenses tab) shares `Kalyta-<date>.csv` with every entry.
+  Numbers and Google Sheets open it directly. In Excel use Data → From Text/CSV, UTF-8, comma delimiter.
+- **Restore:** Settings → **Import from CSV** → the exported file. A preview shows what will be added, what already
+  exists and which rows could not be read; Cancel changes nothing. Import only adds what is missing, so the same file
+  twice doubles nothing, and a new phone is restored by importing into an empty app.
+- Import accepts only files Kalyta wrote. A file re-saved by Excel has other delimiters and dates — use the original
+  export.
+- Text starting with `=`, `+`, `-` or `@` is exported with a leading `'` so spreadsheets treat it as text; import
+  removes it again.
 
-## Переклад
+Subscription reminders: iOS keeps up to 64 pending notifications per app, so Kalyta schedules only the next charge of
+each subscription and reschedules on every launch. If you do not open the app for a whole billing cycle, one reminder
+may not arrive.
 
-Мова розробки — англійська, переклад — українська. Каталоги: `Kalyta/Localizable.xcstrings` (інтерфейс),
-`Kalyta/InfoPlist.xcstrings` (текст дозволу на камеру), `Kalyta/AppShortcuts.xcstrings` (фрази Siri).
-Xcode у IDE сам додає нові рядки з коду при збірці; з командного рядка — `xcrun xcstringstool sync`.
-Перевірити, що нічого не лишилось без перекладу:
+## Contributing
 
-```sh
-scripts/check-translations.py        # → All N strings are translated.
-```
+Bug reports and pull requests are welcome — start with [CONTRIBUTING.md](CONTRIBUTING.md).
+Security issues: [SECURITY.md](SECURITY.md). Help and FAQ: [docs/support.md](docs/support.md).
 
-## Експорт CSV
+## License
 
-Кнопка «Поширити» зліва вгорі віддає файл `Kalyta-<дата>.csv` з **усіма** витратами —
-це резервна копія, бо дані живуть лише на телефоні.
+[MIT](LICENSE) © 2026 Yehor Merzlov
 
-Колонки (порядок сталий, нові додаються **лише в кінець**):
+## Credits
 
-| колонка | приклад | формат |
-|---|---|---|
-| `date` | `2026-09-23T12:18:00+03:00` | ISO 8601, місцевий час із поясом |
-| `amount` | `878.4` | число з крапкою, без пробілів і символу валюти |
-| `currency` | `UAH` | ISO 4217 |
-| `category` | `food` | сталий ключ, не залежить від мови |
-| `category_name` | `Їжа` | назва мовою застосунку |
-| `note` | `АТБ` | як є; у лапках, якщо є кома, лапки чи перенос рядка (RFC 4180) |
-| `category_symbol` | `fork.knife` | назва SF Symbol іконки категорії |
-| `category_color` | `orange` | назва кольору з палітри (не RGB — щоб працювала темна тема) |
-| `kind` | `expense` | `expense` або `income`; у файлах без цієї колонки всі рядки — витрати |
+- Subscription icons — [homarr-labs/dashboard-icons](https://github.com/homarr-labs/dashboard-icons) (Apache-2.0),
+  fetched at runtime from a pinned commit. Logos belong to their owners.
+- Exchange rates — [National Bank of Ukraine open data](https://bank.gov.ua/ua/open-data/api-dev) and the
+  [monobank open API](https://api.monobank.ua/docs/).
 
-Numbers і Google Sheets відкривають файл одразу. **Excel:** «Дані → З тексту/CSV», кодування UTF-8,
-роздільник — кома (подвійний клік в українському Excel чекає `;` і складе все в одну колонку).
-**Захист від формул:** текст, що починається з `=`, `+`, `-`, `@`, табуляції, переносу рядка або їхніх
-повноширинних варіантів (`＝＋－＠`), експортується з `'` на початку — таблиця відкриє його як текст.
-Імпорт цей `'` прибирає, тож `=1+1` повертається тим самим.
-
-## Відновлення з резервної копії
-
-Налаштування → **Імпорт із CSV** → файл експорту. Перед записом показується, скільки витрат буде
-додано, скільки вже є і які рядки не прочитались — «Скасувати» нічого не змінює. Імпорт лише
-**додає** відсутнє: той самий файл двічі нічого не подвоїть, а відновлення на новому телефоні —
-це імпорт у порожній застосунок. Свої категорії відтворюються з тими самими ключами; якщо категорія
-вже є, її поточна назва, іконка й колір лишаються.
-
-Імпорт приймає рядок, лише якщо дата — від 2000-01-01 до завтра, сума більша за 0 і не більша за 10 000 000,
-ключ категорії — до 64 символів, назва — до 100, нотатка — до 1000, а вид запису збігається з категорією
-(дохід не потрапить у витратну категорію). Решта рядків показується як непрочитані. Файл читається не більше 10 МБ.
-
-Приймається лише файл, який зробила сама Kalyta. Файл, перезбережений в Excel, має інші роздільники,
-десяткову кому й дати без поясу — його треба не «виправляти», а взяти оригінальний експорт.
-
-## Налаштувати швидкий запис на iPhone
-
-1. Команди → новий шорткат → дія **Додати витрату** (з’явиться після встановлення Kalyta).
-   Для Back Tap задай у дії **Категорію** — інакше витрата запишеться як «Інше» (виправити можна потім, торкнувшись рядка).
-2. Параметри → Доступність → Дотик → Тильний дотик → Подвійний → цей шорткат.
-3. Автозапис оплат: Команди → Автоматизація → **Транзакція** → дія **Додати витрату**:
-   **Сума** ← змінна «Сума» (Amount), **Нотатка** ← «Продавець» (Merchant), **Категорію лишити порожньою**;
-   увімкнути «Запускати негайно» (Run Immediately). Kalyta сама бере категорію останньої витрати в цього
-   продавця (без різниці в регістрі й пробілах); новий продавець іде в «Інше» — виправ раз, далі запам’ятається.
-
-> Оновлюєшся з версії без своїх категорій? Відкрий шорткати «Додати витрату» (Back Tap і «Транзакція»)
-> і вибери **Категорію** заново: після зміни типу параметра iOS не переносить збережене значення,
-> і без цього витрати падатимуть в «Інше» (їх можна виправити редагуванням).
-
-## monobank (за бажанням)
-
-Kalyta може сама підтягувати витрати й надходження з картки monobank. Це вимкнено, доки ти не вставиш токен.
-
-**Як увімкнути:**
-1. Kalyta → Налаштування → Банк → monobank → «Відкрити api.monobank.ua».
-2. Натисни на QR-код, підтверди в застосунку monobank і скопіюй токен (його показують лише раз).
-3. Повернись у Kalyta й встав токен — застосунок сам його перевірить.
-
-Kalyta читає гривневий рахунок: чорну картку, якщо вона є, інакше іншу гривневу картку, рахунок ФОП — в останню чергу.
-Рахунок за замовчуванням у monobank може бути валютним, тому він не береться наосліп; валютні рахунки не синхронізуються.
-Покупка за кордоном записується в гривнях — сумою, яку банк списав із гривневого рахунку.
-
-Застосунок синхронізується, коли ти його відкриваєш (не частіше ніж раз на хвилину — таке обмеження банку),
-і час від часу у фоні. Витрата, яку вже записав Apple Pay, не дублюється: вона отримує позначку банку.
-
-Надходження на картку стають доходом у категорії «Дохід»: зарплата, переказ від людини, повернення
-за покупку (окремим записом під назвою продавця, витрата лишається). Гроші з власної банки, як і поповнення
-банки, не записуються. Дохід, який ти вже вписав вручну (та сама сума ±30 хв), не дублюється.
-Після оновлення застосунок один раз перечитує останні 31 день, щоб додати минулі надходження; видалені
-витрати при цьому не повертаються. Видалений запис із банку наступна синхронізація теж не повертає.
-
-**Як вимкнути:** Kalyta → Налаштування → Банк → monobank → «Відключити». Токен і список видалених записів
-банку видаляються, уже записані витрати й доходи лишаються. Щоб токен перестав діяти зовсім, відклич його на https://api.monobank.ua/
-(перевірити: у документації API відкликання не описано).
-
-## Ліцензія
-
-MIT — див. [LICENSE](LICENSE). Політика конфіденційності — [docs/privacy.md](docs/privacy.md),
-підтримка — [docs/support.md](docs/support.md).
-
-## Подяки
-
-Іконки сервісів — [homarr-labs/dashboard-icons](https://github.com/homarr-labs/dashboard-icons)
-(Apache-2.0), завантажуються під час роботи з закріпленого коміту. Логотипи належать їхнім власникам
-і не використовуються на скріншотах для App Store (App Review Guidelines 5.2.1).
-
-Нагадування: iOS тримає до 64 запланованих сповіщень на застосунок, тож плануємо лише найближче
-списання кожної підписки й оновлюємо розклад при кожному відкритті. Якщо не відкривати застосунок
-довше за один цикл підписки, одне нагадування може не прийти.
+<sub>Apple, iPhone, Apple Pay, Siri and App Store are trademarks of Apple Inc., registered in the U.S. and other countries and regions.</sub>
