@@ -1,6 +1,6 @@
 # Політика конфіденційності Kalyta / Kalyta Privacy Policy
 
-Дата / Effective date: 25.09.2026
+Дата / Effective date: 01.10.2026
 
 ## Українською
 
@@ -21,6 +21,11 @@
   Щоб видалений запис із банку не повернувся з наступною синхронізацією, 35 днів зберігається лише його
   ідентифікатор у банку й час видалення — без суми, продавця, дати й нотатки; у CSV і App Group він не потрапляє.
   Дані monobank обробляє згідно зі своїми правилами — ми до них доступу не маємо.
+- **Курси валют — лише якщо є записи в іноземній валюті** (або в аркуші запису вибрано не гривню). Застосунок
+  запитує в НБУ (bank.gov.ua, через Cloudflare) список курсів на дату запису — надсилається лише дата — і загальні
+  курси monobank (`api.monobank.ua/bank/currency`, без токена). Ці сервери бачать твою IP-адресу, але не суму
+  й не нотатку. Курс зберігається в самому записі; окремого кешу на диску немає. Поки всі записи в гривнях,
+  курси не запитуються.
 
 Більше нічого не надсилається. Сканування чека розбирає QR-код на телефоні, без мережі.
 Сума за сьогодні зберігається у спільному контейнері App Group, щоб її показав віджет, — теж лише на телефоні.
@@ -51,6 +56,11 @@ All expenses, income, categories and subscriptions stay on your iPhone (SwiftDat
   delete does not come back with the next sync, only its bank id and the time of deletion are kept for 35 days — no
   amount, merchant, date or note; this list is never exported to CSV or shared with the App Group. monobank handles your data
   under its own terms; we have no access to it.
+- **Exchange rates — only if you have foreign-currency entries** (or pick a currency other than the hryvnia in the
+  entry sheet). The app asks the NBU (bank.gov.ua, served through Cloudflare) for its list of rates on the entry's
+  date — only the date is sent — and monobank for its public rates (`api.monobank.ua/bank/currency`, no token).
+  These servers see your IP address, never the amount or the note. The rate is stored on the entry itself; there is
+  no separate cache on disk. While every entry is in hryvnias, no rates are requested.
 
 Nothing else is sent. Receipt scanning parses the QR code on the phone, without any network request.
 Today's total is kept in a shared App Group container so the widget can show it — also on the phone only.

@@ -625,3 +625,26 @@ Research: vault «Валюти — дослідження 2026-10-01».
   within ``Store/purchaseMatchWindow``, not by the hryvnia value, because the bank converts on the processing date,
   not the purchase date; the bank's hryvnias and rate then replace the estimate. The sync state grows from one
   account to several.
+- **Deviation (developer):** the NBU's real list carries precious metals (XAU ≈ 191,676, XPT, XPD over 10,000), so
+  "reject the whole response on any bad field" with the 0.0001…10,000 bound would refuse every real answer. A
+  malformed field (type, code, `r030`, date, non-finite or ≤ 0 rate, body > 64 KB) still refuses the whole list; a
+  well-formed rate outside the bound drops only its own entry. monobank's answer is refused whole on any bad rate.
+- **Proof:** `runCurrencyCheck()` (`Kalyta/CurrencyCheck.swift`), `CurrencyUITests.testDollarEntryShowsHryvnias`
+  (`-rateFixture friday`). Each mutation ran on a scratch copy built as `org.merzlov.kalyta.mutation`:
+
+| # | mutation | red at |
+|---|---|---|
+| 1 | V5 → V6 lightweight stage dropped | `SelfCheck.swift:181` `unknownDataStoreSchema` (store reopen; runs before the V5 check) |
+| 1 | `StoreMerge` copy of the four fields dropped | `CurrencyCheck.swift:72` "The merge dropped currency fields" |
+| 2 | `nbuRate` gives 1 for `[]` | `CurrencyCheck.swift:108` "[] gave a rate" |
+| 2 | range filter removed | `CurrencyCheck.swift:83` "A rate out of bounds (gold) was kept" |
+| 2 | per-day cache bypassed | `CurrencyCheck.swift:117` "The same day was fetched 2 times" |
+| 2 | UTC instead of Kyiv day | `CurrencyCheck.swift:105` "Not the Kyiv day: 20260927" |
+| 3 | `X-Token` set on the rates request | `CurrencyCheck.swift:122` "The rates request carries a token" |
+| 3 | buy/sell swapped | `CurrencyCheck.swift:130` "Spending did not get monobank's sell rate" |
+| 4 | bankers' rounding | `CurrencyCheck.swift:141` "A half kopiyka did not round up" |
+| 4 | no rounding | `CurrencyCheck.swift:138` "3 × 44.9729 is 134.9187" |
+| 5 | estimate flag never cleared | `CurrencyCheck.swift:175` "The estimated entry was not recomputed" |
+| 6 | foreign columns not written | `CurrencyCheck.swift:199` "Foreign columns" |
+| 6 | currency left out of `DuplicateKey` | `CurrencyCheck.swift:209` "The currency is not part of the duplicate key" |
+| 7 | hryvnia guard removed from `quote` (fetch on every editor open) | `CurrencyCheck.swift:184` "UAH got a quote" |
