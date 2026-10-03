@@ -61,7 +61,7 @@ Everything is stored locally with SwiftData. No subscription, no account, no ser
   income, no duplicates of Apple Pay entries, no server of ours in between.
 - 🔁 **Subscriptions.** Monthly cost, next charge, a reminder the day before, "Record charge" and an automatic
   service icon.
-- 📤 **CSV export and import** as your backup, with a preview and no duplicates on re-import.
+- 📤 **Full backup** (JSON: entries, categories, subscriptions) and **CSV for spreadsheets**, with a preview and no duplicates on re-import.
 - 📱 **Widgets and Control Center.** A one-tap scanner and today's total on the Home and Lock Screen (hidden while the
   iPhone is locked); a Scan Receipt control on iOS 18.
 - ♿ **Accessible and bilingual.** VoiceOver reads icons, colours and the ring; large text does not break rows;
@@ -145,12 +145,16 @@ Details and the simulator build: [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Your data lives only on the phone, so export is your backup.
 
-- **Export:** Settings → **Backup** → **Export Backup** shares `Kalyta-<date>.csv` with every entry (subscriptions
-  are not included); save it to Files or iCloud Drive.
-  Numbers and Google Sheets open it directly. In Excel use Data → From Text/CSV, UTF-8, comma delimiter.
-- **Restore:** Settings → **Backup** → **Import from CSV** → the exported file. A preview shows what will be added, what already
-  exists and which rows could not be read; Cancel changes nothing. Import only adds what is missing, so the same file
-  twice doubles nothing, and a new phone is restored by importing into an empty app.
+- **Backup:** Settings → **Backup** → **Export Backup** saves `Kalyta-<date>.json` with every entry, category and
+  subscription (not subscription icons, the monobank token or sync state) to Files or iCloud Drive. The Backup row in
+  Settings shows when a backup was last saved. It is a plain, unencrypted file: store it somewhere you trust.
+- **For spreadsheets:** **Export for Spreadsheets (CSV)** shares `Kalyta-<date>.csv` with every entry, not for
+  restoring a whole app. Numbers and Google Sheets open it directly. In Excel use Data → From Text/CSV, UTF-8, comma
+  delimiter.
+- **Restore:** Settings → **Backup** → **Import Backup** → a `.json` backup or a `.csv` export. A preview shows, per
+  type, what will be added, what already exists and what could not be read; Cancel changes nothing. Import only adds:
+  it never deletes or changes what is here (a category already here keeps this phone's name), so the same file twice
+  adds nothing. Restoring into an empty app also takes the backup's names and order of the built-in categories.
 - Import accepts only files Kalyta wrote. A file re-saved by Excel has other delimiters and dates — use the original
   export.
 - Text starting with `=`, `+`, `-` or `@` is exported with a leading `'` so spreadsheets treat it as text; import

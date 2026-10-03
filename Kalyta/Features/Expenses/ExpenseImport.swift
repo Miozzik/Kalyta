@@ -102,6 +102,8 @@ enum ImportError: LocalizedError, Equatable {
     case unsupportedCurrency(line: Int)
     /// The file is larger than an import accepts.
     case tooLarge
+    /// The backup was written by a later version of Kalyta, in a format this build does not know.
+    case newerBackup
 
     var errorDescription: String? {
         switch self {
@@ -113,6 +115,8 @@ enum ImportError: LocalizedError, Equatable {
             String(localized: "Line \(line) is not in hryvnias. Kalyta only imports hryvnia amounts.")
         case .tooLarge:
             String(localized: "The file is too large to import.")
+        case .newerBackup:
+            String(localized: "This backup is from a newer version of Kalyta. Update the app to import it.")
         }
     }
 }

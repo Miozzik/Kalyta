@@ -34,7 +34,11 @@
 - Видали застосунок — зникнуть усі записи. (Токен monobank iOS може лишити в Keychain; наступне встановлення
   його видалить при першому запуску.)
 - Налаштування → Банк → monobank → «Відключити» видаляє токен, а також список видалених записів банку; відкликати його можна на api.monobank.ua.
-- Перед видаленням можна зберегти резервну копію: Налаштування → «Резервна копія» → «Експортувати резервну копію» → CSV-файл.
+- Перед видаленням можна зберегти резервну копію: Налаштування → «Резервна копія» → «Експортувати резервну копію» → JSON-файл.
+
+**Резервна копія** — це незашифрований файл з усіма записами, нотатками (назви продавців, можливо імена з переказів),
+категоріями, підписками й ідентифікаторами транзакцій банку. Він зберігається там, куди ти його збережеш; iCloud Drive
+тримає його у твоєму обліковому записі Apple. Токена monobank і стану синхронізації в ньому ніколи немає.
 
 **Контакт:** сторінка підтримки — [support.md](support.md).
 
@@ -69,6 +73,10 @@ Today's total is kept in a shared App Group container so the widget can show it 
 - Delete the app to remove every entry. (iOS may keep the monobank token in the Keychain; the next install deletes it
   on first launch.)
 - Settings → Bank → monobank → "Disconnect" deletes the token, and also deletes the list of deleted bank entries; you can revoke it at api.monobank.ua.
-- To keep a backup first: Settings → Backup → Export Backup → CSV file.
+- To keep a backup first: Settings → Backup → Export Backup → JSON file.
+
+**The backup** is an unencrypted file with all entries, notes (merchant names, possibly names from transfers),
+categories, subscriptions and bank transaction ids. It is stored where you save it; iCloud Drive keeps it in your
+Apple account. It never contains your monobank token or sync state.
 
 **Contact:** see the support page — [support.md](support.md).

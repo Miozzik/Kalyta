@@ -672,3 +672,30 @@ Research: vault «Валюти — дослідження 2026-10-01».
   runs before a destination is chosen (UI test: Save to Files → Cancel still recorded an export), so the date would
   lie. A tap gesture on the `ShareLink` is no way out either: inside a `List` it swallowed the tap. The subtitle returns
   in stage 2 via `.fileExporter`, whose `onCompletion` reports a real save.
+
+## 2026-10-03 — Backup, stage 2: full backup as JSON (PM final ruling; client, designer agreed)
+
+- **File:** JSON (`UTType.json`), `Kalyta-<yyyy-MM-dd>.json`, top level
+  `{"format":"kalyta-backup","version":1,"exportedAt",entries,categories,subscriptions}`; `JSONEncoder`, dates
+  `.iso8601`, amounts plain numbers. Explicit `Codable` DTOs, never `Codable` on `@Model` classes; no schema change.
+  Entry: date, amount, categoryKey, note, isIncome, bankID, originalAmount, currencyCode, rate, isRateEstimated.
+  Category: key, customName, symbol, colorName, isHidden, sortOrder, isIncome. Subscription: key, name, amount,
+  period, firstChargeDate, categoryKey, colorName. **Never** in the file: the monobank token, `monobankLinked`, sync
+  state (`deletedIDs`, `incomeOnlyBefore`), any `@AppStorage`, `legacyCategory`, `iconData`, `iconSlugTried`.
+- **Screen** (Settings → Backup): «Export Backup» via `.fileExporter`; only `onCompletion` `.success` stores «Last
+  export: <date>» (`@AppStorage`), shown under the Settings → Backup row («Not exported yet» otherwise; `resetData`
+  clears it). Below: «Export for Spreadsheets (CSV)» — the stage 1 `ShareLink`, caption «For Excel/Numbers, not for
+  restoring». «Import Backup» takes `.json` and `.commaSeparatedText`, routed by content type; the CSV path is
+  unchanged. Footer «A plain, unencrypted file. Store it somewhere you trust.»; «Subscriptions are not included» goes.
+- **Restore invariant:** import only inserts — never deletes or changes an existing entry or subscription; the same
+  file twice inserts 0 of every type. Entries are skipped by `DuplicateKey` or a known `bankID`; categories and
+  subscriptions by key (local wins), as `StoreMerge` does. An entry whose category is neither in the file nor local is
+  invalid. **Single exception (empty-app rule):** with 0 entries and 0 subscriptions in the store, built-in categories
+  take the backup's customName, isHidden, sortOrder, symbol and colorName. Reminders are rescheduled after the write.
+- **Preview** before Import, one line per type: «Entries: N new, M already here», «Categories: N new, M kept as on
+  this phone», «Subscriptions: N new, M already here», «K items could not be read», and, only when the empty-app rule
+  changes something, «N built-in categories will take the backup's names and order».
+- **Trust boundary:** `readText` 10 MB cap. Whole file refused: malformed JSON, wrong `format`, `version` > 1,
+  > 100k entries / 1k categories / 1k subscriptions. Single item skipped and counted: strings over the CSV limits,
+  `isValidAmount` fails, non-ISO currency, date outside the CSV bounds, duplicate key within the file; unknown SF Symbol
+  or colour falls back as in the CSV path.

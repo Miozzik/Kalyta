@@ -82,6 +82,58 @@
         }
       }
     },
+    "%lld built-in categories will take the backup's names and order": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld built-in category will take the backup's name and order"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld built-in categories will take the backup's names and order"
+                }
+              }
+            }
+          }
+        },
+        "uk": {
+          "variations": {
+            "plural": {
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld вбудовані категорії візьмуть назви й порядок із копії"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld вбудованих категорій візьмуть назви й порядок із копії"
+                }
+              },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld вбудована категорія візьме назву й порядок із копії"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld вбудованої категорії візьмуть назви й порядок із копії"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld entries": {
       "localizations": {
         "en": {
@@ -127,6 +179,58 @@
                 "stringUnit": {
                   "state": "translated",
                   "value": "%lld запису"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld items could not be read": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld item could not be read"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld items could not be read"
+                }
+              }
+            }
+          }
+        },
+        "uk": {
+          "variations": {
+            "plural": {
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Не вдалося прочитати %lld елементи"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Не вдалося прочитати %lld елементів"
+                }
+              },
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Не вдалося прочитати %lld елемент"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Не вдалося прочитати %lld елемента"
                 }
               }
             }
@@ -319,6 +423,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Категорію з витратами можна лише приховати — так минулі місяці її зберігають."
+          }
+        }
+      }
+    },
+    "A plain, unencrypted file. Store it somewhere you trust.": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Звичайний незашифрований файл. Зберігайте його там, де довіряєте."
           }
         }
       }
@@ -553,6 +667,16 @@
         }
       }
     },
+    "Categories: %lld new, %lld kept as on this phone": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Категорії: нові — %1$lld, лишаються як на цьому телефоні — %2$lld"
+          }
+        }
+      }
+    },
     "Category": {
       "localizations": {
         "uk": {
@@ -743,6 +867,16 @@
         }
       }
     },
+    "Entries: %lld new, %lld already here": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Записи: нові — %1$lld, уже є — %2$lld"
+          }
+        }
+      }
+    },
     "Estimated rate %@ · check": {
       "localizations": {
         "uk": {
@@ -793,6 +927,16 @@
         }
       }
     },
+    "Export for Spreadsheets (CSV)": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Експорт для таблиць (CSV)"
+          }
+        }
+      }
+    },
     "First charge": {
       "localizations": {
         "uk": {
@@ -809,6 +953,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Їжа"
+          }
+        }
+      }
+    },
+    "For Excel/Numbers, not for restoring": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Для Excel/Numbers, не для відновлення"
           }
         }
       }
@@ -909,6 +1063,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Імпортувати"
+          }
+        }
+      }
+    },
+    "Import Backup": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Імпортувати резервну копію"
           }
         }
       }
@@ -1072,6 +1236,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Тип"
+          }
+        }
+      }
+    },
+    "Last export: %@": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Останній експорт: %@"
           }
         }
       }
@@ -1374,6 +1548,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Не фіскальний чек"
+          }
+        }
+      }
+    },
+    "Not exported yet": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ще не експортовано"
           }
         }
       }
@@ -1715,6 +1899,16 @@
         }
       }
     },
+    "Restored — entries: %lld, categories: %lld, subscriptions: %lld.": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Відновлено — записи: %1$lld, категорії: %2$lld, підписки: %3$lld."
+          }
+        }
+      }
+    },
     "Restores a Kalyta export. Expenses already here are skipped, so importing the same file twice adds nothing.": {
       "localizations": {
         "uk": {
@@ -1741,16 +1935,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Зберегти як нову"
-          }
-        }
-      }
-    },
-    "Saves every entry with its category, to Files or iCloud Drive. Subscriptions are not included.": {
-      "localizations": {
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Зберігає всі записи з категоріями — у Файли або iCloud Drive. Підписки не входять."
           }
         }
       }
@@ -1896,6 +2080,16 @@
         }
       }
     },
+    "Subscriptions: %lld new, %lld already here": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Підписки: нові — %1$lld, уже є — %2$lld"
+          }
+        }
+      }
+    },
     "Support": {
       "localizations": {
         "uk": {
@@ -2022,6 +2216,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Команда в «Командах» із кнопкою «Додати команду»"
+          }
+        }
+      }
+    },
+    "This backup is from a newer version of Kalyta. Update the app to import it.": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Цю копію зроблено новішою версією Kalyta. Оновіть застосунок, щоб її імпортувати."
           }
         }
       }

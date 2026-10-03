@@ -15,12 +15,13 @@ final class ExportUITests: KalytaUITestCase {
         XCTAssertEqual(fileName.value as? String, "Kalyta-\(today)")
     }
 
-    /// Settings → Backup holds both export and import.
+    /// Settings → Backup holds the full backup, the CSV for spreadsheets, and import.
     func testBackupShowsExportAndImport() {
         app.tabBars.buttons["Settings"].tap()
         app.buttons["Backup"].tap()
         XCTAssertTrue(app.buttons["Export Backup"].waitForExistence(timeout: 5), "No export section")
-        XCTAssertTrue(app.buttons["Import from CSV"].exists, "No import section")
+        XCTAssertTrue(app.buttons["Export for Spreadsheets (CSV)"].exists, "The CSV export is no longer offered")
+        XCTAssertTrue(app.buttons["Import Backup"].exists, "No import section")
     }
 
     /// An expense waiting in the undo window is left out of the export.
@@ -36,16 +37,16 @@ final class ExportUITests: KalytaUITestCase {
         XCTAssertTrue(app.buttons["Undo"].waitForExistence(timeout: 2))
 
         app.tabBars.buttons["Settings"].tap()
-        app.buttons["Export Backup"].tap()
+        app.buttons["Export for Spreadsheets (CSV)"].tap()
         XCTAssertTrue(shareSheetTitle().waitForExistence(timeout: 5), "The share sheet did not open")
         XCTAssertEqual(exportedCount(), countBefore - 1, "The export still includes the expense pending deletion")
     }
 
-    /// Opens Settings → Backup, taps Export Backup and waits for the share sheet.
+    /// Opens Settings → Backup, taps the CSV export and waits for the share sheet.
     private func openExport() {
         app.tabBars.buttons["Settings"].tap()
         app.buttons["Backup"].tap()
-        app.buttons["Export Backup"].tap()
+        app.buttons["Export for Spreadsheets (CSV)"].tap()
         XCTAssertTrue(shareSheetTitle().waitForExistence(timeout: 5), "The share sheet did not open")
     }
 

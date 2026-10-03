@@ -45,7 +45,7 @@ Kalyta/                       # App target (Xcode synchronized folder: new files
 ├── Model/                    # SwiftData models, schema versions and migrations, periods, hryvnia formatting
 ├── Features/
 │   ├── Expenses/             # List, editor, CSV format and import planning, summary card
-│   ├── Backup/               # Settings → Backup: export and import screen
+│   ├── Backup/               # Settings → Backup screen, JSON backup format, restore plan and writer
 │   ├── Categories/           # Category editor, merchant → category memory
 │   ├── Statistics/
 │   ├── Subscriptions/

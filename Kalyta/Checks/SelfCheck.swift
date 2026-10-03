@@ -15,8 +15,7 @@ func runSelfCheck() {
     let context = Store.container.mainContext
     try! Store.ensureCategories(in: context)
     let food = Store.category(withKey: Category.food.rawValue, in: context)!
-    // Remove leftovers from a previous run that crashed before cleaning up,
-    // otherwise every later run would fail on the count check.
+    // Remove leftovers of a run that crashed before cleaning up, or every later run fails the count check.
     deleteExpenses(where: #Predicate { $0.note == "selfcheck" }, in: context)
 
     let probe = Expense(amount: 42.5, category: food, note: "selfcheck")
@@ -81,6 +80,7 @@ func runSelfCheck() {
     runTodayCheck()
     runAutopayCheck()
     runCurrencyCheck()
+    runBackupCheck()
 
     // The Shortcuts action: an empty or unknown category must record into "Other", never fail.
     assert(Store.category(forKey: nil, in: context).key == "other", "An empty category did not fall back to Other")
@@ -105,8 +105,7 @@ func runSelfCheck() {
     try! context.save()
     assert(try! context.fetchCount(probeQuery) == 0, "The expense was not deleted")
 
-    deleteExpenses(where: #Predicate { $0.note == "selfcheck" }, in: context)
-    try! context.save()
+    deleteExpenses(where: #Predicate { $0.note == "selfcheck" }, in: context)  // Saves.
     print("SELFCHECK OK")
     exit(0)  // Without this the app keeps running and holds the launching console open.
 }
@@ -123,6 +122,7 @@ func resetData() {
     for subscription in try! context.fetch(FetchDescriptor<Subscription>()) { context.delete(subscription) }
     try! context.save()
     try! Store.ensureCategories(in: context)
+    UserDefaults.standard.removeObject(forKey: BackupView.lastExportKey)
 }
 
 /// Replaces all data with the built-in categories and sample expenses from the last week.

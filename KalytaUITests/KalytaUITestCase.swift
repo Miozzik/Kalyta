@@ -120,6 +120,71 @@ class KalytaUITestCase: XCTestCase {
         return "https://cabinet.tax.gov.ua/cashregs/check?\(formatter.string(from: date))&sm=\(amount)&fn=4000123456"
     }
 
+    /// Exports every entry from Settings → Backup and saves the file to On My iPhone under a unique name.
+    ///
+    /// - Parameter isJSON: Whether to save the full backup rather than the CSV for spreadsheets.
+    /// - Returns: The file name without the extension.
+    func saveBackup(isJSON: Bool = false) -> String {
+        let name = "backup-\(UUID().uuidString.prefix(8))"
+        app.tabBars.buttons["Settings"].tap()
+        app.buttons["Backup"].tap()
+        if isJSON {
+            app.buttons["Export Backup"].tap()
+        } else {
+            app.buttons["Export for Spreadsheets (CSV)"].tap()
+            let saveToFiles = app.cells["Save to Files"].firstMatch
+            XCTAssertTrue(saveToFiles.waitForExistence(timeout: 5))
+            saveToFiles.tap()
+        }
+
+        // A unique name: a file with the default name may be left from an earlier run.
+        let field = app.textFields["DOCPicker.filenameTextField"]
+        // A fresh simulator opens the dialog at its list of locations, with no file name yet.
+        let onMyPhone = app.cells["DOC.sidebar.item.On My iPhone"]
+        if !field.waitForExistence(timeout: 5), onMyPhone.exists { onMyPhone.tap() }
+        XCTAssertTrue(field.waitForExistence(timeout: 10), "The save dialog shows no file name")
+        field.tap()
+        let current = (field.value as? String) ?? ""
+        field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: current.count + 5) + name)
+        app.buttons["DOCPicker.actionButton"].tap()
+        XCTAssertTrue(app.buttons["DOCPicker.actionButton"].waitForNonExistence(timeout: 15), "The file was not saved")
+        app.tabBars.buttons["Expenses"].tap()
+        return name
+    }
+
+    /// Deletes an expense and waits until the undo window closes, so the deletion is saved.
+    func deleteAndCommit(_ note: String) {
+        row(note).swipeLeft()
+        app.buttons["Delete"].firstMatch.tap()
+        XCTAssertTrue(app.buttons["Undo"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["Undo"].waitForNonExistence(timeout: 10), "The deletion was never committed")
+    }
+
+    /// Opens Settings → Backup → Import Backup and picks the file.
+    func openImport(of name: String) {
+        app.tabBars.buttons["Settings"].tap()
+        let importButton = app.buttons["Import Backup"]
+        if !importButton.exists {
+            app.buttons["Backup"].tap()
+        }
+        importButton.tap()
+        let file = app.cells.matching(NSPredicate(format: "identifier BEGINSWITH %@", name)).firstMatch
+        // A fresh simulator opens the picker on an empty Recents; the file is in On My iPhone.
+        if !file.waitForExistence(timeout: 5) {
+            app.buttons["Browse"].tap()
+            let onMyPhone = app.cells["DOC.sidebar.item.On My iPhone"]
+            if onMyPhone.waitForExistence(timeout: 5) { onMyPhone.tap() }
+        }
+        XCTAssertTrue(file.waitForExistence(timeout: 10), "The backup is not offered in the file picker")
+        file.tap()
+        XCTAssertTrue(app.alerts.firstMatch.waitForExistence(timeout: 10), "No preview after picking the file")
+    }
+
+    /// Returns the text of the import preview alert.
+    func preview() -> String {
+        app.alerts.firstMatch.staticTexts.allElementsBoundByIndex.map(\.label).joined(separator: "\n")
+    }
+
     /// Returns Kalyta's widget on the Home Screen, adding it first if it is not there.
     func homeScreenWidget() -> XCUIElement {
         let icons = springboard.icons.matching(identifier: "Kalyta")
