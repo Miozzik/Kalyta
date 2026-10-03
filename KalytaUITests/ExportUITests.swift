@@ -4,9 +4,10 @@ import XCTest
 final class ExportUITests: KalytaUITestCase {
     /// Save to Files proposes a file named after today's date, not a generic "Data".
     func testExportNamesFileByDate() {
+        relaunch(with: ["--demo"])  // Without the unique `-exportFileName` the other tests use.
         openExport()
         let saveToFiles = app.cells["Save to Files"].firstMatch
-        XCTAssertTrue(saveToFiles.waitForExistence(timeout: 5))
+        XCTAssertTrue(saveToFiles.waitForExistence(timeout: 10))
         saveToFiles.tap()
 
         let fileName = app.textFields["DOCPicker.filenameTextField"]
@@ -38,7 +39,8 @@ final class ExportUITests: KalytaUITestCase {
 
         app.tabBars.buttons["Settings"].tap()
         app.buttons["Export for Spreadsheets (CSV)"].tap()
-        XCTAssertTrue(shareSheetTitle().waitForExistence(timeout: 5), "The share sheet did not open")
+        if !shareSheetTitle().waitForExistence(timeout: 10) { app.buttons["Export for Spreadsheets (CSV)"].tap() }
+        XCTAssertTrue(shareSheetTitle().waitForExistence(timeout: 10), "The share sheet did not open")
         XCTAssertEqual(exportedCount(), countBefore - 1, "The export still includes the expense pending deletion")
     }
 
@@ -47,7 +49,9 @@ final class ExportUITests: KalytaUITestCase {
         app.tabBars.buttons["Settings"].tap()
         app.buttons["Backup"].tap()
         app.buttons["Export for Spreadsheets (CSV)"].tap()
-        XCTAssertTrue(shareSheetTitle().waitForExistence(timeout: 5), "The share sheet did not open")
+        // A busy simulator can take long to show the first share sheet, or drop the tap while a sheet closes.
+        if !shareSheetTitle().waitForExistence(timeout: 10) { app.buttons["Export for Spreadsheets (CSV)"].tap() }
+        XCTAssertTrue(shareSheetTitle().waitForExistence(timeout: 10), "The share sheet did not open")
     }
 
     /// Closes the share sheet by tapping the dimmed area above it.

@@ -158,7 +158,11 @@ extension Backup: Codable {
     ///
     /// - Parameter date: The day to name.
     static func fileName(for date: Date) -> String {
-        "Kalyta-\(date.formatted(Date.ISO8601FormatStyle(timeZone: .current).year().month().day()))"
+        #if DEBUG
+            // UI tests save under a unique name instead of typing one into the save dialog.
+            if let name = UserDefaults.standard.string(forKey: "exportFileName") { return name }
+        #endif
+        return "Kalyta-\(date.formatted(Date.ISO8601FormatStyle(timeZone: .current).year().month().day()))"
     }
 }
 

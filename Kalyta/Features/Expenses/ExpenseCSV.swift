@@ -171,9 +171,6 @@ struct ExpenseExport: Transferable {
         DataRepresentation(exportedContentType: .commaSeparatedText) { export in
             Data(ExpenseCSV.document(for: export.records).utf8)
         }
-        .suggestedFileName { export in
-            let day = export.createdAt.formatted(Date.ISO8601FormatStyle(timeZone: .current).year().month().day())
-            return "Kalyta-\(day).csv"
-        }
+        .suggestedFileName { "\(Backup.fileName(for: $0.createdAt)).csv" }
     }
 }

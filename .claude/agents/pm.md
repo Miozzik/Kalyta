@@ -57,6 +57,8 @@ Building writes only to DerivedData; that is allowed.
   by bundle id and process name.
   (not on the xcodebuild command line: that also overrides the UI-test runner's id and every launch crashes).
   Reason: XCTest fails any UI run when a crash report for the app's bundle id appears from any simulator on the host.
+- A `simctl clone` saves "On My iPhone" files into the SOURCE simulator's File Provider storage, so a plain clone
+  never sees its own saves (document-picker tests fail). Always `xcrun simctl erase <clone>` before UI runs.
 - Only one full UI suite runs at a time on this Mac (ask the team lead for the slot); shut your simulator down when idle.
 - Two xcodebuild test runs on the same simulator kill each other's app with no crash
   report. While a gate B is running on "iPhone 17", the team lead runs mutations on a

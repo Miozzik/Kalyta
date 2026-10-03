@@ -10,12 +10,15 @@ class KalytaUITestCase: XCTestCase {
     /// Enough swipes to cross the whole list of sample data in either direction.
     let maxScrolls = 8
     var app: XCUIApplication!
+    /// The name the app proposes for a saved backup or CSV in this test: unique, and sorted
+    /// before every other file, so the document picker shows it without scrolling.
+    let exportFileName = "000-\(UUID().uuidString.prefix(8))"
     let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
 
     override func setUp() {
         continueAfterFailure = false
         app = XCUIApplication()
-        app.launchArguments = ["--demo"] + languageArguments
+        app.launchArguments = ["--demo", "-exportFileName", exportFileName] + languageArguments
         app.launch()
     }
 
@@ -120,12 +123,14 @@ class KalytaUITestCase: XCTestCase {
         return "https://cabinet.tax.gov.ua/cashregs/check?\(formatter.string(from: date))&sm=\(amount)&fn=4000123456"
     }
 
-    /// Exports every entry from Settings → Backup and saves the file to On My iPhone under a unique name.
+    /// Exports every entry from Settings → Backup and saves the file to On My iPhone as ``exportFileName``.
+    ///
+    /// The name comes from the app (`-exportFileName`), not typed: the dialog does not always
+    /// show its name field on a busy simulator.
     ///
     /// - Parameter isJSON: Whether to save the full backup rather than the CSV for spreadsheets.
     /// - Returns: The file name without the extension.
     func saveBackup(isJSON: Bool = false) -> String {
-        let name = "backup-\(UUID().uuidString.prefix(8))"
         app.tabBars.buttons["Settings"].tap()
         app.buttons["Backup"].tap()
         if isJSON {
@@ -133,23 +138,19 @@ class KalytaUITestCase: XCTestCase {
         } else {
             app.buttons["Export for Spreadsheets (CSV)"].tap()
             let saveToFiles = app.cells["Save to Files"].firstMatch
-            XCTAssertTrue(saveToFiles.waitForExistence(timeout: 5))
+            // The tap can be dropped while an earlier sheet is still closing.
+            if !saveToFiles.waitForExistence(timeout: 10) { app.buttons["Export for Spreadsheets (CSV)"].tap() }
+            XCTAssertTrue(saveToFiles.waitForExistence(timeout: 10), "The share sheet did not open")
             saveToFiles.tap()
         }
 
-        // A unique name: a file with the default name may be left from an earlier run.
-        let field = app.textFields["DOCPicker.filenameTextField"]
-        // A fresh simulator opens the dialog at its list of locations, with no file name yet.
-        let onMyPhone = app.cells["DOC.sidebar.item.On My iPhone"]
-        if !field.waitForExistence(timeout: 5), onMyPhone.exists { onMyPhone.tap() }
-        XCTAssertTrue(field.waitForExistence(timeout: 10), "The save dialog shows no file name")
-        field.tap()
-        let current = (field.value as? String) ?? ""
-        field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: current.count + 5) + name)
-        app.buttons["DOCPicker.actionButton"].tap()
-        XCTAssertTrue(app.buttons["DOCPicker.actionButton"].waitForNonExistence(timeout: 15), "The file was not saved")
+        openOnMyPhone()
+        let save = app.buttons["DOCPicker.actionButton"]
+        XCTAssertTrue(save.waitForExistence(timeout: 10), "The save dialog has no Save button")
+        save.tap()
+        XCTAssertTrue(save.waitForNonExistence(timeout: 15), "The file was not saved")
         app.tabBars.buttons["Expenses"].tap()
-        return name
+        return exportFileName
     }
 
     /// Deletes an expense and waits until the undo window closes, so the deletion is saved.
@@ -169,15 +170,32 @@ class KalytaUITestCase: XCTestCase {
         }
         importButton.tap()
         let file = app.cells.matching(NSPredicate(format: "identifier BEGINSWITH %@", name)).firstMatch
-        // A fresh simulator opens the picker on an empty Recents; the file is in On My iPhone.
-        if !file.waitForExistence(timeout: 5) {
-            app.buttons["Browse"].tap()
-            let onMyPhone = app.cells["DOC.sidebar.item.On My iPhone"]
-            if onMyPhone.waitForExistence(timeout: 5) { onMyPhone.tap() }
-        }
-        XCTAssertTrue(file.waitForExistence(timeout: 10), "The backup is not offered in the file picker")
+        openOnMyPhone()
+        // The folder lists a file saved moments ago only after the file provider catches up.
+        XCTAssertTrue(file.waitForExistence(timeout: 30), "The backup is not offered in the file picker")
         file.tap()
+        // A tap while the folder is still settling is ignored; the picker then stays open.
+        if !app.alerts.firstMatch.waitForExistence(timeout: 5), file.exists { file.tap() }
         XCTAssertTrue(app.alerts.firstMatch.waitForExistence(timeout: 10), "No preview after picking the file")
+    }
+
+    /// Brings the open document picker to the On My iPhone folder.
+    ///
+    /// The picker opens wherever it was last: Recents (maybe empty), Locations, On My iPhone or
+    /// another folder, and on a busy simulator it can take several seconds to appear at all.
+    func openOnMyPhone() {
+        let picker = app.navigationBars["FullDocumentManagerViewControllerNavigationBar"]
+        XCTAssertTrue(picker.waitForExistence(timeout: 20), "The document picker did not open")
+        let title = picker.staticTexts["On My iPhone"]
+        if title.waitForExistence(timeout: 10) { return }
+        let onMyPhone = app.cells["DOC.sidebar.item.On My iPhone"]
+        // Recents has a Browse tab; a folder has a Back button; Locations shows the list itself.
+        for step in [app.buttons["Browse"].firstMatch, picker.buttons["BackButton"]] where !onMyPhone.exists {
+            if step.exists { step.tap() }
+            _ = onMyPhone.waitForExistence(timeout: 5)
+        }
+        if onMyPhone.exists { onMyPhone.tap() }
+        XCTAssertTrue(title.waitForExistence(timeout: 10), "The picker did not open On My iPhone")
     }
 
     /// Returns the text of the import preview alert.

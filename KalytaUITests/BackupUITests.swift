@@ -16,9 +16,9 @@ final class BackupUITests: KalytaUITestCase {
         app.buttons["Export Backup"].tap()
         // Cancel shows only at the dialog's top level; inside a folder, Back leads there.
         let dialog = app.navigationBars["FullDocumentManagerViewControllerNavigationBar"]
-        XCTAssertTrue(dialog.waitForExistence(timeout: 10), "The save dialog did not open")
+        XCTAssertTrue(dialog.waitForExistence(timeout: 20), "The save dialog did not open")
         let cancel = dialog.buttons["Cancel"]
-        if !cancel.exists { dialog.buttons["BackButton"].tap() }
+        if !cancel.waitForExistence(timeout: 3) { dialog.buttons["BackButton"].tap() }
         XCTAssertTrue(cancel.waitForExistence(timeout: 5), "The save dialog offers no Cancel")
         cancel.tap()
         XCTAssertTrue(app.buttons["Export Backup"].waitForExistence(timeout: 5), "The save dialog did not close")

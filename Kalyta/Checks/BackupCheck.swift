@@ -72,16 +72,8 @@ func runBackupCheck() {
     let first = restore(text, into: target)
     assert(first.isEmptyApp && first.builtInUpdates.map(\.key).sorted() == ["food", "fun"], "Empty-app rule: \(first)")
     let restored = try! Backup.snapshot(of: target, now: day)
-    var expected = exported
-    func wholeSecond(_ date: Date) -> Date { Date(timeIntervalSince1970: date.timeIntervalSince1970.rounded(.down)) }
-    for index in expected.entries.indices { expected.entries[index].date = wholeSecond(expected.entries[index].date) }
-    for index in expected.subscriptions.indices {
-        expected.subscriptions[index].firstChargeDate = wholeSecond(expected.subscriptions[index].firstChargeDate)
-    }
-    assert(Set(restored.entries) == Set(expected.entries), "Entries changed in the round trip: \(restored.entries)")
-    assert(Set(restored.categories) == Set(expected.categories), "Categories changed: \(restored.categories)")
-    assert(
-        Set(restored.subscriptions) == Set(expected.subscriptions), "Subscriptions changed: \(restored.subscriptions)")
+    // Read from the models, not through the snapshot, so a field the export drops shows up here.
+    assert(storedFields(of: target) == storedFields(of: source), "A field was lost in the round trip")
     assert(
         try! target.fetch(FetchDescriptor<Subscription>()).map(\.key) == ["sub-key-1"],
         "A restored subscription lost its key")
@@ -116,6 +108,18 @@ func runBackupCheck() {
             && syncedBefore.entries.allSatisfy(syncedAfter.entries.contains),
         "A restore changed an existing object")
 
+    // A sync between preview and Import makes the app not empty: the built-ins stay as they are.
+    let raced = emptyBackupStore()
+    let racedPlan = BackupRestore.plan(try! Backup.decode(text), local: try! BackupLocal(raced))
+    raced.insert(Expense(amount: 5, category: Store.category(forKey: nil, in: raced), note: "synced", bankID: "mono-9"))
+    try! raced.save()
+    let racedBefore = try! Backup.snapshot(of: raced, now: day).categories
+    try! BackupRestore.apply(racedPlan, in: raced)
+    let racedAfter = try! Backup.snapshot(of: raced, now: day).categories
+    assert(
+        !racedPlan.builtInUpdates.isEmpty && racedBefore.allSatisfy(racedAfter.contains),
+        "Built-ins took the backup's values after a sync made the app non-empty")
+
     // A subscription alone also makes the app not empty.
     let subscribed = emptyBackupStore()
     subscribed.insert(
@@ -125,6 +129,26 @@ func runBackupCheck() {
     assert(subscribedPlan.builtInUpdates.isEmpty, "The empty-app rule fired with a subscription here")
 
     runBackupRefusalCheck(json)
+}
+
+/// Returns every backed-up field of every entry, category and subscription, read straight from the models.
+///
+/// Dates are cut to the whole second, as ISO 8601 writes them.
+@MainActor
+private func storedFields(of context: ModelContext) -> Set<String> {
+    func second(_ date: Date) -> Int { Int(date.timeIntervalSince1970.rounded(.down)) }
+    let entries = try! context.fetch(FetchDescriptor<Expense>()).map {
+        "entry \(second($0.date)) \($0.amount) \($0.assignedCategory?.key ?? "") \($0.note) \($0.isIncome) "
+            + "\($0.bankID ?? "-") \($0.originalAmount ?? 0) \($0.currencyCode ?? "-") \($0.rate ?? 0) \($0.isRateEstimated)"
+    }
+    let categories = try! context.fetch(FetchDescriptor<ExpenseCategory>()).map {
+        "category \($0.key) \($0.customName ?? "-") \($0.symbol) \($0.colorName) \($0.isHidden) \($0.sortOrder) \($0.isIncome)"
+    }
+    let subscriptions = try! context.fetch(FetchDescriptor<Subscription>()).map {
+        "subscription \($0.key) \($0.name) \($0.amount) \($0.period) \(second($0.firstChargeDate)) \($0.categoryKey) "
+            + "\($0.colorName)"
+    }
+    return Set(entries + categories + subscriptions)
 }
 
 /// Opens an empty in-memory store with the built-in categories.

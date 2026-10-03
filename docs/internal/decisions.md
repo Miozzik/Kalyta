@@ -699,3 +699,40 @@ Research: vault «Валюти — дослідження 2026-10-01».
   > 100k entries / 1k categories / 1k subscriptions. Single item skipped and counted: strings over the CSV limits,
   `isValidAmount` fails, non-ISO currency, date outside the CSV bounds, duplicate key within the file; unknown SF Symbol
   or colour falls back as in the CSV path.
+- **Proof:** `runBackupCheck()` (`Kalyta/Checks/BackupCheck.swift`), `BackupUITests` (save → «Last export»; dialog
+  Cancel → «Not exported yet»; restore preview per type, then a second import with 0 new), `ExportUITests` (CSV row
+  still offered). The round trip is compared field by field from the models (`storedFields`), not through the
+  snapshot, so a field the export drops cannot hide on both sides. Each mutation ran on a scratch copy built as
+  `org.merzlov.kalyta.mutation`:
+
+| # | mutation | red at |
+|---|---|---|
+| 1 | export writes `note: ""` | `BackupCheck.swift:76` "A field was lost in the round trip" |
+| 2 | `version <= 1` guard removed | `BackupCheck.swift:192` "Version 2 was not refused" |
+| 3 | `format` check removed | `BackupCheck.swift:193` "A wrong format was not refused" |
+| 4 | `DuplicateKey` skip removed from the plan | `BackupCheck.swift:83` "A second restore planned changes" |
+| 5 | `bankID` skip removed from the plan | `BackupCheck.swift:101` "A known bank id was not a duplicate" |
+| 6 | `isEmptyApp` always true | `BackupCheck.swift:104` "The empty-app rule fired with entries here" |
+| 7 | export puts `MonobankToken.read()` into the note | `BackupCheck.swift:49` "The backup contains the monobank token" |
+| 8 | writer drops `subscription.key = item.key` | `BackupCheck.swift:76` "A field was lost in the round trip" |
+| 9 | empty-app rule ignores "differs" (counts every built-in) | `BackupCheck.swift:73` "Empty-app rule: …" |
+| 10 | writer applies built-in updates without re-checking emptiness (PM gate B STOP) | `BackupCheck.swift:119` "Built-ins took the backup's values after a sync made the app non-empty" |
+
+- **Deviations (developer):** a subscription's `firstChargeDate` may lie up to a year ahead (the CSV bound «tomorrow»
+  would drop a subscription that starts next month); `bankID` is capped at 64 characters like a key; an entry with
+  no `currencyCode` must have no `originalAmount`/`rate`. In-file duplicate entries count as «already here» (as in
+  the CSV import); duplicate category/subscription keys count as unreadable. The «K items could not be read» line
+  shows only when K > 0. New custom categories keep the backup's `sortOrder` only in an empty app, else go last.
+  The writer re-checks bank ids, duplicate keys, subscription keys and the empty-app condition (`fetchCount` of
+  entries and subscriptions) at write time (a sync between preview and
+  confirm cannot double an entry). The Settings row carries `accessibilityIdentifier("Backup")` because the subtitle
+  joins its label. On a freshly erased simulator the picker opens at Locations / empty Recents; the shared UI-test
+  helpers now step into On My iPhone.
+- **Gate B STOP fixes (2026-10-03):** (1) `BackupRestore.apply` re-checks emptiness (`fetchCount` of entries and
+  subscriptions) before applying built-in updates; mutation 10 above. (2) UI tests: a simulator **clone** saves
+  "On My iPhone" files into the *source* simulator's File Provider Storage (seen on disk: every file saved on
+  "iPhone 17 DevJSON2" landed in "iPhone 17"), so its picker never lists them. Gate runs use clone **then**
+  `xcrun simctl erase`. Helpers: the app proposes a unique, first-sorted name (`-exportFileName`, debug builds)
+  instead of typing into the dialog's name field (missing at times); the picker is brought to On My iPhone from
+  Recents / Locations / any folder; share-sheet taps are retried; a just-saved file is awaited up to 30 s; a dropped
+  tap on the file is repeated. Export+Import+Backup together, clone+erase: 9/9 twice.

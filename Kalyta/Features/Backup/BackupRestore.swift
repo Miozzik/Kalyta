@@ -142,7 +142,11 @@ enum BackupRestore {
         var categories = Dictionary(
             try context.fetch(FetchDescriptor<ExpenseCategory>()).map { ($0.key, $0) },
             uniquingKeysWith: { first, _ in first })
-        for item in plan.builtInUpdates {
+        // A bank sync may have recorded entries since the preview; then the app is no longer empty.
+        let isStillEmpty =
+            try context.fetchCount(FetchDescriptor<Expense>()) == 0
+            && context.fetchCount(FetchDescriptor<Subscription>()) == 0
+        for item in plan.builtInUpdates where isStillEmpty {
             guard let category = categories[item.key] else { continue }
             category.customName = item.customName
             category.symbol = item.symbol

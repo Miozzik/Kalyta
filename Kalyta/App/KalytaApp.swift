@@ -14,6 +14,7 @@ import UIKit
 /// - `--measure-import` (also in release builds) times planning and inserting 10,000 imported
 ///   rows on a temporary store, then exits; only a release build gives timings worth deciding on.
 /// - `-rateFixture <name>` (debug builds) answers rate requests from ``RateFixture`` instead of the network.
+/// - `-exportFileName <name>` (debug builds) proposes `<name>` instead of `Kalyta-<date>` when saving a backup or CSV.
 /// - `-scanPayload <text>` (debug builds) makes Scan Receipt read `<text>` instead of the camera;
 ///   `"A|B"` gives A on the first tap, B on the second, and so on.
 @main
