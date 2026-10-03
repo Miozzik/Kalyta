@@ -159,9 +159,9 @@ enum ExpenseCSV {
     }
 }
 
-/// The export offered by the share button: a snapshot of the expenses when it was made.
+/// The backup offered by the share button: a snapshot of the entries when it was made.
 struct ExpenseExport: Transferable {
-    /// The expenses to export, excluding one pending deletion.
+    /// The entries to export.
     let records: [ExpenseRecord]
     /// The moment the snapshot was taken; its date names the file.
     let createdAt: Date

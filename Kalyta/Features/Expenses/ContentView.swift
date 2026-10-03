@@ -251,18 +251,6 @@ struct ContentView: View {
             .onDisappear { commitPendingDeletion() }
             .navigationTitle(showsIncome ? Self.incomeTitle : "Kalyta")
             .toolbar {
-                // The full export sits on the Expenses tab; one copy is enough.
-                if !showsIncome {
-                    ToolbarItem(placement: .topBarLeading) {
-                        // One snapshot feeds both the file and the title, so the count shown is what is exported.
-                        let export = ExpenseExport(records: visibleExpenses.map(ExpenseRecord.init), createdAt: .now)
-                        ShareLink(
-                            item: export, preview: SharePreview(String(localized: "\(export.records.count) entries"))
-                        ) {
-                            Label("Export", systemImage: "square.and.arrow.up")
-                        }
-                    }
-                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Add", systemImage: "plus") { isAddingExpense = true }
                         .buttonStyle(.borderedProminent)

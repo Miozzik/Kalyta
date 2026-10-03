@@ -463,6 +463,16 @@
         }
       }
     },
+    "Backup": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Резервна копія"
+          }
+        }
+      }
+    },
     "Bank": {
       "localizations": {
         "uk": {
@@ -773,12 +783,12 @@
         }
       }
     },
-    "Export": {
+    "Export Backup": {
       "localizations": {
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Експорт"
+            "value": "Експортувати резервну копію"
           }
         }
       }
@@ -1731,6 +1741,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Зберегти як нову"
+          }
+        }
+      }
+    },
+    "Saves every entry with its category, to Files or iCloud Drive. Subscriptions are not included.": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Зберігає всі записи з категоріями — у Файли або iCloud Drive. Підписки не входять."
           }
         }
       }

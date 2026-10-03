@@ -145,9 +145,10 @@ Details and the simulator build: [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Your data lives only on the phone, so export is your backup.
 
-- **Export:** the Export button (top left on the Expenses tab) shares `Kalyta-<date>.csv` with every entry.
+- **Export:** Settings → **Backup** → **Export Backup** shares `Kalyta-<date>.csv` with every entry (subscriptions
+  are not included); save it to Files or iCloud Drive.
   Numbers and Google Sheets open it directly. In Excel use Data → From Text/CSV, UTF-8, comma delimiter.
-- **Restore:** Settings → **Import from CSV** → the exported file. A preview shows what will be added, what already
+- **Restore:** Settings → **Backup** → **Import from CSV** → the exported file. A preview shows what will be added, what already
   exists and which rows could not be read; Cancel changes nothing. Import only adds what is missing, so the same file
   twice doubles nothing, and a new phone is restored by importing into an empty app.
 - Import accepts only files Kalyta wrote. A file re-saved by Excel has other delimiters and dates — use the original

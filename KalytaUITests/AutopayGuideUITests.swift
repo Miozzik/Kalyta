@@ -26,7 +26,7 @@ final class AutopayGuideUITests: XCTestCase {
 
     func testCaptureGuideScreens() throws {
         let language = ProcessInfo.processInfo.environment["KALYTA_GUIDE_LANGUAGE"] ?? ""
-        let label = try XCTUnwrap(Self.labels[language], "Run scripts/autopay-screenshots.sh")
+        guard let label = Self.labels[language] else { throw XCTSkip("Run scripts/autopay-screenshots.sh") }
         continueAfterFailure = false
 
         let kalyta = XCUIApplication()

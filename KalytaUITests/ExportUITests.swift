@@ -1,6 +1,6 @@
 import XCTest
 
-/// End-to-end checks of the CSV export through the share sheet.
+/// End-to-end checks of the CSV export from Settings → Backup through the share sheet.
 final class ExportUITests: KalytaUITestCase {
     /// Save to Files proposes a file named after today's date, not a generic "Data".
     func testExportNamesFileByDate() {
@@ -15,33 +15,43 @@ final class ExportUITests: KalytaUITestCase {
         XCTAssertEqual(fileName.value as? String, "Kalyta-\(today)")
     }
 
+    /// Settings → Backup holds both export and import.
+    func testBackupShowsExportAndImport() {
+        app.tabBars.buttons["Settings"].tap()
+        app.buttons["Backup"].tap()
+        XCTAssertTrue(app.buttons["Export Backup"].waitForExistence(timeout: 5), "No export section")
+        XCTAssertTrue(app.buttons["Import from CSV"].exists, "No import section")
+    }
+
     /// An expense waiting in the undo window is left out of the export.
     func testExportExcludesPendingDeletion() {
         openExport()
         let countBefore = exportedCount()
         closeExport()
 
+        app.tabBars.buttons["Expenses"].tap()
         scrollDown(until: app.staticTexts["Метро"])
         row("Метро").swipeLeft()
         app.buttons["Delete"].firstMatch.tap()
         XCTAssertTrue(app.buttons["Undo"].waitForExistence(timeout: 2))
 
-        openExport()
+        app.tabBars.buttons["Settings"].tap()
+        app.buttons["Export Backup"].tap()
+        XCTAssertTrue(shareSheetTitle().waitForExistence(timeout: 5), "The share sheet did not open")
         XCTAssertEqual(exportedCount(), countBefore - 1, "The export still includes the expense pending deletion")
     }
 
-    /// Taps the Export button in the toolbar and waits for the share sheet.
+    /// Opens Settings → Backup, taps Export Backup and waits for the share sheet.
     private func openExport() {
-        let export = app.buttons["Export"]
-        for _ in 0..<maxScrolls where !export.isHittable { app.swipeDown() }
-        export.tap()
+        app.tabBars.buttons["Settings"].tap()
+        app.buttons["Backup"].tap()
+        app.buttons["Export Backup"].tap()
         XCTAssertTrue(shareSheetTitle().waitForExistence(timeout: 5), "The share sheet did not open")
     }
 
-    /// Closes the share sheet.
+    /// Closes the share sheet by tapping the dimmed area above it.
     private func closeExport() {
-        let close = app.buttons["Close"].firstMatch
-        if close.exists { close.tap() } else { shareSheetTitle().swipeDown(velocity: .fast) }
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.1)).tap()
         XCTAssertTrue(shareSheetTitle().waitForNonExistence(timeout: 5), "The share sheet did not close")
     }
 
@@ -50,7 +60,7 @@ final class ExportUITests: KalytaUITestCase {
         app.navigationBars.matching(NSPredicate(format: "identifier ENDSWITH %@", "entries")).firstMatch
     }
 
-    /// Returns the number of expenses the share sheet says it exports, such as 10 for "10 entries".
+    /// Returns the number of entries the share sheet says it exports, such as 10 for "10 entries".
     private func exportedCount() -> Int {
         Int(digits(shareSheetTitle().identifier)) ?? -1
     }

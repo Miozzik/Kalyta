@@ -42,13 +42,14 @@ final class ImportUITests: KalytaUITestCase {
         app.alerts.buttons["Cancel"].tap()
     }
 
-    /// Exports all expenses and saves the file to On My iPhone under a unique name.
+    /// Exports every entry from Settings → Backup and saves the file to On My iPhone under a unique name.
     ///
     /// - Returns: The file name without the extension.
     private func saveBackup() -> String {
         let name = "backup-\(UUID().uuidString.prefix(8))"
-        _ = app.staticTexts["summaryTitle"].waitForExistence(timeout: 5)
-        app.buttons["Export"].tap()
+        app.tabBars.buttons["Settings"].tap()
+        app.buttons["Backup"].tap()
+        app.buttons["Export Backup"].tap()
         let saveToFiles = app.cells["Save to Files"].firstMatch
         XCTAssertTrue(saveToFiles.waitForExistence(timeout: 5))
         saveToFiles.tap()
@@ -61,6 +62,7 @@ final class ImportUITests: KalytaUITestCase {
         field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: current.count + 5) + name)
         app.buttons["DOCPicker.actionButton"].tap()
         XCTAssertTrue(app.buttons["DOCPicker.actionButton"].waitForNonExistence(timeout: 5), "The file was not saved")
+        app.tabBars.buttons["Expenses"].tap()
         return name
     }
 
@@ -72,10 +74,14 @@ final class ImportUITests: KalytaUITestCase {
         XCTAssertTrue(app.buttons["Undo"].waitForNonExistence(timeout: 10), "The deletion was never committed")
     }
 
-    /// Opens Settings → Import from CSV and picks the file.
+    /// Opens Settings → Backup → Import from CSV and picks the file.
     private func openImport(of name: String) {
         app.tabBars.buttons["Settings"].tap()
-        app.buttons["Import from CSV"].tap()
+        let importButton = app.buttons["Import from CSV"]
+        if !importButton.exists {
+            app.buttons["Backup"].tap()
+        }
+        importButton.tap()
         let file = app.cells.matching(NSPredicate(format: "identifier BEGINSWITH %@", name)).firstMatch
         XCTAssertTrue(file.waitForExistence(timeout: 10), "The backup is not offered in the file picker")
         file.tap()

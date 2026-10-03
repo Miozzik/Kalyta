@@ -660,3 +660,15 @@ Research: vault «Валюти — дослідження 2026-10-01».
   (e.g. `Model/Hryvnias.swift`).
 - **Proof:** build, `--selfcheck` → SELFCHECK OK, `--check-upgrade` over a `75aa286` build seeded with `--demo` →
   UPGRADE OK, full UI suite.
+
+## 2026-10-03 — Backup, stage 1: export moves to Settings → Backup (PM gate A ruling; client, designer agreed)
+
+- **Reverses** the toolbar part of «2026-09-23 — Гейт A етапу 3: CSV» («кнопка Export у тулбарі»): the real user looked
+  for export in Settings and missed the toolbar button. Export and import now sit together on Settings → Backup; the
+  Expenses toolbar has no Export.
+- The export still holds **every** entry (income included, now from an `@Query` of all entries). "Export period (CSV)"
+  rejected: a partial export is half a backup.
+- No «Last export: <date>» subtitle in stage 1. `ShareLink` reports no outcome, and `ExpenseExport`'s data closure
+  runs before a destination is chosen (UI test: Save to Files → Cancel still recorded an export), so the date would
+  lie. A tap gesture on the `ShareLink` is no way out either: inside a `List` it swallowed the tap. The subtitle returns
+  in stage 2 via `.fileExporter`, whose `onCompletion` reports a real save.
