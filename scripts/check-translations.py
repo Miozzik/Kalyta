@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Fails if any string in the String Catalogs lacks a finished translation.
 
-Xcode adds new strings from the code to Kalyta/Localizable.xcstrings on every
+Xcode adds new strings from the code to Kalyta/Resources/Localizable.xcstrings on every
 build, but nothing stops the app from shipping them untranslated: the
 interface would silently fall back to English. Run this after building.
 
@@ -12,7 +12,7 @@ import json
 import pathlib
 import sys
 
-APP = pathlib.Path(__file__).resolve().parent.parent / "Kalyta"
+APP = pathlib.Path(__file__).resolve().parent.parent / "Kalyta" / "Resources"
 # The interface strings, the Info.plist ones such as the camera permission text, and the Siri phrases.
 CATALOGS = [APP / "Localizable.xcstrings", APP / "InfoPlist.xcstrings", APP / "AppShortcuts.xcstrings"]
 

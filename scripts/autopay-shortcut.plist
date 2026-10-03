@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <!--
-  The source of Kalyta/Autopay.shortcut: one "Add Expense" action whose Amount is the
+  The source of Kalyta/Resources/Autopay.shortcut: one "Add Expense" action whose Amount is the
   Shortcut Input's Amount and whose Note is its Merchant, for a Wallet Transaction automation.
 
   The action dictionary is copied from a shortcut built in the Shortcuts app on the simulator
@@ -10,7 +10,7 @@
   property names from ContentKit. The bundle identifier must match the installed app.
 
   After editing, sign it again (macOS signs through iCloud, see `man shortcuts`):
-      shortcuts sign mode anyone input scripts/autopay-shortcut.plist output Kalyta/Autopay.shortcut
+      shortcuts sign mode anyone input scripts/autopay-shortcut.plist output Kalyta/Resources/Autopay.shortcut
   (each option with its two leading dashes; XML comments cannot contain them).
 -->
 <plist version="1.0">

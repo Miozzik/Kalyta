@@ -37,6 +37,40 @@ DEVELOPMENT_TEAM = <your Team ID>
   your own group. Signing is automatic.
 - With a free Apple ID (Personal Team) each target's profile lasts 7 days; then press Run again.
 
+## Project structure
+
+```
+Kalyta/                       # App target (Xcode synchronized folder: new files join the target automatically)
+├── App/                      # Entry point, launch arguments, Settings, About, shared sheet toolbar
+├── Model/                    # SwiftData models, schema versions and migrations, periods, hryvnia formatting
+├── Features/
+│   ├── Expenses/             # List, editor, CSV export/import, summary card
+│   ├── Categories/           # Category editor, merchant → category memory
+│   ├── Statistics/
+│   ├── Subscriptions/
+│   └── Today/                # Today's total shared with the widget
+├── Integrations/
+│   ├── Monobank/             # Token, API client, sync
+│   ├── Currency/             # NBU / monobank rates
+│   ├── Receipt/              # Fiscal QR scanner, Scan Receipt intent
+│   └── Shortcuts/            # Add Expense intent, Apple Pay automation guide
+├── Checks/                   # --selfcheck assertions and their fixtures (debug builds)
+└── Resources/                # Assets, app icon, String Catalogs, Autopay.shortcut, privacy manifest
+KalytaWidgets/                # Widget extension
+KalytaUITests/                # UI tests, one file per feature
+Config/                       # xcconfig, Info.plist, entitlements; Local.xcconfig is git-ignored
+scripts/                      # Translation check, screenshot and shortcut-upgrade scripts
+docs/
+├── privacy.md, support.md    # Public pages the app links to
+├── appstore/, review/        # App Store screenshots, App Review attachment
+├── images/                   # README images
+└── internal/                 # Decision log, design specs, App Review notes
+```
+
+Folders are for people only: the bundle is flat, so moving a file changes nothing at run time. A file the widget
+also compiles is listed by its path in the `Exceptions for "Kalyta" folder in "KalytaWidgets" target` set of
+`project.pbxproj` — move it in Xcode, or update that path by hand.
+
 ## Code style
 
 - Comments and documentation in English, following the
@@ -57,8 +91,8 @@ swift format -i -r Kalyta KalytaUITests KalytaWidgets     # fix
 - No user-facing text is hard-coded: code holds the English key, the translation lives in a String Catalog.
   SwiftUI literals (`Text("Save")`) are localized automatically; a `String` returned from code must use
   `String(localized:)`, or Xcode never sees it.
-- Catalogs: `Kalyta/Localizable.xcstrings` (UI), `Kalyta/InfoPlist.xcstrings` (camera permission),
-  `Kalyta/AppShortcuts.xcstrings` (Siri phrases).
+- Catalogs: `Kalyta/Resources/Localizable.xcstrings` (UI), `Kalyta/Resources/InfoPlist.xcstrings` (camera permission),
+  `Kalyta/Resources/AppShortcuts.xcstrings` (Siri phrases).
 - Xcode adds new strings on build in the IDE; from the command line run `xcrun xcstringstool sync`.
 - Check that nothing is left untranslated:
 
@@ -68,7 +102,7 @@ scripts/check-translations.py   # → All N strings are translated.
 
 ## Self-check
 
-The app carries `assert`-based checks (`Kalyta/*Check.swift`, `Kalyta/SelfCheck.swift`) that prove the logic
+The app carries `assert`-based checks (`Kalyta/Checks/`) that prove the logic
 without UI: totals and periods, CSV (RFC 4180 and formula protection), import limits, QR parsing, Apple Pay matching,
 monobank against fixtures, merchant memory, currencies, today's total.
 
@@ -82,7 +116,7 @@ xcrun simctl launch booted org.merzlov.kalyta --demo                            
 
 The Ukrainian locale is deliberate: it catches a decimal comma sneaking into exported amounts. The check cleans up
 after itself, so it can be rerun. Other launch arguments (`--empty`, `--check-upgrade`, `--measure-import`,
-`-rateFixture`, `-scanPayload`) are documented in `Kalyta/KalytaApp.swift`; all but `--measure-import` work in
+`-rateFixture`, `-scanPayload`) are documented in `Kalyta/App/KalytaApp.swift`; all but `--measure-import` work in
 debug builds only.
 
 ## UI tests
@@ -118,14 +152,14 @@ Never pass these on the `xcodebuild` command line: there they also rename the UI
 - **Add Expense parameters changed?** Run `scripts/check-shortcut-upgrade.sh [previous-ref]`: a shortcut saved with
   the previous build must keep its Category after the upgrade.
 - **Shortcuts guide screenshots** (Settings → Automatic Recording, English and Ukrainian, in
-  `Kalyta/Assets.xcassets/Autopay*`): `scripts/autopay-screenshots.sh`. It erases and relanguages the simulator
+  `Kalyta/Resources/Assets.xcassets/Autopay*`): `scripts/autopay-screenshots.sh`. It erases and relanguages the simulator
   "iPhone 17 Autopay", so never point it at a shared one. The **Transaction** trigger is not available on the
   simulator; that screenshot comes from a real iPhone.
 
 ## CSV column contract
 
 The export is the user's only backup, so its format is a contract: column order is fixed and new columns are
-**appended only** (`ExpenseCSV.columns` in `Kalyta/ExpenseCSV.swift`). Import requires the first six.
+**appended only** (`ExpenseCSV.columns` in `Kalyta/Features/Expenses/ExpenseCSV.swift`). Import requires the first six.
 
 | column | example | format |
 |---|---|---|
@@ -152,7 +186,7 @@ The export is the user's only backup, so its format is a contract: column order 
 ## How this project is developed
 
 Kalyta is built with AI coding agents. `.claude/agents/` holds their role definitions (product manager gates,
-tester, designer, docs and others), and [docs/decisions.md](docs/decisions.md) is the decision log — each choice
+tester, designer, docs and others), and [docs/internal/decisions.md](docs/internal/decisions.md) is the decision log — each choice
 with the argument that won, in mixed Ukrainian and English. Both are kept public for transparency.
 
 ## Reporting issues

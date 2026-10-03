@@ -1,6 +1,6 @@
 # Stage 11 — monobank UI spec
 
-Author: designer, 2026-09-24. Rules for the token itself: `docs/decisions.md`, «Security review».
+Author: designer, 2026-09-24. Rules for the token itself: `docs/internal/decisions.md`, «Security review».
 Cost: UI ~3–4 h on top of the sync engine.
 
 ## Verified facts

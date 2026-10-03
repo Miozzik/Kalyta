@@ -16,7 +16,7 @@
 - **Дві зміни схеми бази (категорії, доходи/рахунки) — окремими версіями.** Доходи ще не спроєктовані; зливати означало б проєктувати їх наперед і тримати категорії в заручниках. `SchemaMigrationPlan` розрахований на кілька стадій.
 - ~~**Undo-менеджер береться з оточення SwiftUI (`@Environment(\.undoManager)`), а не створюється окремо**~~ **Скасовано — системний undo не використовується, див. нижче.** — інакше перестане працювати струс, бо він працює через undo-менеджер вікна (PM).
 - **Фіскальний QR — наприкінці.** Дослідження вже зроблено: сторінка чека захищена reCAPTCHA, позиції програмно не отримати. Реалістично — автозаповнення суми й дати з самого QR і кнопка на офіційну сторінку. Обіцянку в README виправити.
-- **Скріншот `docs/screen-dark.png` застарів** (там ще Skarbo) — перезняти (клієнт).
+- **Скріншот `screen-dark.png` застарів** (там ще Skarbo) — перезняти (клієнт). *(Старі `screen-*.png` прибрано 2026-10-02, див. «Repo layout».)*
 
 **Спірне — у раунді суперечки:** порядок «категорії ↔ редагування» і місце CSV.
 
@@ -238,7 +238,7 @@ exit 1
 
 **Спір — збіг з Apple Pay. Переміг клієнт, PM поступився,** але додав умову. Правило: ±30 хв, та сама сума з точністю до пів копійки, ніколи не дохід, виграє найближча, лише для нового запису. **Умова PM:** показати, з яким записом збіглося, і дати вихід «Зберегти як новий» — інакше хибний збіг мовчки проковтнув би покупку готівкою.
 
-**Розбір (PM):** `URLComponents`, хост точно `cabinet.tax.gov.ua` (схожі на нього відкидаються), час `HHmm` або `HHmmss`, часовий пояс Europe/Kyiv, дата не пізніша за «зараз», `mac` необов’язковий. Кнопка сканування ховається, коли `DataScannerViewController.isSupported` — false. Текст дозволу на камеру — через `INFOPLIST_KEY_NSCameraUsageDescription` у xcconfig, переклад у `Kalyta/InfoPlist.xcstrings`; `check-translations` мусить його покривати. Чеки повернення — поза межами.
+**Розбір (PM):** `URLComponents`, хост точно `cabinet.tax.gov.ua` (схожі на нього відкидаються), час `HHmm` або `HHmmss`, часовий пояс Europe/Kyiv, дата не пізніша за «зараз», `mac` необов’язковий. Кнопка сканування ховається, коли `DataScannerViewController.isSupported` — false. Текст дозволу на камеру — через `INFOPLIST_KEY_NSCameraUsageDescription` у xcconfig, переклад у `Kalyta/Resources/InfoPlist.xcstrings`; `check-translations` мусить його покривати. Чеки повернення — поза межами.
 
 **Іконка — позицію клієнта прийнято:** гліф калити й градієнт teal → indigo, як на картці підсумку (`ContentView.swift`); заливка задається всередині Icon Composer. **Умови PM:** власний SVG — ліцензія SF Symbols забороняє їх в іконках. Одне джерело — файл `.icon` з Icon Composer (працює й на iOS 17), а не Asset Catalog.
 
@@ -365,7 +365,7 @@ The "Open Receipt" button also stays out. **Revisit** if the tax service (DPS) p
 
 ## 2026-09-24 — Stage 15: UX polish (designer's full-app audit, client's order)
 
-Source: designer's audit. Evidence in `docs/specs/stage15/`: `1-2-subscriptions.png` (#1, #2), `3-summary-contrast.png` (#3), `4-uk-sheet-titles.png` (#4). Starts after stage 9 merges; the designer writes the spec. Client's verdict, in this order:
+Source: designer's audit. Evidence in `docs/internal/specs/stage15/`: `1-2-subscriptions.png` (#1, #2), `3-summary-contrast.png` (#3), `4-uk-sheet-titles.png` (#4). Starts after stage 9 merges; the designer writes the spec. Client's verdict, in this order:
 
 1. **#1** A subscription charge can only be recorded with a hidden swipe → a Record button in the editor (context menu optional).
 2. **#2** Next charge shows "5 seconds ago" → Today / Tomorrow / date.
@@ -380,7 +380,7 @@ Source: designer's audit. Evidence in `docs/specs/stage15/`: `1-2-subscriptions.
 ## 2026-09-24 — Stage 15 #4 revised: sheet titles at accessibility sizes
 
 Supersedes the #4 fix above (shorter titles alone).
-- **Evidence:** at the largest accessibility text size no Ukrainian title fits: 87 pt is left between «Скасувати» and «Зберегти», and «Редагування витрати» shows as «Редагу…» (`docs/specs/stage15/4-uk-title-axxxl.png`).
+- **Evidence:** at the largest accessibility text size no Ukrainian title fits: 87 pt is left between «Скасувати» and «Зберегти», and «Редагування витрати» shows as «Редагу…» (`docs/internal/specs/stage15/4-uk-title-axxxl.png`).
 - **Fix:** on iOS 26, `Button(role: .cancel)` and `Button(role: .confirm)` render as xmark / checkmark glass icons and free ~250 pt; use them on all 5 sheets. Text buttons stay for iOS 17–25. `ButtonRole.confirm` is iOS 26.0+ (Apple docs).
 - The Edit Expense title in Ukrainian goes back to «Редагування».
 
@@ -413,7 +413,7 @@ An exception to "keep nothing from `client-info`", for the transfers rule:
 ## 2026-09-24 — Stage 14 app side done: 2 deviations accepted
 
 Branch `stage-14-today-total` (`2254e0f`). Corrects the stage 14 gate A entry and the «Security review» manifest line.
-- **Privacy reason:** the App Group suite uses `1C8F.1` (same App Group), not `CA92.1` (the app itself only). `Kalyta/PrivacyInfo.xcprivacy` declares both; the widget extension's manifest needs `1C8F.1`.
+- **Privacy reason:** the App Group suite uses `1C8F.1` (same App Group), not `CA92.1` (the app itself only). `Kalyta/Resources/PrivacyInfo.xcprivacy` declares both; the widget extension's manifest needs `1C8F.1`.
 - **Publisher:** observes `ModelContext.didSave` from every context of `Store.container`, not only `mainContext` — CSV import saves on a background context. Saves from other containers (the self-check's temporary store) are ignored.
 - `APP_GROUP_ID = group.$(PRODUCT_BUNDLE_IDENTIFIER)` in `Config/Kalyta.xcconfig`.
 
@@ -494,7 +494,7 @@ The widget gallery does not list a newly installed app's widgets until the simul
 
 - **Conditions:** (1) on a quiet host, both targets build, `--selfcheck` passes, and the full suite with the widget reboot setup is green — met; (2) the mutation table is recorded — done, below.
 - **Deviation, accepted:** the widget extension's `APP_GROUP_ID` is derived in `project.pbxproj` as `group.$(PRODUCT_BUNDLE_IDENTIFIER:base)`, not in `Config/Kalyta.xcconfig`: `:base` strips the extension's `.widgets` suffix, so both targets get the same group. The app keeps `group.$(PRODUCT_BUNDLE_IDENTIFIER)` in the xcconfig.
-- **Mutation table** (developer). Each mutation ran on a scratch copy built as `org.merzlov.kalyta.mutation`, and `--selfcheck` failed with the named assertion in `Kalyta/TodayCheck.swift` (current line numbers):
+- **Mutation table** (developer). Each mutation ran on a scratch copy built as `org.merzlov.kalyta.mutation`, and `--selfcheck` failed with the named assertion in `Kalyta/Checks/TodayCheck.swift` (current line numbers):
 
 | gate B | mutation | red at |
 |---|---|---|
@@ -538,7 +538,7 @@ Documentation read before each decision (from the gate reports):
 
 - **Bug:** `MonobankView.verify` called `client-info`, then the first sync called it again within 60 s → HTTP 429 → empty jar list → 31 days of jar top-ups imported as «Перекази».
 - **Fix** (in `df71b3c`): `MonobankSync.connect` makes the only `client-info` call and passes the jar titles to the first run.
-- **Proof:** `runMonobankConnectCheck` (`Kalyta/MonobankCheck.swift`) asserts one `client-info` call and that the first sync imports no jar top-up.
+- **Proof:** `runMonobankConnectCheck` (`Kalyta/Checks/MonobankCheck.swift`) asserts one `client-info` call and that the first sync imports no jar top-up.
 
 ## 2026-10-01 — monobank: incoming money recorded as income (coordinator decision — revisit with the user)
 
@@ -585,7 +585,7 @@ Decided by the coordinator while the user was away. Source: monobank API spec, h
   is neither recreated nor overwritten, and prunes ids older than 35 days (longer than the 31-day `Monobank.window`).
   Stored in `UserDefaults.standard` with the rest of the state: not in the App Group, not in CSV. «Відключити» removes
   the whole state, tombstones included (`MonobankSync.forget(in:)`).
-- **Proof:** `runMonobankDeletionCheck` (`Kalyta/MonobankCheck.swift`): a re-sync does not recreate a tombstoned id,
+- **Proof:** `runMonobankDeletionCheck` (`Kalyta/Checks/MonobankCheck.swift`): a re-sync does not recreate a tombstoned id,
   a manual entry leaves no tombstone, an expired id is pruned, `forget` clears the list. Each assertion went red under
   its mutation. Not covered by a check: the re-read for a deletion while a sync is in flight.
 
@@ -629,7 +629,7 @@ Research: vault «Валюти — дослідження 2026-10-01».
   "reject the whole response on any bad field" with the 0.0001…10,000 bound would refuse every real answer. A
   malformed field (type, code, `r030`, date, non-finite or ≤ 0 rate, body > 64 KB) still refuses the whole list; a
   well-formed rate outside the bound drops only its own entry. monobank's answer is refused whole on any bad rate.
-- **Proof:** `runCurrencyCheck()` (`Kalyta/CurrencyCheck.swift`), `CurrencyUITests.testDollarEntryShowsHryvnias`
+- **Proof:** `runCurrencyCheck()` (`Kalyta/Checks/CurrencyCheck.swift`), `CurrencyUITests.testDollarEntryShowsHryvnias`
   (`-rateFixture friday`). Each mutation ran on a scratch copy built as `org.merzlov.kalyta.mutation`:
 
 | # | mutation | red at |
@@ -648,3 +648,15 @@ Research: vault «Валюти — дослідження 2026-10-01».
 | 6 | foreign columns not written | `CurrencyCheck.swift:199` "Foreign columns" |
 | 6 | currency left out of `DuplicateKey` | `CurrencyCheck.swift:209` "The currency is not part of the duplicate key" |
 | 7 | hryvnia guard removed from `quote` (fetch on every editor open) | `CurrencyCheck.swift:184` "UAH got a quote" |
+
+## 2026-10-02 — Repo layout: feature folders, internal docs (team lead; developer)
+
+- **Decision:** `Kalyta/` split into `App/`, `Model/`, `Features/<feature>/`, `Integrations/<service>/`, `Checks/`,
+  `Resources/` (tree in CONTRIBUTING, «Project structure»). Internal docs moved to `docs/internal/`; `docs/privacy.md`
+  and `docs/support.md` stay, because the app links to them (`Config/Kalyta.xcconfig`). Old `screen-*.png` from `docs/`
+  removed (unreferenced; App Store shots are in `docs/appstore/`).
+- **Why it is safe:** pure `git mv`; synchronized folders flatten resources into the bundle, so the built app's file
+  list is identical to `75aa286`. The five widget files in the exception set now use paths relative to `Kalyta/`
+  (e.g. `Model/Hryvnias.swift`).
+- **Proof:** build, `--selfcheck` → SELFCHECK OK, `--check-upgrade` over a `75aa286` build seeded with `--demo` →
+  UPGRADE OK, full UI suite.

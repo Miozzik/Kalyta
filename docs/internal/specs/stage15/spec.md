@@ -1,6 +1,6 @@
 # Stage 15: UX fixes from the full-app audit
 
-Source: the designer's audit of `main` at `482044c`, with screenshots in `designer/audit/` (the designer's session scratchpad, not in the repo; the evidence kept is in `docs/specs/stage15/`).
+Source: the designer's audit of `main` at `482044c`, with screenshots in `designer/audit/` (the designer's session scratchpad, not in the repo; the evidence kept is in `docs/internal/specs/stage15/`).
 Line numbers are for `482044c`. Stage 9 will shift `ExpenseEditor.swift` and the catalog, so every change also names a code anchor to search for.
 String rules: Ukrainian uses the «ти» form, the typographic apostrophe ’ (U+2019) and «» quotes.
 Order (client): 1, 2, 8, 4, 5, 6, 3, 7, 9.
@@ -108,7 +108,7 @@ Apple docs, checked through the documentation JSON:
 
 So `#available(iOS 26, *)` guards the init, not the role.
 
-There are 3 editors behind 6 sheets: `ExpenseEditor.swift:128–135`, `SubscriptionsView.swift:245–248` and `CategoriesView.swift:168–175`. Put one shared toolbar in a new file, `Kalyta/SheetToolbar.swift`, to avoid three copies:
+There are 3 editors behind 6 sheets: `ExpenseEditor.swift:128–135`, `SubscriptionsView.swift:245–248` and `CategoriesView.swift:168–175`. Put one shared toolbar in a new file, `Kalyta/App/SheetToolbar.swift`, to avoid three copies:
 ```swift
 import SwiftUI
 
@@ -250,7 +250,7 @@ This one needs a contrast re-measure.
 Verify:
 - Screenshot the Expenses tab in light and dark.
 - Sample the background pixel under "Spent this month" and compute the contrast against white: must be ≥ 4.5:1 (script: the `designer/audit` Python helper — external scratch, not in the repo — or any WCAG checker).
-- Check the app icon is unchanged (`Kalyta/AppIcon.icon` untouched).
+- Check the app icon is unchanged (`Kalyta/Resources/AppIcon.icon` untouched).
 
 ## 7. Empty states with an action: SKIP (condition not met)
 

@@ -8,7 +8,7 @@ accessibility). You care about the person using the app: obvious at a glance, fe
 no hidden gestures, Dynamic Type and VoiceOver work, dark mode looks right.
 
 Repo: `~/claude-projects/50-59 Projects & Tools/55 kalyta` (iOS 17+, SwiftUI).
-Read `README.md`, `TODO.md` and the latest entries in `docs/decisions.md` first.
+Read `README.md`, `TODO.md` and the latest entries in `docs/internal/decisions.md` first.
 
 ## Sources of truth
 - Human Interface Guidelines: https://developer.apple.com/design/human-interface-guidelines/

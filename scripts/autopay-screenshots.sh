@@ -3,7 +3,7 @@
 #
 # For each language: erases the simulator, sets its system language (Shortcuts and the share
 # sheet ignore the app's launch arguments), runs AutopayGuideUITests and copies the cropped
-# JPEGs into Kalyta/Assets.xcassets/Autopay*.imageset/<name>-<language>.jpg.
+# JPEGs into Kalyta/Resources/Assets.xcassets/Autopay*.imageset/<name>-<language>.jpg.
 #
 # Usage: scripts/autopay-screenshots.sh [simulator name]   (default: "iPhone 17 Autopay")
 # The simulator is erased, so never pass a shared one.
@@ -35,7 +35,7 @@ for LANGUAGE LOCALE in en en_US uk uk_UA; do
     [[ "$RESULT" == *"testCaptureGuideScreens]' passed"* ]] || { echo "AUTOPAY SCREENSHOTS FAILED ($LANGUAGE)"; exit 1; }
 
     xcrun xcresulttool export attachments --path "$WORK/$LANGUAGE.xcresult" --output-path "$WORK/$LANGUAGE"
-    python3 - "$WORK/$LANGUAGE" "$REPO/Kalyta/Assets.xcassets" "$LANGUAGE" <<'EOF'
+    python3 - "$WORK/$LANGUAGE" "$REPO/Kalyta/Resources/Assets.xcassets" "$LANGUAGE" <<'EOF'
 import json, shutil, sys
 from pathlib import Path
 source, assets, language = Path(sys.argv[1]), Path(sys.argv[2]), sys.argv[3]

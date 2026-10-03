@@ -52,11 +52,11 @@
 		1A000000000000000000002D /* Exceptions for "Kalyta" folder in "KalytaWidgets" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Hryvnias.swift,
-				Localizable.xcstrings,
-				ScanReceiptIntent.swift,
-				SummaryGradient.swift,
-				TodayTotal.swift,
+				Features/Expenses/SummaryGradient.swift,
+				Features/Today/TodayTotal.swift,
+				Integrations/Receipt/ScanReceiptIntent.swift,
+				Model/Hryvnias.swift,
+				Resources/Localizable.xcstrings,
 			);
 			target = 1A0000000000000000000025 /* KalytaWidgets */;
 		};

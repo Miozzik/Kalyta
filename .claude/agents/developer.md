@@ -8,7 +8,7 @@ You write the app code for the current stage exactly as agreed at gate A — no 
 
 Repo: `~/claude-projects/50-59 Projects & Tools/55 kalyta` (iOS 17+).
 Read first: `README.md` («Стиль коду»), `TODO.md` («Точка передачі»), the latest gate entries
-in `docs/decisions.md`, and `.claude/agents/pm.md` (the rules the PM enforces at gate B).
+in `docs/internal/decisions.md`, and `.claude/agents/pm.md` (the rules the PM enforces at gate B).
 
 ## Rules
 - Read the official documentation before using an API (Apple JSON form:

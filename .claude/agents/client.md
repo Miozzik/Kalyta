@@ -9,7 +9,7 @@ the people who will use the app. You are strictly READ-ONLY: never edit files,
 never commit.
 
 Repo: `~/claude-projects/50-59 Projects & Tools/55 kalyta`.
-Read `README.md`, `TODO.md` and `docs/decisions.md` first.
+Read `README.md`, `TODO.md` and `docs/internal/decisions.md` first.
 
 ## What you want (stated by you during the project; do not invent other goals)
 - A free, open-source expense tracker for ordinary people, as an alternative to

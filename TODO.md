@@ -1,7 +1,7 @@
 # Kalyta — відкриті задачі
 
 Єдиний список задач проєкту. Зроблене переїжджає в розділ «Стан» README,
-рішення й суперечки — у `docs/decisions.md`.
+рішення й суперечки — у `docs/internal/decisions.md`.
 
 ## Точка передачі (01.10.2026) — звідси продовжувати новий діалог
 
@@ -12,8 +12,8 @@
 **Чекає рішення користувача:**
 - [ ] Прибрати надходження з вкладки «Витрати» (сума дня зараз складає їх із витратами) — ~15 хв.
 - [ ] Валюти, етап 1: сума у валюті + гривні за курсом НБУ на день запису; поруч курс monobank/НБУ сьогодні.
-      Етап 2 — валютні картки monobank. Дослідження — `docs/decisions.md` не записано, підсумок у vault [[55 Kalyta]].
-- [ ] 4 питання по надходженнях (кінець `docs/decisions.md`, «revisit with the user»): пам'ять категорій для переказів,
+      Етап 2 — валютні картки monobank. Дослідження — `docs/internal/decisions.md` не записано, підсумок у vault [[55 Kalyta]].
+- [ ] 4 питання по надходженнях (кінець `docs/internal/decisions.md`, «revisit with the user»): пам'ять категорій для переказів,
       умова «банк» для зняття з банки, злиття з ручними надходженнями, «надгробки» для видалених банківських записів.
 - [ ] Знімок кроку 2 інструкції (Shortcuts → Automation → Transaction) — лише з iPhone; можливо, крок 3 зайвий на iOS 27.
 - [ ] Звірити правила «Скасування.» / «Часткове зняття банки» зі справжньою випискою.
@@ -21,10 +21,10 @@
 **Борг після 01.10:**
 - [ ] `StatisticsUITests.testPendingDeletionIsNotInStatistics` падає й на старому `main` («Комуналка» не з'являється; підозра — демо-дата «вчора» в четвер, SelfCheck.swift:153).
 - [ ] Перевірка «видалення під час синхронізації» для «надгробків» (хук у FakeTransport між двома запитами).
-- [ ] У `docs/decisions.md` для B + надгробків — таблиця мутацій з рядками асертів, як на етапі 14.
+- [ ] У `docs/internal/decisions.md` для B + надгробків — таблиця мутацій з рядками асертів, як на етапі 14.
 
 **Стан на 25.09:** усі 15 етапів у `main`, гілок і worktree етапів немає. Відкриті лише перевірки на справжньому iPhone
-(«Зараз») і рішення про розповсюдження (нижче). Що вміє застосунок — README, «Стан»; чому саме так — `docs/decisions.md`.
+(«Зараз») і рішення про розповсюдження (нижче). Що вміє застосунок — README, «Стан»; чому саме так — `docs/internal/decisions.md`.
 
 **Відкрите рішення — розповсюдження (вирішує користувач):** зараз застосунок ставиться лише з Xcode на свій iPhone
 (Personal Team, збірка живе 7 днів). TestFlight потребує платного Apple Developer Program — 99 USD на рік.
@@ -39,7 +39,7 @@ https://developer.apple.com/help/app-store-connect/test-a-beta-version/testfligh
 `designer` (HIG, ресурси), `security` (рев’ю безпеки), `docs` (README, TODO, рішення, vault). Комітить тимлід.
 
 **Процес етапу:**
-1. Гейт A: план → PM і клієнт паралельно → суперечка → переможця записати в `docs/decisions.md`.
+1. Гейт A: план → PM і клієнт паралельно → суперечка → переможця записати в `docs/internal/decisions.md`.
 2. Гілка `stage-N-…` в окремому worktree. `developer` пише код; паралельно `tester` пише тести й доводить мутаціями,
    що вони червоніють, `designer` робить ресурси й перевіряє екрани, `security` рев’юїть межі довіри.
    Кожен — на своєму симуляторі й зі своїм `-derivedDataPath`; спільний «iPhone 17» — лише для PM.
@@ -64,24 +64,18 @@ perl -e 'alarm 900; exec @ARGV' xcodebuild test -scheme Kalyta -destination 'pla
   -test-timeouts-enabled YES -default-test-execution-time-allowance 90          # 42 тести, 2 пропущено навмисно
 scripts/check-translations.py; swift format lint -r Kalyta KalytaUITests KalytaWidgets
 # рядки з коду в каталог (CLI не синхронізує сам):
-xcrun xcstringstool sync Kalyta/Localizable.xcstrings --stringsdata <кожен .stringsdata з DerivedData/Kalyta.build>
+xcrun xcstringstool sync Kalyta/Resources/Localizable.xcstrings --stringsdata <кожен .stringsdata з DerivedData/Kalyta.build>
 ```
 
 ## Етап 16 — готовність до App Store
 
-Документи вже є: `LICENSE` (MIT), `docs/privacy.md`, `docs/support.md`, `docs/app-review-notes.md`,
+Документи вже є: `LICENSE` (MIT), `docs/privacy.md`, `docs/support.md`, `docs/internal/app-review-notes.md`,
 `docs/review/sample-receipt-qr.png`. Лишилось (переважно рішення й дії користувача):
 
 - [ ] **Платний Apple Developer Program** (99 USD/рік) — без нього ні TestFlight, ні App Store.
-- [ ] **Публічні сторінки політики й підтримки.** App Store Connect вимагає посилання на політику конфіденційності
-      (і в застосунку, і в метаданих — Guideline 5.1.1(i)) та на підтримку. `git.merzlov.org` закритий
-      Cloudflare Access, тож рецензент Apple його не відкриє — потрібна публічна адреса (публічне дзеркало репо
-      або статична сторінка). Заповнити в `docs/support.md` адресу issues і пошту (зараз TODO).
-- [ ] **Знімки екрана 6.9"** (1320 × 2868, симулятор iPhone 17 Pro Max): наявні `docs/screen-*.png` — 1206 × 2622 (6,3"),
-      для App Store не підходять.
 - [ ] **Віковий рейтинг** — анкета в App Store Connect; **категорія** — Finance.
 - [ ] **Опис і ключові слова** українською й англійською; що нового; URL підтримки й політики.
-- [ ] **App Review:** вставити `docs/app-review-notes.md` у Review Notes, додати QR-зразок як вкладення.
+- [ ] **App Review:** вставити `docs/internal/app-review-notes.md` у Review Notes, додати QR-зразок як вкладення.
 - [ ] **TestFlight:** опис бети, email для відгуків; для зовнішніх тестувальників перша збірка проходить App Review.
 
 ## Зараз — перевірки на справжньому iPhone (користувач)

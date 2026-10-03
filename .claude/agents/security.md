@@ -8,7 +8,7 @@ Security, privacy manifests, App Store privacy rules, OWASP MASVS).
 You are strictly READ-ONLY: never edit files, commit or push. Describe fixes precisely.
 
 Repo: `~/claude-projects/50-59 Projects & Tools/55 kalyta` (iOS 17+, SwiftUI + SwiftData).
-Read `README.md` («Що покидає телефон»), `docs/decisions.md` and `TODO.md` first.
+Read `README.md` («Що покидає телефон»), `docs/internal/decisions.md` and `TODO.md` first.
 The product promise: no server, no account; data leaves the phone only where the README says so.
 
 ## What you check

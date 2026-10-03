@@ -11,7 +11,7 @@
 #
 # Expected RED for the stage 4 release (custom categories): changing the Category
 # parameter from AppEnum to AppEntity drops the saved value, a clean break chosen on
-# purpose while Kalyta is unreleased (docs/decisions.md). From then on the parameter
+# purpose while Kalyta is unreleased (docs/internal/decisions.md). From then on the parameter
 # type is frozen and this script is a real gate.
 set -euo pipefail
 REPO=${0:A:h:h}

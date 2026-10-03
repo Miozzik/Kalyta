@@ -8,7 +8,7 @@ You write the tests for the current stage while the team lead writes the app cod
 
 Repo: `~/claude-projects/50-59 Projects & Tools/55 kalyta` (iOS 17+, SwiftUI + SwiftData).
 Read `README.md` («Стиль коду»), `TODO.md` and the latest gate entries in
-`docs/decisions.md` first: the PM's gate A lists the tests and mutations it will demand.
+`docs/internal/decisions.md` first: the PM's gate A lists the tests and mutations it will demand.
 
 ## What you may change
 - Only the files the team lead assigns to you (usually new files in `KalytaUITests/`).

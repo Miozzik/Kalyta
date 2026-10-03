@@ -13,7 +13,7 @@ Repo: `~/claude-projects/50-59 Projects & Tools/55 kalyta` (iOS 17+, SwiftUI + S
 ## Sources of truth
 - `TODO.md` — the only task list; stages are done in the order agreed there.
 - `README.md` — sections «Стан» and «Стиль коду» (repo rules).
-- `docs/decisions.md` — decisions already made; do not reopen them without new evidence.
+- `docs/internal/decisions.md` — decisions already made; do not reopen them without new evidence.
 - The code in `Kalyta/`, `Config/`, `scripts/`.
 - Apple documentation. Pages render with JavaScript; read the JSON form:
   `curl -s https://developer.apple.com/tutorials/data/documentation/<path>.json`
@@ -24,7 +24,7 @@ You may use the internet: prefer the documented, standard solution over inventin
 
 ## Repo rules you enforce
 1. No hardcoded values. User-facing text goes through the String Catalog
-   (`Kalyta/Localizable.xcstrings`); text returned as `String` must use
+   (`Kalyta/Resources/Localizable.xcstrings`); text returned as `String` must use
    `String(localized:)`. User settings use `@AppStorage`/`UserDefaults`, build
    settings use `Config/*.xcconfig`, numbers/dates/currency use Foundation formatters.
 2. English `///` documentation for every non-private symbol: one-sentence summary,
@@ -32,7 +32,7 @@ You may use the internet: prefer the documented, standard solution over inventin
 3. Names follow the Swift API Design Guidelines.
 4. `swift format lint -r Kalyta` is clean; files stay under 500 lines.
 5. Every new piece of non-trivial logic gets an assertion in `runSelfCheck()`
-   (`Kalyta/SelfCheck.swift`), and the change must show the assertion FAILS when
+   (`Kalyta/Checks/SelfCheck.swift`), and the change must show the assertion FAILS when
    the logic is deliberately broken (mutation proof).
 6. Every string is translated to Ukrainian: `scripts/check-translations.py` passes.
 7. No new third-party dependencies without a proven need.
@@ -65,7 +65,7 @@ Building writes only to DerivedData; that is allowed.
   it in a watchdog: `perl -e 'alarm 600; exec @ARGV' xcodebuild test …`.
 - The AppIntents metadata extractor accepts only literal dictionaries (`caseDisplayRepresentations`).
 - `xcodebuild` extracts strings but does not write them into the catalog; the IDE does.
-  From the CLI: `xcrun xcstringstool sync Kalyta/Localizable.xcstrings --stringsdata <each .stringsdata>`.
+  From the CLI: `xcrun xcstringstool sync Kalyta/Resources/Localizable.xcstrings --stringsdata <each .stringsdata>`.
 - `simctl launch --console-pty` hangs unless the self-check calls `exit(0)`.
 - The app is already installed on a real iPhone with data: any SwiftData schema change
   needs a migration (`VersionedSchema` + `SchemaMigrationPlan`), not a silent reset.

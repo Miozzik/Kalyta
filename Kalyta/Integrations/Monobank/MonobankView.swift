@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Connects and disconnects the monobank sync (spec: `docs/specs/monobank-ui.md`).
+/// Connects and disconnects the monobank sync (spec: `docs/internal/specs/monobank-ui.md`).
 ///
 /// The token is verified once with `client-info` as soon as it has the right shape, then
 /// stored in the Keychain and never shown again.
