@@ -39,4 +39,18 @@ final class CurrencyUITests: KalytaUITestCase {
         let hryvnias = label.components(separatedBy: "≈").last ?? ""
         XCTAssertEqual(digits(hryvnias), "4497", "The row's hryvnias are wrong: \(label)")
     }
+
+    /// The «Other…» list uses body text, not the 52 pt font of the amount its menu sits next to.
+    func testOtherCurrencyListUsesBodyText() {
+        app.buttons["Add"].tap()
+        let menu = app.buttons["currencyMenu"]
+        XCTAssertTrue(menu.waitForExistence(timeout: 3))
+        menu.tap()
+        app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Other")).firstMatch.tap()
+
+        let row = app.buttons["currencyRow"].firstMatch
+        XCTAssertTrue(row.waitForExistence(timeout: 3), "The currency list did not open")
+        // A body-text row is about 44 pt; the inherited 52 pt font made each row over 100 pt.
+        XCTAssertLessThan(row.frame.height, 70, "Currency rows are \(row.frame.height) pt tall")
+    }
 }

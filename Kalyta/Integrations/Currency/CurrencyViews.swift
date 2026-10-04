@@ -177,7 +177,9 @@ private struct CurrencyList: View {
                     }
                 }
                 .accessibilityAddTraits(item == code ? .isSelected : [])
+                .accessibilityIdentifier("currencyRow")
             }
+            .tint(.primary)
             .searchable(text: $search)
             .navigationTitle("Currency")
             .navigationBarTitleDisplayMode(.inline)
@@ -187,6 +189,8 @@ private struct CurrencyList: View {
                 }
             }
         }
+        // A sheet inherits its presenter's environment; the menu sits next to the 52 pt amount.
+        .font(.body)
     }
 }
 
