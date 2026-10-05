@@ -749,7 +749,8 @@ Research: vault «Валюти — дослідження 2026-10-01».
   QR. Rows never move; only their status text changes. The status is trailing text inside the row's label, so
   VoiceOver reads it.
 - **Statuses** come from one pure function (`AutomationStatus.swift`) so the self-check asserts every branch:
-  monobank — `MonobankSync.linkedKey`; Apple Pay — the with-merchant marker; Back Tap — the without-merchant marker;
+  monobank — `MonobankSync.linkedKey`, «Needs attention» (orange, not counted) when the sync state holds a problem;
+  Apple Pay — the with-merchant marker; Back Tap — the without-merchant marker;
   Action button & Siri — always ready (App Shortcuts exist after install); widgets — `WidgetCenter` configurations of
   `TodayTotal.widgetKind` (home vs lock by family) and, on iOS 18, `ControlCenter` controls of kind
   `ScanReceiptControl`; Receipt QR — camera authorization (denied → a button to the app's Settings).
@@ -770,15 +771,16 @@ Research: vault «Валюти — дослідження 2026-10-01».
 | # | mutation | red at |
 |---|---|---|
 | 1 | monobank always not set up | `AutomationCheck.swift:27` "A linked monobank is not Connected" |
-| 2 | Apple Pay reads the without-merchant marker | `AutomationCheck.swift:29` "A run with a merchant did not mark Apple Pay" |
-| 3 | Back Tap reads the with-merchant marker | `AutomationCheck.swift:30` "A run with a merchant marked Back Tap" |
+| 2 | Apple Pay reads the without-merchant marker | `AutomationCheck.swift:33` "A run with a merchant did not mark Apple Pay" |
+| 3 | Back Tap reads the with-merchant marker | `AutomationCheck.swift:34` "A run with a merchant marked Back Tap" |
 | 4 | Siri row not ready | `AutomationCheck.swift:19` "Nothing set up does not read as not set up" |
-| 5 | widget kind filter removed | `AutomationCheck.swift:37` "Another kind of widget or control counted" |
-| 6 | only `.accessoryInline` counts as Lock Screen | `AutomationCheck.swift:41` "Lock" |
-| 7 | any control counts | `AutomationCheck.swift:37` "Another kind of widget or control counted" |
-| 8 | `.restricted` camera not treated as denied | `AutomationCheck.swift:51` "Camera … gave the wrong status" |
-| 9 | camera denied counts as set up | `AutomationCheck.swift:53` "Off counted as set up" |
-| 10 | marker write removed from `QuickAddExpense.perform()` | `AutomationCheck.swift:65` "A run with a merchant left no with-merchant marker" |
-| 11 | merchant / no-merchant keys swapped | `AutomationCheck.swift:65` (same) |
-| 12 | Add Expense `AppShortcut` removed | `AutomationCheck.swift:76` "Add Expense is not an App Shortcut" |
+| 5 | widget kind filter removed | `AutomationCheck.swift:41` "Another kind of widget or control counted" |
+| 6 | only `.accessoryInline` counts as Lock Screen | `AutomationCheck.swift:45` "Lock" |
+| 7 | any control counts | `AutomationCheck.swift:41` "Another kind of widget or control counted" |
+| 8 | `.restricted` camera not treated as denied | `AutomationCheck.swift:55` "Camera … gave the wrong status" |
+| 9 | camera denied counts as set up | `AutomationCheck.swift:57` "Off counted as set up" |
+| 10 | marker write removed from `QuickAddExpense.perform()` | `AutomationCheck.swift:69` "A run with a merchant left no with-merchant marker" |
+| 11 | merchant / no-merchant keys swapped | `AutomationCheck.swift:69` (same) |
+| 12 | Add Expense `AppShortcut` removed | `AutomationCheck.swift:80` "Add Expense is not an App Shortcut" |
 | 13 | Siri counted in «N of M» (PM rev2) | `AutomationCheck.swift:25` "Siri counts as set up" |
+| 14 | monobank problem flag ignored (PM gate B: «Needs attention» lost) | `AutomationCheck.swift:29` "A linked monobank with a problem is not Needs attention" |

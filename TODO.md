@@ -93,4 +93,5 @@ xcrun xcstringstool sync Kalyta/Resources/Localizable.xcstrings --stringsdata <�
       й у StandBy; о півночі — 0 без відкриття застосунку; безкоштовна команда створює App Group для обох
       ідентифікаторів; запис через Тильний дотик чи автоматизацію при закритому застосунку з’являється у віджеті.
 
+- [ ] `ShortcutUpgradeUITests.swift:45`: перед `typeText` тапнути поле суми й дочекатись клавіатури; прогнати `scripts/check-shortcut-upgrade.sh` на HEAD перед наступним релізом, що чіпає `QuickAddExpense`. Якщо й далі червоне на :45 — регресія.
 - [ ] `StoreCheck.swift:83` (перевідкриття архіву злитого сховища) раз почервоніло й позеленіло при повторі: прогнати `--selfcheck` 20 разів; якщо червоне — закривати/checkpoint WAL джерела перед `StoreMerge.archive`.
