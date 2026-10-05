@@ -762,3 +762,23 @@ Research: vault «Валюти — дослідження 2026-10-01».
   prominent — never a single advancing button (the app cannot know a step finished). No button that runs the Autopay
   shortcut (it would record a real expense): «Check it» says pay with Apple Pay, then come back. The Receipt guide
   never asks for camera access; it shows a Settings link only when access is denied. No TipKit, no notifications.
+- **Proof:** `runAutomationCheck()` (`Kalyta/Checks/AutomationCheck.swift`), `AutomationUITests` (Settings → Automation
+  «N of 5 set up», six rows in order, Siri «Ready ✓»), `AutopayGuideUITests` (reaches the guide through Automation).
+  App Shortcut membership is read from the built bundle's `Metadata.appintents/extract.actionsdata`, which is what iOS
+  reads (`AppShortcut` exposes no intent). Each mutation ran on a scratch copy built as `org.merzlov.kalyta.mutation`:
+
+| # | mutation | red at |
+|---|---|---|
+| 1 | monobank always not set up | `AutomationCheck.swift:27` "A linked monobank is not Connected" |
+| 2 | Apple Pay reads the without-merchant marker | `AutomationCheck.swift:29` "A run with a merchant did not mark Apple Pay" |
+| 3 | Back Tap reads the with-merchant marker | `AutomationCheck.swift:30` "A run with a merchant marked Back Tap" |
+| 4 | Siri row not ready | `AutomationCheck.swift:19` "Nothing set up does not read as not set up" |
+| 5 | widget kind filter removed | `AutomationCheck.swift:37` "Another kind of widget or control counted" |
+| 6 | only `.accessoryInline` counts as Lock Screen | `AutomationCheck.swift:41` "Lock" |
+| 7 | any control counts | `AutomationCheck.swift:37` "Another kind of widget or control counted" |
+| 8 | `.restricted` camera not treated as denied | `AutomationCheck.swift:51` "Camera … gave the wrong status" |
+| 9 | camera denied counts as set up | `AutomationCheck.swift:53` "Off counted as set up" |
+| 10 | marker write removed from `QuickAddExpense.perform()` | `AutomationCheck.swift:65` "A run with a merchant left no with-merchant marker" |
+| 11 | merchant / no-merchant keys swapped | `AutomationCheck.swift:65` (same) |
+| 12 | Add Expense `AppShortcut` removed | `AutomationCheck.swift:76` "Add Expense is not an App Shortcut" |
+| 13 | Siri counted in «N of M» (PM rev2) | `AutomationCheck.swift:25` "Siri counts as set up" |
