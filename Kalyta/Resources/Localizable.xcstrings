@@ -1588,6 +1588,16 @@
         }
       }
     },
+    "Needs attention": {
+      "localizations": {
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Потрібна увага"
+          }
+        }
+      }
+    },
     "New": {
       "localizations": {
         "uk": {

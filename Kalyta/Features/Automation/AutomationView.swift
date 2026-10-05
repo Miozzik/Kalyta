@@ -35,7 +35,9 @@ struct AutomationView: View {
             destination(of: row)
         } label: {
             LabeledContent {
-                if let text = status.text {
+                if status == .needsAttention {
+                    Label(status.text ?? "", systemImage: "exclamationmark.circle").foregroundStyle(.orange)
+                } else if let text = status.text {
                     Text(text).foregroundStyle(status.isSetUp ? .green : .secondary)
                 }
             } label: {

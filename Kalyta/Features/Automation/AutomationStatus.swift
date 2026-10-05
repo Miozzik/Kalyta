@@ -32,9 +32,11 @@ enum AutomationStatus: Equatable {
     case placed(homeScreen: Bool, lockScreen: Bool, controlCenter: Bool)
     /// Camera access is off, so the scanner cannot open.
     case cameraDenied
+    /// monobank is linked, but the last sync hit a problem the person has to fix.
+    case needsAttention
 
     /// Whether the status shows the row in use.
-    var isSetUp: Bool { self != .notSetUp && self != .cameraDenied }
+    var isSetUp: Bool { ![.notSetUp, .cameraDenied, .needsAttention].contains(self) }
 
     /// The trailing text of the row, or `nil` to show none.
     var text: String? {
@@ -45,6 +47,7 @@ enum AutomationStatus: Equatable {
         case .quickAddUsed: return String(localized: "Quick add used ✓")
         case .ready: return String(localized: "Ready ✓")
         case .cameraDenied: return String(localized: "Camera off")
+        case .needsAttention: return String(localized: "Needs attention")
         case .placed(let home, let lock, let control):
             let places = [
                 (home, String(localized: "Home Screen")), (lock, String(localized: "Lock Screen")),
@@ -59,6 +62,8 @@ enum AutomationStatus: Equatable {
 struct AutomationInputs {
     /// Whether monobank is linked.
     var isMonobankLinked = false
+    /// Whether the last monobank sync ended with a problem the person has to fix.
+    var monobankProblem = false
     /// When Add Expense last ran with a merchant, as seconds since 1970; 0 means never.
     var lastRunWithMerchant: Double = 0
     /// When Add Expense last ran without a merchant, as seconds since 1970; 0 means never.
@@ -82,6 +87,10 @@ struct AutomationInputs {
             lastRunWithMerchant: defaults.double(forKey: QuickAddExpense.lastRunWithMerchantKey),
             lastRunWithoutMerchant: defaults.double(forKey: QuickAddExpense.lastRunWithoutMerchantKey),
             camera: AVCaptureDevice.authorizationStatus(for: .video))
+        let state = defaults.data(forKey: MonobankSync.stateKey).flatMap {
+            try? JSONDecoder().decode(MonobankSync.State.self, from: $0)
+        }
+        inputs.monobankProblem = state?.problem != nil
         let infos = await withCheckedContinuation { continuation in
             WidgetCenter.shared.getCurrentConfigurations { continuation.resume(returning: (try? $0.get()) ?? []) }
         }
@@ -101,7 +110,9 @@ struct AutomationInputs {
     /// - Returns: What the row shows.
     func status(of row: AutomationRow) -> AutomationStatus {
         switch row {
-        case .monobank: return isMonobankLinked ? .connected : .notSetUp
+        case .monobank:
+            guard isMonobankLinked else { return .notSetUp }
+            return monobankProblem ? .needsAttention : .connected
         case .applePay: return lastRunWithMerchant > 0 ? .works : .notSetUp
         case .backTap: return lastRunWithoutMerchant > 0 ? .quickAddUsed : .notSetUp
         // App Shortcuts are registered on install, so Siri and the Action button find Add Expense at once.

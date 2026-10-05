@@ -25,6 +25,10 @@ func runAutomationCheck() {
     assert(AutomationRow.detectable.count == 5 && inputs.setUpCount == 0, "Siri counts as set up")
     inputs.isMonobankLinked = true
     assert(inputs.status(of: .monobank) == .connected, "A linked monobank is not Connected")
+    inputs.monobankProblem = true
+    assert(inputs.status(of: .monobank) == .needsAttention, "A linked monobank with a problem is not Needs attention")
+    assert(inputs.setUpCount == 0, "A monobank that needs attention counts as set up")
+    inputs.monobankProblem = false
     inputs.lastRunWithMerchant = 1
     assert(inputs.status(of: .applePay) == .works, "A run with a merchant did not mark Apple Pay")
     assert(inputs.status(of: .backTap) == .notSetUp, "A run with a merchant marked Back Tap")
