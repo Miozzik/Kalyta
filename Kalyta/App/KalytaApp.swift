@@ -110,5 +110,9 @@ struct KalytaShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: ScanReceiptIntent(), phrases: ["Scan a receipt in \(.applicationName)"],
             shortTitle: "Scan Receipt", systemImageName: "qrcode.viewfinder")
+        // No parameter in the phrase, so the action asks for the amount; Back Tap and the Action button list it too.
+        AppShortcut(
+            intent: QuickAddExpense(), phrases: ["Add an expense in \(.applicationName)"],
+            shortTitle: "Add Expense", systemImageName: "plus.circle")
     }
 }

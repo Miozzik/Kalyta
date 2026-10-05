@@ -136,32 +136,3 @@ struct MonobankView: View {
         }
     }
 }
-
-/// The Settings row that opens ``MonobankView``, with the connection state on the right.
-struct MonobankSettingsRow: View {
-    @AppStorage(MonobankSync.linkedKey) private var isLinked = false
-    @AppStorage(MonobankSync.stateKey) private var stateData: Data?
-
-    var body: some View {
-        NavigationLink {
-            MonobankView()
-        } label: {
-            LabeledContent {
-                HStack(spacing: 6) {
-                    let state = stateData.flatMap { try? JSONDecoder().decode(MonobankSync.State.self, from: $0) }
-                    if isLinked && state?.problem != nil {
-                        Image(systemName: "exclamationmark.circle").foregroundStyle(.orange)
-                            .accessibilityLabel("Needs attention")
-                    }
-                    if isLinked { Text("Connected") } else { Text("Off") }
-                }
-            } label: {
-                Label {
-                    Text(verbatim: "monobank")
-                } icon: {
-                    Image(systemName: "building.columns")
-                }
-            }
-        }
-    }
-}

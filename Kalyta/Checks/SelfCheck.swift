@@ -75,13 +75,13 @@ func runSelfCheck() {
     runSubscriptionCheck()
     runReceiptCheck()
     runQuickAddCheck()
+    runAutomationCheck()
     runMonobankCheck()
     runHardeningCheck()
     runTodayCheck()
     runAutopayCheck()
     runCurrencyCheck()
     runBackupCheck()
-
     // The Shortcuts action: an empty or unknown category must record into "Other", never fail.
     assert(Store.category(forKey: nil, in: context).key == "other", "An empty category did not fall back to Other")
     assert(

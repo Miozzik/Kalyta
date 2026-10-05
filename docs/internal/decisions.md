@@ -736,3 +736,29 @@ Research: vault «Валюти — дослідження 2026-10-01».
   instead of typing into the dialog's name field (missing at times); the picker is brought to On My iPhone from
   Recents / Locations / any folder; share-sheet taps are retried; a just-saved file is awaited up to 30 s; a dropped
   tap on the file is repeated. Export+Import+Backup together, clone+erase: 9/9 twice.
+
+## 2026-10-05 — Automation submenu, stage 1 (PM gate A ruling; client, designer agreed)
+
+- **Settings:** the «Bank» section goes. One row «Automation» with a plain grey subtitle «N of M set up» (no badge);
+  monobank and the Automatic Recording guide live only inside it. **PM rev2:** only detected states count (monobank
+  linked, with-merchant marker, without-merchant marker, widget or control found, camera authorized), so M = 5; Siri's
+  «Ready ✓» is always true and would be fake progress.
+- **Automation list:** six rows in a fixed order, two sections. «Records by itself»: monobank sync, Apple Pay payments
+  (Wallet Transaction automation, other banks too); footer «Pay cash or with a card not in Wallet? The ones below
+  record in 2 seconds.» «One-tap capture»: Back Tap, Action button & Siri/Spotlight, Widgets & Control Center, Receipt
+  QR. Rows never move; only their status text changes. The status is trailing text inside the row's label, so
+  VoiceOver reads it.
+- **Statuses** come from one pure function (`AutomationStatus.swift`) so the self-check asserts every branch:
+  monobank — `MonobankSync.linkedKey`; Apple Pay — the with-merchant marker; Back Tap — the without-merchant marker;
+  Action button & Siri — always ready (App Shortcuts exist after install); widgets — `WidgetCenter` configurations of
+  `TodayTotal.widgetKind` (home vs lock by family) and, on iOS 18, `ControlCenter` controls of kind
+  `ScanReceiptControl`; Receipt QR — camera authorization (denied → a button to the app's Settings).
+- **Markers:** `QuickAddExpense.perform()` writes a `Double` timestamp to `UserDefaults.standard` after the save:
+  `lastRunWithMerchant` when a non-empty note was passed, else `lastRunWithoutMerchant`. Timestamp only, no content.
+- **Add Expense** becomes a second App Shortcut («Add an expense in Kalyta»), so Siri, Spotlight, the Action button
+  and Back Tap find it without building a shortcut. Its parameters do not change.
+- **Guides** share one template (benefit line, numbered one-line steps, optional screenshot, «Check it» line); the
+  Automatic Recording guide is rebuilt on it. **PM rev2:** one button per step, right under it, the step-1 button
+  prominent — never a single advancing button (the app cannot know a step finished). No button that runs the Autopay
+  shortcut (it would record a real expense): «Check it» says pay with Apple Pay, then come back. The Receipt guide
+  never asks for camera access; it shows a Settings link only when access is denied. No TipKit, no notifications.

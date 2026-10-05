@@ -12,6 +12,11 @@ struct QuickAddExpense: AppIntent {
     static var title: LocalizedStringResource = "Add Expense"
     static var description = IntentDescription("Records an expense in Kalyta without opening the app.")
     static var openAppWhenRun = false
+    /// When the action last recorded an entry with a merchant (the Transaction automation),
+    /// as seconds since 1970; Settings → Automation reads it as "set up".
+    static let lastRunWithMerchantKey = "lastRunWithMerchant"
+    /// When the action last recorded an entry without a merchant (Back Tap, Siri), as seconds since 1970.
+    static let lastRunWithoutMerchantKey = "lastRunWithoutMerchant"
 
     @Parameter(title: "Amount", requestValueDialog: "How much?")
     var amount: Double
@@ -46,6 +51,8 @@ struct QuickAddExpense: AppIntent {
             ?? Store.category(forMerchant: note, in: context)
         context.insert(Expense(amount: amount, category: record, note: note))
         try context.save()
+        let marker = note.isEmpty ? Self.lastRunWithoutMerchantKey : Self.lastRunWithMerchantKey
+        UserDefaults.standard.set(Date.now.timeIntervalSince1970, forKey: marker)
         return .result(dialog: "Recorded \(formattedHryvnias(amount))")
     }
 }

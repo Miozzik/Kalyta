@@ -34,38 +34,30 @@ struct AutopaySetupView: View {
     @Environment(\.openURL) private var openURL
 
     var body: some View {
-        List {
-            Section {
-                Text(
-                    "Kalyta can record every Apple Pay payment by itself, with its amount and merchant. iOS lets only you switch this on, in Shortcuts. It takes about a minute."
-                )
-            }
-            Section("Step 1") {
-                if let file = AutopayShortcut.file {
-                    ShareLink(item: file) {
-                        Label("Add the Shortcut", systemImage: "square.and.arrow.down")
-                    }
+        GuideScreen(
+            row: .applePay, check: "Pay with Apple Pay, then come back: the payment is in Expenses with its merchant."
+        ) {
+            Text("iOS lets only you switch this on, in Shortcuts. It takes about a minute.")
+            GuideStep(1, "Add the shortcut: choose Shortcuts in the list, then tap Add Shortcut.")
+            if let file = AutopayShortcut.file {
+                ShareLink(item: file) {
+                    Label("Add the Shortcut", systemImage: "square.and.arrow.down")
                 }
-                Text("Choose Shortcuts in the list, then tap Add Shortcut.")
-                GuideImage(.autopayShare, label: "The share sheet with Shortcuts in the list of apps")
-                GuideImage(.autopayImport, label: "The shortcut in Shortcuts with the Add Shortcut button")
+                .buttonStyle(.borderedProminent)
             }
-            Section("Step 2") {
-                Button {
-                    openURL(AutopayShortcut.openURL)
-                } label: {
-                    Label("Open the Shortcut", systemImage: "arrow.up.forward.app")
-                }
-                Text("Tap Edit, then Automation, then Transaction. Choose your cards and tap Done.")
+            GuideImage(.autopayShare, label: "The share sheet with Shortcuts in the list of apps")
+            GuideImage(.autopayImport, label: "The shortcut in Shortcuts with the Add Shortcut button")
+            GuideStep(
+                2, "Open the shortcut, tap Edit, then Automation, then Transaction. Choose your cards and tap Done.")
+            Button {
+                openURL(AutopayShortcut.openURL)
+            } label: {
+                Label("Open the Shortcut", systemImage: "arrow.up.forward.app")
             }
-            Section("Step 3") {
-                Text("In the shortcut, tap ⓘ, then Privacy, and turn on Allow Running When Locked.")
-                GuideImage(
-                    .autopayLocked, label: "Allow Running When Locked turned on in the shortcut’s Privacy settings")
-            }
+            GuideStep(3, "In the shortcut, tap ⓘ, then Privacy, and turn on Allow Running When Locked.")
+            GuideImage(
+                .autopayLocked, label: "Allow Running When Locked turned on in the shortcut’s Privacy settings")
         }
-        .navigationTitle("Automatic Recording")
-        .navigationBarTitleDisplayMode(.inline)
     }
 }
 

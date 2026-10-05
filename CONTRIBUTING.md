@@ -44,6 +44,7 @@ Kalyta/                       # App target (Xcode synchronized folder: new files
 ├── App/                      # Entry point, launch arguments, Settings, About, shared sheet toolbar
 ├── Model/                    # SwiftData models, schema versions and migrations, periods, hryvnia formatting
 ├── Features/
+│   ├── Automation/           # Settings → Automation list, row statuses, setup guide template
 │   ├── Expenses/             # List, editor, CSV format and import planning, summary card
 │   ├── Backup/               # Settings → Backup screen, JSON backup format, restore plan and writer
 │   ├── Categories/           # Category editor, merchant → category memory
@@ -152,7 +153,7 @@ Never pass these on the `xcodebuild` command line: there they also rename the UI
 
 - **Add Expense parameters changed?** Run `scripts/check-shortcut-upgrade.sh [previous-ref]`: a shortcut saved with
   the previous build must keep its Category after the upgrade.
-- **Shortcuts guide screenshots** (Settings → Automatic Recording, English and Ukrainian, in
+- **Shortcuts guide screenshots** (Settings → Automation → Apple Pay Payments, English and Ukrainian, in
   `Kalyta/Resources/Assets.xcassets/Autopay*`): `scripts/autopay-screenshots.sh`. It erases and relanguages the simulator
   "iPhone 17 Autopay", so never point it at a shared one. The **Transaction** trigger is not available on the
   simulator; that screenshot comes from a real iPhone.

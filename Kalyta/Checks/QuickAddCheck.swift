@@ -57,14 +57,17 @@ func runQuickAddCheck() {
         deleteExpenses(where: #Predicate { $0.note == stored }, in: shared)
         return succeeded && added.count == 1 ? added[0].assignedCategory?.key : nil
     }
-    assert(quickAdd(amount: 1, note: " SELFCHECK") == "food", "The Shortcuts action does not use the merchant memory")
-    assert(
-        quickAdd(amount: 1, note: " SELFCHECK", categoryKey: "health") == "health",
-        "A category set in the Shortcuts action did not win")
-    assert(quickAdd(amount: maximumAmount + 1, note: " SELFCHECK") == nil, "The action accepted a huge amount")
-    assert(
-        quickAdd(amount: 1, note: String(repeating: "й", count: maximumNoteLength + 500)) == "other",
-        "The action did not cut a long note")
+    keepingRunMarkers {
+        assert(
+            quickAdd(amount: 1, note: " SELFCHECK") == "food", "The Shortcuts action does not use the merchant memory")
+        assert(
+            quickAdd(amount: 1, note: " SELFCHECK", categoryKey: "health") == "health",
+            "A category set in the Shortcuts action did not win")
+        assert(quickAdd(amount: maximumAmount + 1, note: " SELFCHECK") == nil, "The action accepted a huge amount")
+        assert(
+            quickAdd(amount: 1, note: String(repeating: "й", count: maximumNoteLength + 500)) == "other",
+            "The action did not cut a long note")
+    }
     let offered = wait { try! await CategoryQuery().entities(for: ["food", "income"]) }.map(\.id)
     assert(offered == ["food"], "The Shortcuts query resolves income categories: \(offered)")
 }

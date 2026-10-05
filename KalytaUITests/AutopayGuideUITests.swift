@@ -1,6 +1,6 @@
 import XCTest
 
-/// Captures the Shortcuts screens that Settings → Automatic Recording shows, cropped for the guide.
+/// Captures the Shortcuts screens that Settings → Automation → Apple Pay Payments shows, cropped for the guide.
 ///
 /// Shortcuts and the share sheet follow the system language, not the app's launch arguments,
 /// so `scripts/autopay-screenshots.sh` sets the simulator's language, runs this test once per
@@ -13,11 +13,11 @@ final class AutopayGuideUITests: XCTestCase {
     /// Labels without an accessibility identifier, per system language.
     private static let labels: [String: [String: String]] = [
         "en": [
-            "setUp": "Set Up Automatic Recording", "addTheShortcut": "Add the Shortcut",
+            "addTheShortcut": "Add the Shortcut",
             "continue": "Continue", "addShortcut": "Add Shortcut", "info": "info", "privacy": "Privacy",
         ],
         "uk": [
-            "setUp": "Налаштувати автозапис оплат", "addTheShortcut": "Додати команду",
+            "addTheShortcut": "Додати команду",
             "continue": "Далі", "addShortcut": "Додати команду", "info": "інформація", "privacy": "Приватність",
         ],
     ]
@@ -34,7 +34,8 @@ final class AutopayGuideUITests: XCTestCase {
         let settings = kalyta.buttons["gearshape"]
         XCTAssertTrue(settings.waitForExistence(timeout: 10))
         settings.tap()
-        kalyta.buttons[label["setUp"]!].tap()
+        kalyta.buttons["Automation"].tap()
+        kalyta.buttons["automation.applePay"].tap()
         kalyta.buttons[label["addTheShortcut"]!].tap()
 
         // Step 1: the share sheet. A tap while the sheet still animates is lost, so retry

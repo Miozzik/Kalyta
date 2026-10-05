@@ -120,12 +120,14 @@ Details and the simulator build: [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Set up quick capture on iPhone
 
+Kalyta → Settings → **Automation** lists every way below with its status ("N of 5 set up") and a short guide.
+
 1. **Back Tap.** Shortcuts → new shortcut → **Add Expense** action, and set its **Category** (otherwise the entry
    goes to "Other"). Then Settings → Accessibility → Touch → Back Tap → Double Tap → that shortcut.
 2. **Card payments.** Shortcuts → Automation → **Transaction** → **Add Expense**: **Amount** ← Amount,
    **Note** ← Merchant, leave **Category** empty, turn on Run Immediately. Kalyta reuses the category you last gave
    that merchant (case and spaces ignored); a new merchant goes to "Other" — fix it once and it is remembered.
-3. **monobank (optional).** Kalyta → Settings → Bank → monobank → "Open api.monobank.ua", tap the QR code, confirm
+3. **monobank (optional).** Kalyta → Settings → Automation → monobank Sync → "Open api.monobank.ua", tap the QR code, confirm
    in the monobank app, copy the token (shown only once) and paste it in Kalyta.
 
 > Upgrading from a version without custom categories? Open your Add Expense shortcuts and pick the **Category**

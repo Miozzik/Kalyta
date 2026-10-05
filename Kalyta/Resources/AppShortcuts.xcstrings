@@ -1,6 +1,30 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "Add an expense in ${applicationName}": {
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringSet": {
+            "state": "translated",
+            "values": [
+              "Add an expense in ${applicationName}",
+              "Record an expense in ${applicationName}"
+            ]
+          }
+        },
+        "uk": {
+          "stringSet": {
+            "state": "translated",
+            "values": [
+              "Додай витрату в ${applicationName}",
+              "Додати витрату в ${applicationName}",
+              "Запиши витрату в ${applicationName}"
+            ]
+          }
+        }
+      }
+    },
     "Scan a receipt in ${applicationName}": {
       "extractionState": "extracted_with_value",
       "localizations": {
