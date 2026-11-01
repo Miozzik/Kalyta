@@ -17,6 +17,7 @@ final class StatisticsUITests: KalytaUITestCase {
     /// Statistics reads the store directly; this holds only because leaving the Expenses tab
     /// commits a pending deletion.
     func testPendingDeletionIsNotInStatistics() {
+        selectYesterdaysMonth()
         row("Комуналка").swipeLeft()
         app.buttons["Delete"].firstMatch.tap()
         XCTAssertTrue(app.buttons["Undo"].waitForExistence(timeout: 2))

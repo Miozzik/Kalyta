@@ -40,6 +40,17 @@ class KalytaUITestCase: XCTestCase {
         text.filter(\.isNumber)
     }
 
+    /// Selects the previous month's bar when yesterday is in it, as on the 1st of a month.
+    ///
+    /// Samples a day old, such as "Комуналка" and the salary, are listed only in yesterday's month.
+    func selectYesterdaysMonth() {
+        let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: .now)!
+        guard !Calendar.current.isDate(yesterday, equalTo: .now, toGranularity: .month) else { return }
+        // Accessibility order is not screen order, so pick the bar by position.
+        let bars = app.buttons.matching(identifier: "periodBar").allElementsBoundByIndex
+        bars.sorted { $0.frame.minX < $1.frame.minX }.dropLast().last?.tap()
+    }
+
     /// Returns the text of the period total, scrolling back up to the summary card.
     func summaryTotal() -> String {
         let total = app.staticTexts["summaryTotal"]

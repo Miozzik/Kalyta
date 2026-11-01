@@ -36,12 +36,7 @@ final class IncomeUITests: KalytaUITestCase {
         app.tabBars.buttons["Income"].tap()
         XCTAssertTrue(app.navigationBars["Income"].waitForExistence(timeout: 3))
         // The salary is a day old: on the 1st it belongs to the previous month's bar.
-        let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: .now)!
-        if !Calendar.current.isDate(yesterday, equalTo: .now, toGranularity: .month) {
-            // Accessibility order is not screen order, so pick the bar by position.
-            let bars = app.buttons.matching(identifier: "periodBar").allElementsBoundByIndex
-            bars.sorted { $0.frame.minX < $1.frame.minX }.dropLast().last?.tap()
-        }
+        selectYesterdaysMonth()
 
         let total = summaryTotal()
         XCTAssertEqual(Decimal(string: total.filter { "0123456789.".contains($0) }), 5000, "Income total is \(total)")
