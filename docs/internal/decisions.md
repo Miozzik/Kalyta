@@ -784,3 +784,10 @@ Research: vault «Валюти — дослідження 2026-10-01».
 | 12 | Add Expense `AppShortcut` removed | `AutomationCheck.swift:80` "Add Expense is not an App Shortcut" |
 | 13 | Siri counted in «N of M» (PM rev2) | `AutomationCheck.swift:25` "Siri counts as set up" |
 | 14 | monobank problem flag ignored (PM gate B: «Needs attention» lost) | `AutomationCheck.swift:29` "A linked monobank with a problem is not Needs attention" |
+
+## 2026-11-01 — Income questions revisited with the user: keep all three
+
+The user confirmed the coordinator decisions of 2026-10-01 («revisit with the user»). No code changes.
+- **Transfers keep the fixed «Transfers» category.** The merchant memory stays off for them. The bank gives no name, so every transfer has the same key.
+- **Jar withdrawal needs both conditions:** a jar title and «банк». A person named like a jar still reaches the Income tab.
+- **Bank income merges with a manual income** of the same amount within ±30 min. One merged entry is an accepted cost.
